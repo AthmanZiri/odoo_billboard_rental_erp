@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="media_inventory.BillboardMap" owl="1">
+        <div class="o_billboard_map_container">
+            <div class="o_map_header">
+                <h2>Billboard Sites Map</h2>
+            </div>
+            <div id="billboard_leaflet_map" t-ref="mapContainer"></div>
+        </div>
+    </t>
+</templates>

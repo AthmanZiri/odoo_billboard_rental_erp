@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_inherit_media" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.media</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="lease_start_date"/>
+                <field name="lease_end_date"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list//field[@name='product_id']" position="before">
+                <field name="media_face_id"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list//field[@name='name']" position="after">
+                <field name="media_face_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="artwork_file" widget="binary" filename="artwork_filename" string="Graphic"/>
+                <field name="artwork_filename" invisible="1"/>
+                <field name="product_id" readonly="state in ['sale', 'done']"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_media_leases" model="ir.actions.act_window">
+        <field name="name">Leases</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,kanban,form,calendar,pivot,graph,activity</field>
+        <field name="domain">[('order_line.media_face_id', '!=', False)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage your Billboard Leases here.
+            </p>
+        </field>
+    </record>
+</odoo>

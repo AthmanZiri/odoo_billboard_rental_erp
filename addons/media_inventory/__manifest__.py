@@ -1,0 +1,33 @@
+{
+    'name': 'Media Inventory',
+    'version': '1.0',
+    'category': 'Sales',
+    'summary': 'Manage Billboard/Canopy Sites and Faces for OOH Media',
+    'description': """
+        Centralized system for managing Billboard and Canopy inventory.
+        Hierarchy: Site > Face.
+    """,
+    'author': 'Antigravity',
+    'depends': ['sale_management', 'base_geolocalize', 'mail'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
+        'views/site_views.xml',
+        'views/face_views.xml',
+        'views/sale_views.xml',
+        'views/menus.xml',
+        'report/media_proposal_report.xml',
+        'report/media_proposal_template.xml',
+    ],
+    'assets': {
+        'web.assets_backend': [
+            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+            'media_inventory/static/src/css/map_styles.css',
+            'media_inventory/static/src/js/billboard_map.js',
+            'media_inventory/static/src/xml/map_templates.xml',
+        ],
+    },
+    'installable': True,
+    'application': True,
+}

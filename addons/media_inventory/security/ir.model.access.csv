@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_media_site,media.site,model_media_site,base.group_user,1,1,1,1
+access_media_face,media.face,model_media_face,base.group_user,1,1,1,1
+access_media_permit_history,media.permit.history,model_media_permit_history,base.group_user,1,1,1,1

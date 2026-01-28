@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_task_form2_inherit_media" model="ir.ui.view">
+        <field name="name">project.task.form.inherit.media</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="after">
+                <group string="Media Operations">
+                    <group string="Face &amp; Site">
+                        <field name="media_face_id"/>
+                        <field name="site_id"/>
+                    </group>
+                    <group string="Security">
+                        <field name="watchman_id"/>
+                        <field name="watchman_phone"/>
+                    </group>
+                </group>
+                <notebook>
+                    <page string="Flighting / Installation" name="flighting">
+                        <group>
+                            <group string="Artwork Tracking">
+                                <field name="artwork_status"/>
+                                <field name="artwork_file" filename="artwork_filename"/>
+                                <field name="artwork_filename" invisible="1"/>
+                            </group>
+                            <group string="Installation Complete">
+                                <field name="installation_date"/>
+                                <field name="pop_photo" widget="image"/>
+                                <field name="pop_upload_date"/>
+                                <button name="action_mark_installed" string="Mark as Installed" type="object" class="oe_highlight" invisible="installation_date != False"/>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>

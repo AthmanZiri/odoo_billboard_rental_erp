@@ -1,0 +1,210 @@
+<odoo>
+    <record id="view_media_site_graph" model="ir.ui.view">
+        <field name="name">media.site.graph</field>
+        <field name="model">media.site</field>
+        <field name="arch" type="xml">
+            <graph string="Pending Invoices by Site" type="bar">
+                <field name="name"/>
+                <field name="pending_invoice_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_site_graph_revenue" model="ir.ui.view">
+        <field name="name">media.site.graph.revenue</field>
+        <field name="model">media.site</field>
+        <field name="arch" type="xml">
+            <graph string="Monthly Revenue by Site" type="bar">
+                <field name="name"/>
+                <field name="total_monthly_revenue" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_site_graph_occupancy" model="ir.ui.view">
+        <field name="name">media.site.graph.occupancy</field>
+        <field name="model">media.site</field>
+        <field name="arch" type="xml">
+            <graph string="Occupancy by Site" type="pie">
+                <field name="name"/>
+                <field name="occupied_faces_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_face_graph_revenue" model="ir.ui.view">
+        <field name="name">media.face.graph.revenue</field>
+        <field name="model">media.face</field>
+        <field name="arch" type="xml">
+            <graph string="Monthly Revenue by Face" type="bar">
+                <field name="display_name"/>
+                <field name="price_per_month" type="measure" string="Monthly Revenue"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_face_graph_occupancy" model="ir.ui.view">
+        <field name="name">media.face.graph.occupancy</field>
+        <field name="model">media.face</field>
+        <field name="arch" type="xml">
+            <graph string="Overall Occupancy Status" type="pie">
+                <field name="occupancy_status"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_site_graph_availability" model="ir.ui.view">
+        <field name="name">media.site.graph.availability</field>
+        <field name="model">media.site</field>
+        <field name="arch" type="xml">
+            <graph string="Available Faces by Site" type="bar">
+                <field name="name"/>
+                <field name="available_faces_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_site_graph_unpaid" model="ir.ui.view">
+        <field name="name">media.site.graph.unpaid</field>
+        <field name="model">media.site</field>
+        <field name="arch" type="xml">
+            <graph string="Unpaid Amount by Site" type="bar">
+                <field name="name"/>
+                <field name="unpaid_invoices_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_site_graph_occupancy_rate" model="ir.ui.view">
+        <field name="name">media.site.graph.occupancy.rate</field>
+        <field name="model">media.site</field>
+        <field name="arch" type="xml">
+            <graph string="Occupancy Rate by Site" type="bar">
+                <field name="name"/>
+                <field name="occupancy_rate" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_face_graph_face_type" model="ir.ui.view">
+        <field name="name">media.face.graph.face.type</field>
+        <field name="model">media.face</field>
+        <field name="arch" type="xml">
+            <graph string="Inventory by Face Type" type="pie">
+                <field name="face_type"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_site_pivot" model="ir.ui.view">
+        <field name="name">media.site.pivot</field>
+        <field name="model">media.site</field>
+        <field name="arch" type="xml">
+            <pivot string="Site Analysis">
+                <field name="name" type="row"/>
+                <field name="total_faces_count" type="measure"/>
+                <field name="occupied_faces_count" type="measure"/>
+                <field name="available_faces_count" type="measure"/>
+                <field name="occupancy_rate" type="measure"/>
+                <field name="total_monthly_revenue" type="measure"/>
+                <field name="pending_invoice_count" type="measure"/>
+                <field name="unpaid_invoices_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_media_site_kanban_dashboard" model="ir.ui.view">
+        <field name="name">media.site.kanban.dashboard</field>
+        <field name="model">media.site</field>
+        <field name="arch" type="xml">
+            <kanban class="oe_background_grey o_kanban_dashboard o_emphasize_colors o_stock_kanban" create="false">
+                <field name="name"/>
+                <field name="total_faces_count"/>
+                <field name="occupied_faces_count"/>
+                <field name="available_faces_count"/>
+                <field name="total_monthly_revenue"/>
+                <field name="pending_invoice_count"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_card_header">
+                            <div class="o_primary">
+                                <strong><field name="name"/></strong>
+                            </div>
+                        </div>
+                        <div class="container o_kanban_card_content mt-2">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="text-muted">Available: <field name="available_faces_count"/> / <field name="total_faces_count"/></div>
+                                    <div class="text-primary font-weight-bold">Rev: <field name="total_monthly_revenue"/></div>
+                                </div>
+                                <div class="col-6 text-right">
+                                    <button class="btn btn-sm btn-outline-danger" name="action_view_pending_invoices" type="object">
+                                        <field name="pending_invoice_count"/> Unpaid
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="action_billboard_dashboard_revenue" model="ir.actions.act_window">
+        <field name="name">Revenue by Site</field>
+        <field name="res_model">media.site</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_media_site_graph_revenue"/>
+    </record>
+
+    <record id="action_billboard_dashboard_unpaid" model="ir.actions.act_window">
+        <field name="name">Unpaid by Site</field>
+        <field name="res_model">media.site</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_media_site_graph_unpaid"/>
+    </record>
+
+    <record id="action_billboard_dashboard_occupancy" model="ir.actions.act_window">
+        <field name="name">Occupancy Status</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_media_face_graph_occupancy"/>
+    </record>
+
+    <record id="action_billboard_dashboard_availability" model="ir.actions.act_window">
+        <field name="name">Availability Highlights</field>
+        <field name="res_model">media.site</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_media_site_graph_availability"/>
+    </record>
+
+    <record id="view_billboard_board" model="ir.ui.view">
+        <field name="name">Billboard Dashboard Board</field>
+        <field name="model">board.board</field>
+        <field name="arch" type="xml">
+            <form string="Billboard Dashboard">
+                <board style="2-1">
+                    <column>
+                        <action name="%(media_finance.action_billboard_dashboard_revenue)d" string="Revenue by Site"/>
+                        <action name="%(media_finance.action_billboard_dashboard_unpaid)d" string="Unpaid Amount by Site"/>
+                    </column>
+                    <column>
+                        <action name="%(media_finance.action_billboard_dashboard_occupancy)d" string="Occupancy Overview"/>
+                        <action name="%(media_finance.action_billboard_dashboard_availability)d" string="Availability by Site"/>
+                    </column>
+                </board>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_billboard_main_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">board.board</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_billboard_board"/>
+        <field name="usage">menu</field>
+    </record>
+
+    <menuitem id="menu_media_dashboard" name="Dashboard" parent="media_inventory.menu_media_root" action="action_billboard_main_dashboard" sequence="1"/>
+</odoo>

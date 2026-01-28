@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_media_dooh_slot,media.dooh.slot,model_media_dooh_slot,base.group_user,1,1,1,1
+access_media_dooh_content_version,media.dooh.content.version,model_media_dooh_content_version,base.group_user,1,1,1,1

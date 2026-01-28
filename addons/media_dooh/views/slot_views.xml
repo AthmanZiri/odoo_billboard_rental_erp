@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_media_dooh_slot_tree" model="ir.ui.view">
+        <field name="name">media.dooh.slot.list</field>
+        <field name="model">media.dooh.slot</field>
+        <field name="arch" type="xml">
+            <list string="DOOH Slots">
+                <field name="name"/>
+                <field name="face_id"/>
+                <field name="partner_id"/>
+                <field name="state"/>
+                <field name="sov"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_media_dooh_slot_form" model="ir.ui.view">
+        <field name="name">media.dooh.slot.form</field>
+        <field name="model">media.dooh.slot</field>
+        <field name="arch" type="xml">
+            <form string="DOOH Slot">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Slot Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="basic_info">
+                            <field name="face_id" options="{'no_create': True}"/>
+                            <field name="partner_id"/>
+                            <field name="sov"/>
+                        </group>
+                        <group name="schedule_info">
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Content &amp; Timing" name="content_timing">
+                            <group>
+                                <group name="content_details" string="Content Management">
+                                    <field name="sale_line_id" readonly="1" invisible="not sale_line_id"/>
+                                    <field name="content_type"/>
+                                    <field name="content_file" filename="content_filename"/>
+                                    <field name="content_filename" invisible="1"/>
+                                </group>
+                                <group name="playback_timing" string="Scheduling">
+                                    <field name="play_start_time" widget="float_time"/>
+                                    <field name="play_end_time" widget="float_time"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Creative History" name="creative_history">
+                            <field name="version_ids">
+                                <list editable="bottom" decoration-success="is_active">
+                                    <field name="create_date" string="Upload Date" readonly="1"/>
+                                    <field name="name" placeholder="e.g. Christmas Ad 2025"/>
+                                    <field name="content_file" filename="content_filename" widget="binary"/>
+                                    <field name="content_filename" column_invisible="1"/>
+                                    <field name="content_type"/>
+                                    <field name="is_active" readonly="1"/>
+                                    <button name="action_activate" type="object" string="Activate" 
+                                            class="btn-primary" invisible="is_active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_media_dooh_slot" model="ir.actions.act_window">
+        <field name="name">Digital Slots</field>
+        <field name="res_model">media.dooh.slot</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

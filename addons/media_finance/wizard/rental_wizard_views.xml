@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_media_rental_wizard_form" model="ir.ui.view">
+        <field name="name">media.rental.wizard.form</field>
+        <field name="model">media.rental.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Select Billboards">
+                <sheet>
+                    <group>
+                        <field name="available_faces_domain" invisible="1"/>
+                        <field name="available_face_ids" widget="many2many_checkboxes" string="Select Billboards"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_add_billboards" string="Add Selected" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_media_rental_wizard" model="ir.actions.act_window">
+        <field name="name">Select Billboards</field>
+        <field name="res_model">media.rental.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_rental_id': active_id}</field>
+    </record>
+</odoo>

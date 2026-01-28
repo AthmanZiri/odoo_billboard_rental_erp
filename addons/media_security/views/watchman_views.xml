@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_media_site_form_inherit_security" model="ir.ui.view">
+        <field name="name">media.site.form.inherit.security</field>
+        <field name="model">media.site</field>
+        <field name="inherit_id" ref="media_inventory.view_media_site_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Security" name="security">
+                    <group name="group_security">
+                        <field name="watchman_id"/>
+                        <field name="watchman_phone"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_media_watchman_tree" model="ir.ui.view">
+        <field name="name">media.watchman.list</field>
+        <field name="model">media.watchman</field>
+        <field name="arch" type="xml">
+            <list string="Watchmen">
+                <field name="name"/>
+                <field name="phone_number"/>
+                <field name="employment_type"/>
+                <field name="agency_name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_media_watchman_form" model="ir.ui.view">
+        <field name="name">media.watchman.form</field>
+        <field name="model">media.watchman</field>
+        <field name="arch" type="xml">
+            <form string="Watchman">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Watchman Name"/>
+                        </h1>
+                    </div>
+                    <group name="group_watchman_main">
+                        <group name="contact_info">
+                            <field name="identity_number"/>
+                            <field name="phone_number"/>
+                        </group>
+                        <group name="employment_info" string="Employment Details">
+                            <field name="employment_type"/>
+                            <field name="agency_name" invisible="employment_type != 'third_party'"/>
+                            <field name="salary" invisible="employment_type != 'direct'"/>
+                            <field name="agency_cost" invisible="employment_type != 'third_party'"/>
+                        </group>
+                    </group>
+                    <notebook name="watchman_notebook">
+                        <page string="Assigned Sites" name="sites">
+                            <field name="site_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="city"/>
+                                    <field name="road_type"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <oe_chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_media_watchman" model="ir.actions.act_window">
+        <field name="name">Watchmen</field>
+        <field name="res_model">media.watchman</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <menuitem id="menu_media_security_root" name="Security" parent="media_inventory.menu_media_root" sequence="30"/>
+    <menuitem id="menu_media_watchman" name="Watchmen" parent="menu_media_security_root" action="action_media_watchman" sequence="10"/>
+    <menuitem id="menu_media_incident" name="Incidents" parent="menu_media_security_root" action="action_media_incident" sequence="20"/>
+</data>

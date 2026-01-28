@@ -1,0 +1,69 @@
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
+
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    lease_start_date = fields.Date(string='Lease Start Date')
+    lease_end_date = fields.Date(string='Lease End Date')
+
+    @api.onchange('lease_start_date', 'lease_end_date')
+    def _onchange_lease_dates(self):
+        for order in self:
+            for line in order.order_line:
+                if order.lease_start_date:
+                    line.start_date = order.lease_start_date
+                if order.lease_end_date:
+                    line.end_date = order.lease_end_date
+
+class SaleOrderLine(models.Model):
+    _inherit = 'sale.order.line'
+
+    media_face_id = fields.Many2one('media.face', string='Media Face')
+    start_date = fields.Date(string='Start Date')
+    end_date = fields.Date(string='End Date')
+    
+    artwork_file = fields.Binary(string='Artwork/Graphic')
+    artwork_filename = fields.Char(string='Artwork Filename')
+    
+    @api.constrains('media_face_id', 'start_date', 'end_date', 'state')
+    def _check_availability(self):
+        for line in self:
+            if not line.media_face_id or line.media_face_id.face_type == 'digital' or not line.start_date or not line.end_date:
+                continue
+            
+            # Check for overlapping bookings for static faces
+            domain = [
+                ('id', '!=', line.id),
+                ('media_face_id', '=', line.media_face_id.id),
+                ('state', 'in', ['sale', 'done']),
+                ('start_date', '<=', line.end_date),
+                ('end_date', '>=', line.start_date),
+            ]
+            overlapping = self.search_count(domain)
+            if overlapping:
+                raise ValidationError(_('The face %s is already booked for the selected period.') % line.media_face_id.name)
+
+    @api.onchange('media_face_id')
+    def _onchange_media_face_id(self):
+        if self.media_face_id:
+            if self.media_face_id.product_id:
+                self.product_id = self.media_face_id.product_id
+            
+            # Set price based on pricing type
+            if self.media_face_id.pricing_type == 'fixed':
+                self.price_unit = self.media_face_id.price_per_month
+            elif self.media_face_id.pricing_type == 'daily':
+                self.price_unit = self.media_face_id.price_per_day
+            
+            # Default dates from header
+            if self.order_id.lease_start_date:
+                self.start_date = self.order_id.lease_start_date
+            if self.order_id.lease_end_date:
+                self.end_date = self.order_id.lease_end_date
+
+    def _prepare_invoice_line(self, **optional_values):
+        res = super(SaleOrderLine, self)._prepare_invoice_line(**optional_values)
+        if self.media_face_id:
+            res['media_face_id'] = self.media_face_id.id
+        return res

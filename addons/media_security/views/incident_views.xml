@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_media_incident_tree" model="ir.ui.view">
+        <field name="name">media.incident.list</field>
+        <field name="model">media.incident</field>
+        <field name="arch" type="xml">
+            <list string="Incidents">
+                <field name="name"/>
+                <field name="site_id"/>
+                <field name="incident_type"/>
+                <field name="date_reported"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_media_incident_form" model="ir.ui.view">
+        <field name="name">media.incident.form</field>
+        <field name="model">media.incident</field>
+        <field name="arch" type="xml">
+            <form string="Incident Report">
+                <header>
+                    <button name="action_report" string="Report" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_resolve" string="Resolve" type="object" invisible="state not in ['reported', 'in_progress']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,reported,in_progress,resolved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="main_info">
+                            <field name="site_id"/>
+                            <field name="incident_type"/>
+                        </group>
+                        <group name="report_info">
+                            <field name="watchman_id"/>
+                            <field name="date_reported"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Describe the incident..."/>
+                    </group>
+                </sheet>
+                <oe_chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_media_incident" model="ir.actions.act_window">
+        <field name="name">Incident Reports</field>
+        <field name="res_model">media.incident</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="seq_media_incident" model="ir.sequence">
+        <field name="name">Media Incident Sequence</field>
+        <field name="code">media.incident</field>
+        <field name="prefix">INC/</field>
+        <field name="padding">5</field>
+    </record>
+</odoo>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <menuitem id="menu_media_root" name="Billboard System" web_icon="media_inventory,static/description/icon.png" sequence="10"/>
+    
+
+
+    <menuitem id="menu_media_inventory" name="Inventory" parent="menu_media_root" sequence="10"/>
+    <menuitem id="menu_media_site" name="Sites" parent="menu_media_inventory" action="action_media_site" sequence="10"/>
+    <menuitem id="menu_media_face_available" name="Available" parent="menu_media_inventory" action="action_media_face_available" sequence="20"/>
+    <menuitem id="menu_media_face" name="Faces" parent="menu_media_inventory" action="action_media_face" sequence="30"/>
+
+
+    <record id="action_billboard_map" model="ir.actions.client">
+        <field name="name">Billboard Map</field>
+        <field name="tag">media_inventory.billboard_map_action</field>
+    </record>
+
+    <menuitem id="menu_media_map_root" name="Map" parent="menu_media_root" action="action_billboard_map" sequence="15"/>
+</data>

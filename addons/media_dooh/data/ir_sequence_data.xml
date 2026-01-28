@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_media_slot" model="ir.sequence">
+            <field name="name">Media Slot Sequence</field>
+            <field name="code">media.dooh.slot</field>
+            <field name="prefix">SLOT/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>
