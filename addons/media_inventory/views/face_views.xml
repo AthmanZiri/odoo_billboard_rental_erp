@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Minimalist Search View for Odoo 19 Troubleshooting -->
-    <record id="v19_media_face_search_minimal" model="ir.ui.view">
-        <field name="name">media.face.search.v19.minimal</field>
+    <!-- Minimalist Search View - Standard ID -->
+    <record id="view_media_face_search" model="ir.ui.view">
+        <field name="name">media.face.search.minimal</field>
         <field name="model">media.face</field>
         <field name="arch" type="xml">
             <search string="Search Faces">
@@ -12,9 +12,9 @@
         </field>
     </record>
 
-    <!-- List View -->
-    <record id="v19_media_face_list" model="ir.ui.view">
-        <field name="name">media.face.list.v19</field>
+    <!-- List View - Standard ID -->
+    <record id="view_media_face_tree" model="ir.ui.view">
+        <field name="name">media.face.list.minimal</field>
         <field name="model">media.face</field>
         <field name="arch" type="xml">
             <list string="Faces">
@@ -25,9 +25,9 @@
         </field>
     </record>
 
-    <!-- Form View -->
-    <record id="v19_media_face_form" model="ir.ui.view">
-        <field name="name">media.face.form.v19</field>
+    <!-- Form View - Standard ID with inheritance hooks -->
+    <record id="view_media_face_form" model="ir.ui.view">
+        <field name="name">media.face.form.minimal</field>
         <field name="model">media.face</field>
         <field name="arch" type="xml">
             <form string="Face">
@@ -39,21 +39,78 @@
                         <group>
                             <field name="site_id"/>
                             <field name="code"/>
+                            <field name="face_type"/>
                         </group>
                         <group>
                             <field name="occupancy_status"/>
                         </group>
                     </group>
+                    <notebook name="face_notebook">
+                        <page string="General Info" name="general_info">
+                            <group>
+                                <group string="Dimensions">
+                                    <field name="height"/>
+                                    <field name="width"/>
+                                </group>
+                                <group string="Pricing">
+                                    <field name="pricing_type"/>
+                                    <field name="price_per_month" invisible="pricing_type != 'fixed'"/>
+                                    <field name="price_per_day" invisible="pricing_type != 'daily'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Digital Specs" name="digital_specs" invisible="face_type != 'digital'">
+                            <group>
+                                <field name="pixel_pitch"/>
+                                <field name="resolution"/>
+                                <field name="refresh_rate"/>
+                                <field name="supported_formats"/>
+                            </group>
+                        </page>
+                        <page string="Artwork History" name="artwork_history">
+                            <field name="lease_line_ids" readonly="1">
+                                <list>
+                                    <field name="order_id"/>
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Expenses" name="expenses">
+                            <field name="expense_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="category"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
 
-    <!-- Action -->
-    <record id="v19_action_media_face" model="ir.actions.act_window">
-        <field name="name">Faces (V19)</field>
+    <!-- Standard Actions -->
+    <record id="action_media_face" model="ir.actions.act_window">
+        <field name="name">Faces</field>
         <field name="res_model">media.face</field>
         <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="v19_media_face_search_minimal"/>
+        <field name="search_view_id" ref="view_media_face_search"/>
+    </record>
+
+    <record id="action_media_face_available" model="ir.actions.act_window">
+        <field name="name">Available Assets</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('occupancy_status', '=', 'available')]</field>
+        <field name="context">{'search_default_available': 1}</field>
     </record>
 </odoo>

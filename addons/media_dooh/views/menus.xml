@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data>
-    <menuitem id="menu_media_dooh_root" name="Digital Slots" parent="media_inventory.menu_media_root" action="action_media_dooh_slot" sequence="20"/>
-    <!-- <menuitem id="menu_media_dooh_slot" name="Digital Slots" parent="menu_media_dooh_root" action="action_media_dooh_slot" sequence="10"/> -->
+    <menuitem id="menu_digital_list" name="Digital Screens" parent="media_inventory.menu_digital_root" action="action_media_dooh_slot" sequence="10"/>
+    <menuitem id="menu_digital_artwork" name="Artwork/Creative History" parent="media_inventory.menu_digital_root" action="action_media_dooh_slot" sequence="20"/>
 </data>

@@ -76,8 +76,8 @@ class MediaSite(models.Model):
     canopy_contact_phone = fields.Char(string='Contact Phone')
     
     # New Configurable Locations
-    county_id = fields.Many2one('media.county', string='County (Configurable)')
-    sub_county_id = fields.Many2one('media.sub_county', string='Sub-County (Configurable)')
+    county_id = fields.Many2one('media.county', string='County')
+    sub_county_id = fields.Many2one('media.sub_county', string='Sub-County')
     
     # Legacy fields (keeping for compatibility)
     county = fields.Char(string='County (Legacy)')

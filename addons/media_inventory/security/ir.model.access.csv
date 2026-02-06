@@ -4,3 +4,4 @@ access_media_face,media.face,model_media_face,base.group_user,1,1,1,1
 access_media_permit_history,media.permit.history,model_media_permit_history,base.group_user,1,1,1,1
 access_media_county,media.county,model_media_county,base.group_user,1,1,1,1
 access_media_sub_county,media.sub_county,model_media_sub_county,base.group_user,1,1,1,1
+access_media_expense,media.expense,model_media_expense,base.group_user,1,1,1,1

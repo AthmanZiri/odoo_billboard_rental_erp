@@ -5,10 +5,11 @@
     'summary': 'Flighting and Installation Workflow for Media Assets',
     'depends': ['media_inventory', 'project', 'media_security'],
     'data': [
+        'security/ir.model.access.csv',
         'data/job_card_sequence.xml',
         'views/project_task_views.xml',
         'views/job_card_views.xml',
-        # 'views/media_inventory_inherit_views.xml',
+        'views/media_inventory_inherit_views.xml',
     ],
     'installable': True,
 }

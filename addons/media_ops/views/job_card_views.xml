@@ -32,11 +32,7 @@
                         <field name="notes" placeholder="Details of the job..."/>
                     </group>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="activity_ids"/>
-                    <field name="message_ids"/>
-                </div>
+                <oe_chatter/>
             </form>
         </field>
     </record>
@@ -70,6 +66,4 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_canopy_repairs" name="Repairs &amp; Maintenance" parent="media_inventory.menu_canopy_root" action="action_media_job_card_canopy" sequence="30"/>
-    <menuitem id="menu_media_job_card" name="Job Cards" parent="media_inventory.menu_media_ops" action="action_media_job_card" sequence="20"/>
 </odoo>

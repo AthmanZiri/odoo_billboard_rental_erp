@@ -48,7 +48,7 @@
     <record id="view_media_face_form_inherit_ops" model="ir.ui.view">
         <field name="name">media.face.form.inherit.ops</field>
         <field name="model">media.face</field>
-        <field name="inherit_id" ref="media_inventory.view_face_form_standard"/>
+        <field name="inherit_id" ref="media_inventory.view_media_face_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Job Cards" name="job_cards">

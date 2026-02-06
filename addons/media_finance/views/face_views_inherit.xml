@@ -3,7 +3,7 @@
     <record id="view_media_face_form_inherit_finance" model="ir.ui.view">
         <field name="name">media.face.form.inherit.finance</field>
         <field name="model">media.face</field>
-        <field name="inherit_id" ref="media_inventory.view_face_form_standard"/>
+        <field name="inherit_id" ref="media_inventory.view_media_face_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Financial History" name="financial_history">
@@ -13,7 +13,7 @@
                             <field name="date" string="Date"/>
                             <field name="price_subtotal" string="Amount"/>
                             <field name="parent_state" string="Status" widget="badge" decoration-info="parent_state == 'draft'" decoration-success="parent_state == 'posted'"/>
-                            <field name="payment_state" string="Payment" widget="badge" decoration-success="payment_state == 'paid'" decoration-warning="payment_state == 'partial'"/>
+                            <field name="move_payment_state" string="Payment" widget="badge" decoration-success="move_payment_state == 'paid'" decoration-warning="move_payment_state == 'partial'"/>
                         </list>
                     </field>
                 </page>
