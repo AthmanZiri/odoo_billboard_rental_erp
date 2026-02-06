@@ -41,8 +41,8 @@ class SaleOrder(models.Model):
 
     def _cron_contract_expiry_reminder(self):
         today = fields.Date.today()
-        # Notify for contracts ending in 7, 15, and 30 days
-        reminder_days = [7, 15, 30]
+        # Notify for contracts ending in 5, 7, 15, and 30 days
+        reminder_days = [5, 7, 15, 30]
         for days in reminder_days:
             expiry_date = today + relativedelta(days=days)
             orders = self.search([

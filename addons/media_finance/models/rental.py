@@ -10,7 +10,7 @@ class MediaRental(models.Model):
     name = fields.Char(string='Rental Number', required=True, copy=False, readonly=True, index=True, default=lambda self: _('New'))
     partner_id = fields.Many2one('res.partner', string='Client', required=True, tracking=True)
     start_date = fields.Date(string='Rental Start Date', required=True, tracking=True, default=fields.Date.today)
-    end_date = fields.Date(string='Rental End Date', required=True, tracking=True, default=lambda self: fields.Date.add(fields.Date.today(), months=1))
+    end_date = fields.Date(string='Rental End Date', required=True, tracking=True, default=lambda self: fields.Date.today() + relativedelta(months=1))
     
     rental_line_ids = fields.One2many('media.rental.line', 'rental_id', string='Rental Lines')
     face_selection_ids = fields.Many2many('media.face', string='Select Billboards', 

@@ -20,7 +20,11 @@
         <field name="arch" type="xml">
             <form string="DOOH Slot">
                 <header>
-                    <field name="state" widget="statusbar"/>
+                    <button name="action_create_sale_order" type="object" string="Create Sale Order" 
+                            class="btn-primary" invisible="state != 'available' or sale_line_id"/>
+                    <button name="%(sale.action_orders)d" type="action" string="View Sale Order" 
+                            invisible="not sale_line_id" context="{'active_id': sale_line_id}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="available,reserved,booked"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -37,6 +41,7 @@
                         <group name="schedule_info">
                             <field name="start_date"/>
                             <field name="end_date"/>
+                            <field name="billing_frequency"/>
                         </group>
                     </group>
                     <notebook>

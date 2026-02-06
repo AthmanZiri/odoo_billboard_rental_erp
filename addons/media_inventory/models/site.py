@@ -3,6 +3,24 @@ import re
 import requests
 from odoo.exceptions import UserError
 
+from odoo.exceptions import UserError
+
+class MediaCounty(models.Model):
+    _name = 'media.county'
+    _description = 'Kenya County'
+    _order = 'name'
+
+    name = fields.Char(string='County Name', required=True)
+    code = fields.Char(string='County Code')
+
+class MediaSubCounty(models.Model):
+    _name = 'media.sub_county'
+    _description = 'Kenya Sub-County'
+    _order = 'name'
+
+    name = fields.Char(string='Sub-County Name', required=True)
+    county_id = fields.Many2one('media.county', string='County', required=True, ondelete='cascade')
+
 class MediaSite(models.Model):
     _name = 'media.site'
     _description = 'Media Site'
@@ -10,6 +28,10 @@ class MediaSite(models.Model):
 
     name = fields.Char(string='Site Name', required=True, copy=False, readonly=True, index=True, default=lambda self: 'New')
     code = fields.Char(string='Site Code', tracking=True)
+    site_category = fields.Selection([
+        ('billboard', 'Billboard'),
+        ('canopy', 'Canopy')
+    ], string='Site Category', default='billboard', required=True)
     
     # Geographic Fields
     street = fields.Char()
@@ -24,15 +46,71 @@ class MediaSite(models.Model):
         ('rural_road', 'Rural Road')
     ], string='Road Type')
     
+    # Canopy Specific Fields
+    duka_type = fields.Selection([
+        ('normal_shop', 'Normal Shop'),
+        ('modern_kiosk', 'Modern Kiosk'),
+        ('kiosk', 'Kiosk'),
+        ('restaurant', 'Restaurant'),
+        ('na', 'NA')
+    ], string='Type of Duka')
+    
+    canopy_type = fields.Selection([
+        ('canopy', 'Canopy'),
+        ('kiosk', 'Kiosk'),
+        ('none', 'NONE'),
+        ('other', 'Other')
+    ], string='Canopy Type')
+    
+    description_canopy = fields.Text(string='Description')
+    
+    canopy_status = fields.Selection([
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('damaged', 'Damaged'),
+        ('withdrawn', 'Withdrawn')
+    ], string='Canopy Status', default='active', tracking=True)
+    canopy_status_reason = fields.Char(string='Status Reason')
+    
+    canopy_contact_name = fields.Char(string='Contact Name')
+    canopy_contact_phone = fields.Char(string='Contact Phone')
+    
+    # New Configurable Locations
+    county_id = fields.Many2one('media.county', string='County (Configurable)')
+    sub_county_id = fields.Many2one('media.sub_county', string='Sub-County (Configurable)')
+    
+    # Legacy fields (keeping for compatibility)
+    county = fields.Char(string='County (Legacy)')
+    area = fields.Char(string='Area (Legacy)')
+    
+    canopy_phone = fields.Char(string='Canopy Location (Phone)')
+    allocated_date = fields.Date(string='Allocated Date')
+    
+    canopy_image = fields.Image(string='Canopy Image')
+    measurement_image_1 = fields.Image(string='Image Measurement')
+    measurement_image_2 = fields.Image(string='Measurement 2')
+    measurement_image_3 = fields.Image(string='Measurement 3')
+    measurement_image_4 = fields.Image(string='Measurement 4')
+    
+    # Billboard Specific Fields
+    billboard_description = fields.Text(string='Description')
+    billboard_location_text = fields.Char(string='Location')
+    billboard_height = fields.Float(string='Height')
+    billboard_width = fields.Float(string='Width')
+    billboard_image_1 = fields.Image(string='Image 1')
+    billboard_image_2 = fields.Image(string='Image 2')
+    billboard_comments = fields.Text(string='Comments')
+    
     # GPS and Links
-    latitude = fields.Float(string='Latitude', digits=(16, 5))
-    longitude = fields.Float(string='Longitude', digits=(16, 5))
+    latitude = fields.Float(string='Latitude', digits=(16, 6))
+    longitude = fields.Float(string='Longitude', digits=(16, 6))
     google_maps_link = fields.Char(string='Google Maps Link')
     
     # Links
     face_ids = fields.One2many('media.face', 'site_id', string='Faces')
     permit_history_ids = fields.One2many('media.permit.history', 'site_id', string='Permit History')
     lease_line_ids = fields.One2many('sale.order.line', compute='_compute_lease_history', string='Lease History')
+    expense_ids = fields.One2many('media.expense', 'site_id', string='Expenses')
     
     image_ids = fields.Many2many('ir.attachment', string='Site Photos')
     color = fields.Integer(string='Color Index')
@@ -43,6 +121,13 @@ class MediaSite(models.Model):
     occupied_faces_count = fields.Integer(compute='_compute_site_stats', string='Occupied Faces', store=True, group_operator="sum")
     available_faces_count = fields.Integer(compute='_compute_site_stats', string='Available Faces', store=True, group_operator="sum")
     total_monthly_revenue = fields.Float(compute='_compute_site_stats', string='Monthly Revenue', store=True, group_operator="sum")
+
+    def action_fetch_coordinates(self):
+        """Manual trigger for coordinate fetching from Google Maps Link"""
+        for record in self:
+            if record.google_maps_link:
+                record._onchange_google_maps_link()
+        return True
 
     @api.model_create_multi
     def create(self, vals_list):

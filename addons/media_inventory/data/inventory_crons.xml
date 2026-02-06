@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_refresh_face_status" model="ir.cron">
+        <field name="name">Media: Refresh Face Occupancy Status</field>
+        <field name="model_id" ref="model_media_face"/>
+        <field name="state">code</field>
+        <field name="code">model.search([])._compute_occupancy_status()
+model.search([])._compute_current_booking_dates()
+model.search([])._compute_next_available_date()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

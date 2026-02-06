@@ -1,19 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<data>
-    <menuitem id="menu_media_root" name="Billboard System" web_icon="media_inventory,static/description/icon.png" sequence="10"/>
-    
-
-
+<odoo>
+    <menuitem id="menu_media_root" name="Billboard System" web_icon="media_inventory,static/description/icon.png"/>
     <menuitem id="menu_media_inventory" name="Inventory" parent="menu_media_root" sequence="10"/>
-    <menuitem id="menu_media_site" name="Sites" parent="menu_media_inventory" action="action_media_site" sequence="10"/>
-    <menuitem id="menu_media_face_available" name="Available" parent="menu_media_inventory" action="action_media_face_available" sequence="20"/>
-    <menuitem id="menu_media_face" name="Faces" parent="menu_media_inventory" action="action_media_face" sequence="30"/>
 
+    <menuitem id="menu_media_site" name="Billboard Sites" parent="menu_media_inventory" action="action_media_site" sequence="10"/>
+    <menuitem id="menu_media_site_canopy" name="Canopies" parent="menu_media_inventory" action="action_media_site_canopy" sequence="20"/>
 
-    <record id="action_billboard_map" model="ir.actions.client">
-        <field name="name">Billboard Map</field>
-        <field name="tag">media_inventory.billboard_map_action</field>
+    <!-- Canopy Operations -->
+    <menuitem id="menu_canopy_root" name="Canopies" parent="menu_media_root" sequence="25"/>
+    <menuitem id="menu_canopy_list" name="List of Canopies" parent="menu_canopy_root" action="action_media_site_canopy" sequence="10"/>
+    <menuitem id="menu_canopy_update_status" name="Update Canopy Status" parent="menu_canopy_root" action="action_canopy_status_wizard" sequence="20"/>
+    <menuitem id="menu_media_map" name="Map" parent="menu_media_root" action="action_media_site_map" sequence="20"/>
+
+    <menuitem id="menu_media_ops" name="Operations" parent="menu_media_root" sequence="30"/>
+    <menuitem id="menu_media_expense" name="Asset Expenses" parent="menu_media_ops" action="action_media_expense" sequence="10"/>
+
+    <!-- Configuration Menu -->
+    <menuitem id="menu_media_config" name="Configuration" parent="menu_media_root" sequence="100"/>
+    <menuitem id="menu_media_location" name="Locations" parent="menu_media_config" sequence="10"/>
+    <menuitem id="menu_media_county" name="Counties" parent="menu_media_location" action="action_media_county" sequence="10"/>
+    <menuitem id="menu_media_sub_county" name="Sub-Counties" parent="menu_media_location" action="action_media_sub_county" sequence="20"/>
+
+    <!-- Reports Menu -->
+    <menuitem id="menu_media_reports_root" name="Reports" parent="menu_media_root" sequence="50"/>
+    <menuitem id="menu_media_report_all" name="All Assets" parent="menu_media_reports_root" action="action_media_face" sequence="10"/>
+    <menuitem id="menu_media_report_available" name="Available Assets" parent="menu_media_reports_root" action="action_media_face_available" sequence="20"/>
+    
+    <record id="action_media_face_reserved" model="ir.actions.act_window">
+        <field name="name">Reserved Assets</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_reserved': 1}</field>
     </record>
+    <menuitem id="menu_media_report_reserved" name="Reserved Assets" parent="menu_media_reports_root" action="action_media_face_reserved" sequence="30"/>
 
-    <menuitem id="menu_media_map_root" name="Map" parent="menu_media_root" action="action_billboard_map" sequence="15"/>
-</data>
+    <record id="action_media_face_soon" model="ir.actions.act_window">
+        <field name="name">Soon to be Available</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_soon_available': 1}</field>
+    </record>
+    <menuitem id="menu_media_report_soon" name="Soon to be Available" parent="menu_media_reports_root" action="action_media_face_soon" sequence="40"/>
+
+    <record id="action_media_face_expired" model="ir.actions.act_window">
+        <field name="name">Expired Leases</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_expired': 1}</field>
+    </record>
+    <menuitem id="menu_media_report_expired" name="Expired Assets" parent="menu_media_reports_root" action="action_media_face_expired" sequence="50"/>
+</odoo>

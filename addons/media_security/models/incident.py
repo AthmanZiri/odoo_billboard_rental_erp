@@ -32,8 +32,9 @@ class MediaIncident(models.Model):
     def action_resolve(self):
         self.state = 'resolved'
 
-    @api.model
-    def create(self, vals):
-        if vals.get('name', 'New') == 'New':
-            vals['name'] = self.env['ir.sequence'].next_by_code('media.incident') or 'New'
-        return super(MediaIncident, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('media.incident') or 'New'
+        return super(MediaIncident, self).create(vals_list)

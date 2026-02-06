@@ -1,14 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Actions (Defined first to allow reference in form headers) -->
+    <record id="action_media_site_canopy" model="ir.actions.act_window">
+        <field name="name">Canopies</field>
+        <field name="res_model">media.site</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('site_category', '=', 'canopy')]</field>
+        <field name="context">{'default_site_category': 'canopy'}</field>
+    </record>
+
+    <record id="action_media_site" model="ir.actions.act_window">
+        <field name="name">Billboard Sites</field>
+        <field name="res_model">media.site</field>
+        <field name="view_mode">list,kanban,graph,pivot,form</field>
+        <field name="domain">[('site_category', '=', 'billboard')]</field>
+        <field name="context">{'default_site_category': 'billboard'}</field>
+    </record>
+
+    <!-- Location Configuration Actions -->
+    <record id="action_media_county" model="ir.actions.act_window">
+        <field name="name">Counties</field>
+        <field name="res_model">media.county</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_media_sub_county" model="ir.actions.act_window">
+        <field name="name">Sub-Counties</field>
+        <field name="res_model">media.sub_county</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Map Action -->
+    <record id="action_media_site_map" model="ir.actions.client">
+        <field name="name">Billboard Map</field>
+        <field name="tag">media_inventory.billboard_map_action</field>
+    </record>
+
+    <!-- Billboard Site Views -->
     <record id="view_media_site_tree" model="ir.ui.view">
         <field name="name">media.site.list</field>
         <field name="model">media.site</field>
         <field name="arch" type="xml">
-            <list string="Sites">
-                <field name="name"/>
-                <field name="code"/>
-                <field name="city"/>
-                <field name="road_type"/>
+            <list string="Billboards">
+                <field name="name" string="Billboard Serial #"/>
+                <field name="county_id" string="County"/>
+                <field name="sub_county_id" string="Sub-County"/>
+                <field name="billboard_location_text" string="Specific Location"/>
+                <field name="billboard_height" string="Height"/>
+                <field name="billboard_width" string="Width"/>
+                <field name="billboard_image_1" widget="image" options="{'size': [64, 64]}" string="Image"/>
+                <field name="google_maps_link" widget="url" string="Map" text="Open"/>
+                <field name="active" widget="boolean_toggle" string="Status"/>
             </list>
         </field>
     </record>
@@ -17,35 +59,54 @@
         <field name="name">media.site.form</field>
         <field name="model">media.site</field>
         <field name="arch" type="xml">
-            <form string="Site">
+            <form string="Billboard">
                 <header>
+                    <button name="%(media_inventory.action_media_site)d" string="View Billboards" type="action" class="btn-primary"/>
+                    <button name="action_fetch_coordinates" string="Fetch Coordinates" type="object" class="btn-secondary"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box"/>
                     <div class="oe_title">
+                        <label for="name" string="Billboard Name"/>
                         <h1>
-                            <field name="name" placeholder="Site Name"/>
+                            <field name="name" placeholder="001/I"/>
                         </h1>
-                        <h3>
-                            <field name="code" placeholder="Site Code"/>
-                        </h3>
                     </div>
-                    <group name="group_main_details">
-                        <group name="group_geographic" string="Geographic">
-                            <field name="street"/>
-                            <field name="city"/>
-                            <field name="district"/>
-                            <field name="zip"/>
-                            <field name="country_id"/>
-                            <field name="road_type"/>
-                        </group>
-                        <group name="group_gps" string="GPS &amp; Maps">
-                            <field name="latitude"/>
-                            <field name="longitude"/>
-                            <field name="google_maps_link" widget="url"/>
+                    <group>
+                        <group>
+                            <field name="site_category" string="Type"/>
+                            <field name="county_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="sub_county_id" domain="[('county_id', '=', county_id)]" options="{'no_create': True, 'no_open': True}"/>
                         </group>
                     </group>
-                    <notebook name="site_notebook">
+                    <group>
+                        <field name="billboard_description" string="Description" placeholder="Description of the billboard"/>
+                    </group>
+                    <group>
+                        <field name="billboard_location_text" string="Location Details" placeholder="Loreto, Kaunda Avenue"/>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="billboard_height" string="Height"/>
+                            <field name="billboard_width" string="Width"/>
+                        </group>
+                        <group>
+                            <field name="longitude"/>
+                            <field name="latitude"/>
+                            <button name="action_fetch_coordinates" string="Fetch Coordinates" type="object" class="btn-link"/>
+                        </group>
+                    </group>
+                    <group>
+                        <label for="google_maps_link" string="Asset Google Map Link"/>
+                        <div class="o_address_format">
+                            <field name="google_maps_link" widget="url" style="width: 80%%;"/>
+                        </div>
+                    </group>
+                    <group>
+                        <field name="active" widget="boolean_toggle" string="Status"/>
+                    </group>
+                    
+                    <notebook>
                         <page string="Faces" name="faces">
                             <field name="face_ids">
                                 <list editable="bottom">
@@ -55,6 +116,19 @@
                                     <field name="price_per_month"/>
                                 </list>
                             </field>
+                        </page>
+                        <page string="Images &amp; Comments" name="images_comments">
+                            <group>
+                                <group>
+                                    <field name="billboard_image_1" string="Image 1" widget="image" class="oe_avatar"/>
+                                </group>
+                                <group>
+                                    <field name="billboard_image_2" string="Image 2" widget="image" class="oe_avatar"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="billboard_comments" string="Comments" placeholder="Some comments on the asset"/>
+                            </group>
                         </page>
                         <page string="Permit History" name="permit_history">
                             <field name="permit_history_ids">
@@ -68,32 +142,162 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Lease History" name="lease_history">
-                            <field name="lease_line_ids">
-                                <list create="false" edit="false">
-                                    <field name="order_id"/>
-                                    <field name="order_partner_id"/>
-                                    <field name="media_face_id"/>
-                                    <field name="start_date"/>
-                                    <field name="end_date"/>
-                                    <field name="price_subtotal"/>
-                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'sale'"/>
+                        <page string="Expenses" name="expenses">
+                            <field name="expense_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="category"/>
+                                    <field name="amount" sum="Total"/>
                                 </list>
                             </field>
                         </page>
-                        <page string="Photos" name="photos">
-                            <field name="image_ids" widget="many2many_binary"/>
-                        </page>
                     </notebook>
                 </sheet>
-                <!-- <oe_chatter/> -->
             </form>
         </field>
     </record>
 
-    <record id="action_media_site" model="ir.actions.act_window">
-        <field name="name">Sites</field>
-        <field name="res_model">media.site</field>
-        <field name="view_mode">list,kanban,graph,pivot,form</field>
+    <!-- Canopy Site Views -->
+    <record id="view_media_site_canopy_tree" model="ir.ui.view">
+        <field name="name">media.site.canopy.list</field>
+        <field name="model">media.site</field>
+        <field name="arch" type="xml">
+            <list string="Canopies">
+                <field name="id" string="ID"/>
+                <field name="name" string="Shop Name"/>
+                <field name="county_id" string="County"/>
+                <field name="sub_county_id" string="Sub-County"/>
+                <field name="duka_type" string="Duka Type"/>
+                <field name="canopy_type" string="Canopy Type"/>
+                <field name="description_canopy" string="Description"/>
+                <field name="allocated_date" string="Date"/>
+                <field name="canopy_status" string="Status"/>
+                <field name="canopy_contact_name" string="Contact"/>
+                <field name="canopy_contact_phone" string="Phone"/>
+                <field name="canopy_image" widget="image" options="{'size': [64, 64]}" string="Image"/>
+                <field name="active" widget="boolean_toggle" string="Status"/>
+            </list>
+        </field>
     </record>
+
+    <record id="view_media_site_canopy_form" model="ir.ui.view">
+        <field name="name">media.site.canopy.form</field>
+        <field name="model">media.site</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Canopy">
+                <header>
+                    <button name="%(media_inventory.action_media_site_canopy)d" string="View Canopies" type="action" class="btn-primary"/>
+                    <button name="%(media_inventory.action_canopy_status_wizard)d" string="Update Status" type="action" class="btn-info" context="{'default_site_id': id}"/>
+                    <button name="action_fetch_coordinates" string="Fetch Coordinates" type="object" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <div class="oe_title">
+                        <label for="name" string="Shop Name"/>
+                        <h1>
+                            <field name="name" placeholder="Chips Kuku &amp; BBQ..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="duka_type"/>
+                            <field name="canopy_type" string="Type"/>
+                            <field name="county_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="sub_county_id" domain="[('county_id', '=', county_id)]" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="canopy_phone" string="Canopy Location (Ph)"/>
+                            <field name="allocated_date"/>
+                        </group>
+                        <group>
+                            <field name="canopy_status"/>
+                            <field name="canopy_status_reason" invisible="canopy_status == 'active'"/>
+                            <field name="canopy_contact_name"/>
+                            <field name="canopy_contact_phone"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description_canopy" string="Description" placeholder="Description of the canopy"/>
+                    </group>
+                    <group>
+                        <group>
+                            <label for="longitude" string="Longitude / Latitude"/>
+                            <div class="o_address_format">
+                                <field name="longitude" style="width: 35%%; margin-right: 5px;"/>
+                                <field name="latitude" style="width: 35%%; margin-right: 5px;"/>
+                                <button name="action_fetch_coordinates" string="Fetch" type="object" class="btn-link"/>
+                            </div>
+                        </group>
+                        <group>
+                            <label for="google_maps_link" string="Asset Google Map Link"/>
+                            <div class="o_address_format">
+                                <field name="google_maps_link" widget="url" style="width: 80%%;"/>
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="active" widget="boolean_toggle" string="Status"/>
+                    </group>
+                    <notebook>
+                        <page string="Images &amp; Measurements" name="images_measurements">
+                            <group>
+                                <group>
+                                    <field name="canopy_image" widget="image" class="oe_avatar" options="{'preview_image': 'canopy_image'}"/>
+                                </group>
+                                <group>
+                                    <field name="measurement_image_1" widget="image" class="oe_avatar"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group col="3">
+                                    <field name="measurement_image_2" widget="image" class="oe_avatar"/>
+                                    <field name="measurement_image_3" widget="image" class="oe_avatar"/>
+                                    <field name="measurement_image_4" widget="image" class="oe_avatar"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Artwork History" name="artwork_history">
+                            <field name="lease_line_ids" readonly="1">
+                                <list>
+                                    <field name="order_id"/>
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                    <field name="artwork_file" widget="image" options="{'size': [128, 128]}"/>
+                                    <field name="artwork_filename" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Expenses" name="expenses">
+                            <field name="expense_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="category"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Specialized View IDs Mapping -->
+    <record id="action_media_site_canopy_vids" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_media_site_canopy_tree"/>
+        <field name="act_window_id" ref="action_media_site_canopy"/>
+    </record>
+
+    <record id="action_media_site_canopy_form_vids" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_media_site_canopy_form"/>
+        <field name="act_window_id" ref="action_media_site_canopy"/>
+    </record>
+
 </odoo>

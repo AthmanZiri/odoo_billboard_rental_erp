@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_media_job_card_form" model="ir.ui.view">
+        <field name="name">media.job.card.form</field>
+        <field name="model">media.job.card</field>
+        <field name="arch" type="xml">
+            <form string="Job Card">
+                <header>
+                    <button name="action_assign" string="Assign" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_start" string="Start Work" type="object" class="btn-primary" invisible="state != 'assigned'"/>
+                    <button name="action_complete" string="Complete" type="object" class="btn-success" invisible="state != 'in_progress'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,assigned,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="job_type"/>
+                            <field name="assigned_team_id"/>
+                            <field name="date"/>
+                        </group>
+                        <group>
+                            <field name="site_id"/>
+                            <field name="media_face_id"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" placeholder="Details of the job..."/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_media_job_card_tree" model="ir.ui.view">
+        <field name="name">media.job.card.list</field>
+        <field name="model">media.job.card</field>
+        <field name="arch" type="xml">
+            <list string="Job Cards">
+                <field name="name"/>
+                <field name="job_type"/>
+                <field name="site_id"/>
+                <field name="media_face_id"/>
+                <field name="assigned_team_id"/>
+                <field name="date"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'assigned'" decoration-primary="state == 'in_progress'" decoration-success="state == 'completed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_media_job_card" model="ir.actions.act_window">
+        <field name="name">Job Cards</field>
+        <field name="res_model">media.job.card</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_media_job_card_canopy" model="ir.actions.act_window">
+        <field name="name">Canopy Repairs &amp; Maintenance</field>
+        <field name="res_model">media.job.card</field>
+        <field name="domain">[('site_id.site_category', '=', 'canopy')]</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_canopy_repairs" name="Repairs &amp; Maintenance" parent="media_inventory.menu_canopy_root" action="action_media_job_card_canopy" sequence="30"/>
+    <menuitem id="menu_media_job_card" name="Job Cards" parent="media_inventory.menu_media_ops" action="action_media_job_card" sequence="20"/>
+</odoo>

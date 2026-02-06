@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_canopy_status_wizard_form" model="ir.ui.view">
+        <field name="name">canopy.status.wizard.form</field>
+        <field name="model">canopy.status.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Update Canopy Status">
+                <group>
+                    <field name="site_id" readonly="context.get('active_model') == 'media.site'"/>
+                    <field name="new_status"/>
+                    <field name="reason" placeholder="Explain the reason for this status change..."/>
+                </group>
+                <footer>
+                    <button name="action_update_status" string="Update" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_canopy_status_wizard" model="ir.actions.act_window">
+        <field name="name">Update Canopy Status</field>
+        <field name="res_model">canopy.status.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

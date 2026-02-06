@@ -1,4 +1,6 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from dateutil.relativedelta import relativedelta
+import datetime
 
 class MediaFace(models.Model):
     _name = 'media.face'
@@ -53,6 +55,7 @@ class MediaFace(models.Model):
     
     active = fields.Boolean(default=True)
     lease_line_ids = fields.One2many('sale.order.line', 'media_face_id', string='Lease Lines')
+    expense_ids = fields.One2many('media.expense', 'media_face_id', string='Expenses')
     
     occupancy_status = fields.Selection([
         ('available', 'Available'),
@@ -60,10 +63,15 @@ class MediaFace(models.Model):
         ('maintenance', 'Maintenance')
     ], string='Occupancy Status', compute='_compute_occupancy_status', store=True, default='available')
 
-    next_available_date = fields.Date(string='Available From', compute='_compute_next_available_date')
-    current_booking_start = fields.Date(string='Booking Start', compute='_compute_current_booking_dates')
-    current_booking_end = fields.Date(string='Booking End', compute='_compute_current_booking_dates')
+    next_available_date = fields.Date(string='Available From', compute='_compute_next_available_date', store=True)
+    current_booking_start = fields.Date(string='Booking Start', compute='_compute_current_booking_dates', store=True)
+    current_booking_end = fields.Date(string='Booking End', compute='_compute_current_booking_dates', store=True)
+    
+    is_soon_available = fields.Boolean(compute='_compute_status_flags', store=True)
+    is_expired = fields.Boolean(compute='_compute_status_flags', store=True)
+    is_reserved = fields.Boolean(compute='_compute_status_flags', store=True)
 
+    @api.depends('lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date')
     def _compute_current_booking_dates(self):
         today = fields.Date.today()
         for record in self:
@@ -80,6 +88,15 @@ class MediaFace(models.Model):
                 record.current_booking_start = False
                 record.current_booking_end = False
 
+    @api.depends('occupancy_status', 'current_booking_end', 'lease_line_ids.state')
+    def _compute_status_flags(self):
+        today = fields.Date.today()
+        soon = today + relativedelta(days=30)
+        for record in self:
+            record.is_soon_available = record.occupancy_status == 'booked' and record.current_booking_end and record.current_booking_end <= soon
+            record.is_expired = record.current_booking_end and record.current_booking_end < today
+            record.is_reserved = any(l.state == 'draft' for l in record.lease_line_ids)
+
     @api.depends('lease_line_ids.end_date', 'lease_line_ids.state')
     def _compute_next_available_date(self):
         today = fields.Date.today()
@@ -90,7 +107,7 @@ class MediaFace(models.Model):
             ).sorted(key=lambda l: l.end_date, reverse=True)
             
             if future_rentals:
-                record.next_available_date = fields.Date.add(future_rentals[0].end_date, days=1)
+                record.next_available_date = future_rentals[0].end_date + relativedelta(days=1)
             else:
                 record.next_available_date = today
 
@@ -114,12 +131,6 @@ class MediaFace(models.Model):
             
             record.display_name = name
 
-    def name_get(self):
-        # Keep name_get for older versions/backwards compatibility
-        result = []
-        for record in self:
-            result.append((record.id, record.display_name))
-        return result
 
     @api.model_create_multi
     def create(self, vals_list):

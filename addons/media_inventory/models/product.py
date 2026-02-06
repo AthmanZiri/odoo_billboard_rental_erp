@@ -7,6 +7,7 @@ class ProductProduct(models.Model):
 
     @api.model
     def _name_search(self, name, domain=None, operator='ilike', limit=None, order=None):
+        domain = domain or []
         if name:
             # Search for faces or sites matching the name
             face_domain = [
@@ -20,6 +21,7 @@ class ProductProduct(models.Model):
             if faces:
                 product_ids = faces.mapped('product_id').ids
                 if product_ids:
-                    return self._search(['|', ('id', 'in', product_ids)] + (domain or []), limit=limit, order=order)
+                    # Search for products that match normal criteria OR are linked to matching faces
+                    domain = ['|', ('id', 'in', product_ids)] + domain
         
         return super(ProductProduct, self)._name_search(name, domain, operator, limit, order)

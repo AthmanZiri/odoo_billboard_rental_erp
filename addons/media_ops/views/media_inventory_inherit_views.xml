@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend Billboard Site Form -->
+    <record id="view_media_site_form_inherit_ops" model="ir.ui.view">
+        <field name="name">media.site.form.inherit.ops</field>
+        <field name="model">media.site</field>
+        <field name="inherit_id" ref="media_inventory.view_media_site_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Job Cards" name="job_cards">
+                    <field name="job_card_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="job_type"/>
+                            <field name="assigned_team_id"/>
+                            <field name="date"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Canopy Site Form -->
+    <record id="view_media_site_canopy_form_inherit_ops" model="ir.ui.view">
+        <field name="name">media.site.canopy.form.inherit.ops</field>
+        <field name="model">media.site</field>
+        <field name="inherit_id" ref="media_inventory.view_media_site_canopy_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Job Cards" name="job_cards">
+                    <field name="job_card_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="job_type"/>
+                            <field name="assigned_team_id"/>
+                            <field name="date"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Media Face Form -->
+    <record id="view_media_face_form_inherit_ops" model="ir.ui.view">
+        <field name="name">media.face.form.inherit.ops</field>
+        <field name="model">media.face</field>
+        <field name="inherit_id" ref="media_inventory.view_face_form_standard"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Job Cards" name="job_cards">
+                    <field name="job_card_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="job_type"/>
+                            <field name="assigned_team_id"/>
+                            <field name="date"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_media_asset_template">
+        <t t-call="web.html_container">
+            <t t-set="sites" t-value="docs.mapped('site_id')"/>
+            <t t-foreach="sites" t-as="site">
+                <div class="page">
+                    <div class="header" style="border-bottom: 2px solid #333; margin-bottom: 20px;">
+                        <h2 t-field="site.name"/>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>County:</strong> <span t-field="site.county_id.name"/><br/>
+                                <strong>Sub-County:</strong> <span t-field="site.sub_county_id.name"/>
+                            </div>
+                            <div class="col-6 text-right">
+                                <strong>Map Link:</strong> <a t-att-href="site.google_maps_link">Open Maps</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-12 text-center">
+                            <img t-if="site.billboard_image_1" t-att-src="image_data_uri(site.billboard_image_1)" style="max-height: 300px; max-width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
+                        </div>
+                    </div>
+
+                    <h3>Faces Information</h3>
+                    <table class="table table-sm table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Face</th>
+                                <th>Type</th>
+                                <th>Size (WxH)</th>
+                                <th>Status</th>
+                                <th>Available From</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs.filtered(lambda f: f.site_id == site)" t-as="face">
+                                <tr>
+                                    <td><span t-field="face.name"/></td>
+                                    <td><span t-field="face.face_type"/></td>
+                                    <td><span t-field="face.width"/>m x <span t-field="face.height"/>m</td>
+                                    <td>
+                                        <span t-if="face.occupancy_status == 'available'" class="badge badge-success">Available</span>
+                                        <span t-if="face.occupancy_status == 'booked'" class="badge badge-danger">Booked</span>
+                                        <span t-if="face.occupancy_status == 'maintenance'" class="badge badge-warning">Maintenance</span>
+                                    </td>
+                                    <td>
+                                        <span t-field="face.next_available_date"/>
+                                        <span t-if="face.occupancy_status == 'available'">(Now)</span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div t-if="site.billboard_description" class="mt-4">
+                        <strong>Description:</strong>
+                        <p t-field="site.billboard_description"/>
+                    </div>
+                    
+                    <div style="page-break-after: always;"/>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

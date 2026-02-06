@@ -10,15 +10,13 @@
                 <field name="lease_end_date"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/list//field[@name='product_id']" position="before">
-                <field name="media_face_id"/>
+                <field name="media_face_id" optional="show"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/list//field[@name='name']" position="after">
-                <field name="media_face_id"/>
-                <field name="start_date"/>
-                <field name="end_date"/>
-                <field name="artwork_file" widget="binary" filename="artwork_filename" string="Graphic"/>
+                <field name="start_date" optional="show"/>
+                <field name="end_date" optional="show"/>
+                <field name="artwork_file" widget="image" options="{'size': [64, 64]}" optional="hide"/>
                 <field name="artwork_filename" invisible="1"/>
-                <field name="product_id" readonly="state in ['sale', 'done']"/>
             </xpath>
         </field>
     </record>
