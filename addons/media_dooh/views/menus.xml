@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<data>
+<odoo>
     <menuitem id="menu_digital_list" name="Digital Screens" parent="media_inventory.menu_digital_root" action="action_media_dooh_slot" sequence="10"/>
     <menuitem id="menu_digital_artwork" name="Artwork/Creative History" parent="media_inventory.menu_digital_root" action="action_media_dooh_slot" sequence="20"/>
-</data>
+</odoo>

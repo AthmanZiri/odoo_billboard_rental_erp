@@ -1,20 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Minimalist Search View - Standard ID -->
+    <!-- Minimalist Search View -->
     <record id="view_media_face_search" model="ir.ui.view">
-        <field name="name">media.face.search.minimal</field>
+        <field name="name">media.face.search</field>
         <field name="model">media.face</field>
         <field name="arch" type="xml">
             <search string="Search Faces">
                 <field name="name"/>
                 <field name="code"/>
+                <field name="site_id"/>
+                <filter string="Available" name="filter_available" domain="[('occupancy_status', '=', 'available')]"/>
+                <filter string="Reserved" name="filter_reserved" domain="[('is_reserved', '=', True)]"/>
+                <filter string="Soon to be Available" name="filter_soon_available" domain="[('is_soon_available', '=', True)]"/>
+                <filter string="Expired" name="filter_expired" domain="[('is_expired', '=', True)]"/>
             </search>
         </field>
     </record>
 
-    <!-- List View - Standard ID -->
+    <!-- Standard List View (Odoo 19 uses <list>) -->
     <record id="view_media_face_tree" model="ir.ui.view">
-        <field name="name">media.face.list.minimal</field>
+        <field name="name">media.face.list</field>
         <field name="model">media.face</field>
         <field name="arch" type="xml">
             <list string="Faces">
@@ -25,9 +30,9 @@
         </field>
     </record>
 
-    <!-- Form View - Standard ID with inheritance hooks -->
+    <!-- Standard Form View -->
     <record id="view_media_face_form" model="ir.ui.view">
-        <field name="name">media.face.form.minimal</field>
+        <field name="name">media.face.form</field>
         <field name="model">media.face</field>
         <field name="arch" type="xml">
             <form string="Face">
@@ -103,7 +108,6 @@
         <field name="name">Faces</field>
         <field name="res_model">media.face</field>
         <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="view_media_face_search"/>
     </record>
 
     <record id="action_media_face_available" model="ir.actions.act_window">
@@ -111,6 +115,27 @@
         <field name="res_model">media.face</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('occupancy_status', '=', 'available')]</field>
-        <field name="context">{'search_default_available': 1}</field>
+        <field name="context">{'search_default_filter_available': 1}</field>
+    </record>
+
+    <record id="action_media_face_reserved" model="ir.actions.act_window">
+        <field name="name">Reserved Assets</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_reserved': 1}</field>
+    </record>
+
+    <record id="action_media_face_soon" model="ir.actions.act_window">
+        <field name="name">Soon to be Available</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_soon_available': 1}</field>
+    </record>
+
+    <record id="action_media_face_expired" model="ir.actions.act_window">
+        <field name="name">Expired Leases</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_expired': 1}</field>
     </record>
 </odoo>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Repairs and Maintenance -->
+    <menuitem id="menu_billboard_repairs" name="Billboard Repair and Maintenance" 
+              parent="media_inventory.menu_billboard_billboards" 
+              action="action_media_job_card" sequence="20"/>
+
+    <menuitem id="menu_canopy_repairs" name="Canopies Repair and Maintenance" 
+              parent="media_inventory.menu_canopy_root" 
+              action="action_media_job_card_canopy" sequence="30"/>
+
+    <menuitem id="menu_ops_job_cards" name="Maintenance and Repairs (Job Cards)" 
+              parent="media_inventory.menu_media_ops" 
+              action="action_media_job_card" sequence="50"/>
+
+    <menuitem id="menu_config_teams" name="Repair and Maintenance Teams" 
+              parent="media_inventory.menu_media_config" 
+              action="action_media_maintenance_team" sequence="30"/>
+</odoo>

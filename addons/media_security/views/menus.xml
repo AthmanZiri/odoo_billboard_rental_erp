@@ -1,4 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-<data>
-    <!-- Menus are now centralized in media_inventory to fulfill the new hierarchy requirements -->
-</data>
+<odoo>
+    <menuitem id="menu_billboard_security" name="Billboard Security" 
+              parent="media_inventory.menu_billboard_billboards" 
+              action="action_media_incident" sequence="30"/>
+
+    <menuitem id="menu_ops_incident" name="Report Security Incident" 
+              parent="media_inventory.menu_media_ops" 
+              action="action_media_incident" sequence="60"/>
+
+    <menuitem id="menu_config_watchmen" name="Watchmen" 
+              parent="media_inventory.menu_media_config" 
+              action="action_media_watchman" sequence="20"/>
+</odoo>

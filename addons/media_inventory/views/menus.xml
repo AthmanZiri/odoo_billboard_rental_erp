@@ -8,8 +8,6 @@
     <!-- 2) Billboards -->
     <menuitem id="menu_billboard_billboards" name="Billboards" parent="menu_media_root" sequence="10"/>
     <menuitem id="menu_media_site" name="Billboard Sites" parent="menu_billboard_billboards" action="action_media_site" sequence="10"/>
-    <menuitem id="menu_billboard_repairs" name="Billboard Repair and Maintenance" parent="menu_billboard_billboards" action="media_ops.action_media_job_card" sequence="20"/>
-    <menuitem id="menu_billboard_security" name="Billboard Security" parent="menu_billboard_billboards" action="media_security.action_media_incident" sequence="30"/>
     <menuitem id="menu_billboard_images" name="Update Images" parent="menu_billboard_billboards" action="action_media_site" sequence="40"/>
 
     <!-- 3) Digital Screens (Placeholder for media_dooh) -->
@@ -19,7 +17,7 @@
     <menuitem id="menu_canopy_root" name="Canopies" parent="menu_media_root" sequence="30"/>
     <menuitem id="menu_canopy_list" name="Canopies" parent="menu_canopy_root" action="action_media_site_canopy" sequence="10"/>
     <menuitem id="menu_canopy_artwork" name="Update Canopy Artwork" parent="menu_canopy_root" action="action_media_site_canopy" sequence="20"/>
-    <menuitem id="menu_canopy_repairs" name="Canopies Repair and Maintenance" parent="menu_canopy_root" action="media_ops.action_media_job_card_canopy" sequence="30"/>
+    <menuitem id="menu_canopy_artwork" name="Update Canopy Artwork" parent="menu_canopy_root" action="action_media_site_canopy" sequence="20"/>
     <menuitem id="menu_canopy_update_status" name="Update Canopy Status" parent="menu_canopy_root" action="action_canopy_status_wizard" sequence="40"/>
 
     <!-- 5) Operations -->
@@ -28,8 +26,6 @@
     <menuitem id="menu_ops_invoices" name="Invoices" parent="menu_media_ops" action="account.action_move_out_invoice_type" sequence="20"/>
     <menuitem id="menu_ops_payments" name="Payments" parent="menu_media_ops" action="account.action_account_payments" sequence="30"/>
     <menuitem id="menu_media_expense" name="Expenses" parent="menu_media_ops" action="action_media_expense" sequence="40"/>
-    <menuitem id="menu_ops_job_cards" name="Maintenance and Repairs (Job Cards)" parent="menu_media_ops" action="media_ops.action_media_job_card" sequence="50"/>
-    <menuitem id="menu_ops_incident" name="Report Security Incident" parent="menu_media_ops" action="media_security.action_media_incident" sequence="60"/>
     
     <record id="action_media_permit_history" model="ir.actions.act_window">
         <field name="name">Permit History</field>
@@ -55,6 +51,4 @@
     <menuitem id="menu_media_location" name="Locations" parent="menu_media_config" sequence="10"/>
     <menuitem id="menu_media_county" name="Counties" parent="menu_media_location" action="action_media_county" sequence="10"/>
     <menuitem id="menu_media_sub_county" name="Sub-Counties" parent="menu_media_location" action="action_media_sub_county" sequence="20"/>
-    <menuitem id="menu_config_watchmen" name="Watchmen" parent="menu_media_config" action="media_security.action_media_watchman" sequence="20"/>
-    <menuitem id="menu_config_teams" name="Repair and Maintenance Teams" parent="menu_media_config" action="base.action_res_users" sequence="30"/>
 </odoo>

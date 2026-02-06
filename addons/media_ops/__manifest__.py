@@ -9,7 +9,9 @@
         'data/job_card_sequence.xml',
         'views/project_task_views.xml',
         'views/job_card_views.xml',
+        'views/maintenance_team_views.xml',
         'views/media_inventory_inherit_views.xml',
+        'views/menus.xml',
     ],
     'installable': True,
 }

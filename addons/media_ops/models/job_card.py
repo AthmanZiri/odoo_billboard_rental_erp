@@ -13,7 +13,7 @@ class MediaJobCard(models.Model):
         ('installation', 'Installation')
     ], string='Job Type', required=True)
     
-    assigned_team_id = fields.Many2one('res.users', string='Assigned To', tracking=True)
+    maintenance_team_id = fields.Many2one('media.maintenance.team', string='Assigned Team', tracking=True)
     
     site_id = fields.Many2one('media.site', string='Site', required=True)
     media_face_id = fields.Many2one('media.face', string='Face', domain="[('site_id', '=', site_id)]")
