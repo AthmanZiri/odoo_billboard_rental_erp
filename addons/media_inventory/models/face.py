@@ -30,6 +30,8 @@ class MediaFace(models.Model):
     height = fields.Float(string='Height (m)')
     width = fields.Float(string='Width (m)')
     length_m = fields.Float(string='Length (m)', help="Length/Depth in meters if applicable")
+    face_image = fields.Image(string='Face Image', max_width=1920, max_height=1920)
+
 
     illumination_type = fields.Selection([
         ('backlit', 'Backlit'),
