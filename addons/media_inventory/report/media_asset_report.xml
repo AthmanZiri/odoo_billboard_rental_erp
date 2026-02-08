@@ -85,8 +85,8 @@
                 .date-highlight { color: #FFA500; font-weight: bold; }
             </style>
 
-            <t t-set="sites" t-value="docs.mapped('site_id') if docs._name == 'media.face' else docs"/>
-            <t t-foreach="sites" t-as="site">
+            <t t-foreach="docs" t-as="face">
+                <t t-set="site" t-value="face.site_id"/>
                 <div class="page asset-page">
                     <!-- Page Number Placeholder -->
                     <div class="header-top">
@@ -99,58 +99,54 @@
 
                     <div class="city-name" t-field="site.county_id.name"/>
                     
-                    <t t-set="faces" t-value="docs.filtered(lambda f: f.site_id == site) if docs._name == 'media.face' else site.face_ids"/>
-                    <t t-foreach="faces" t-as="face">
-                        <div class="asset-details mb-4">
-                            <div class="asset-name">
-                                <span t-field="face.name"/> (<span t-field="face.face_type" class="spec-value"/>)
-                            </div>
+                    <div class="asset-details mb-4">
+                        <div class="asset-name">
+                            <span t-field="face.name"/> (<span t-field="face.face_type" class="spec-value"/>)
+                        </div>
 
-                            <div class="spec-row">
-                                <span class="spec-label">LOCATION:</span> 
-                                <span t-field="site.billboard_location_text"/>
-                                <a t-if="site.google_maps_link" t-att-href="site.google_maps_link" class="map-link ml-2" target="_blank">
-                                    <span t-field="site.google_maps_link"/>
-                                </a>
-                            </div>
+                        <div class="spec-row">
+                            <span class="spec-label">LOCATION:</span> 
+                            <span t-field="site.billboard_location_text"/>
+                            <a t-if="site.google_maps_link" t-att-href="site.google_maps_link" class="map-link ml-2" target="_blank">
+                                <span t-field="site.google_maps_link"/>
+                            </a>
+                        </div>
 
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="spec-row">
-                                        <span class="spec-label">STATUS:</span>
-                                        <span t-if="face.occupancy_status == 'booked'" class="status-occupied">OCCUPIED</span>
-                                        <span t-if="face.occupancy_status == 'available'" class="status-available">AVAILABLE</span>
-                                        <span class="spec-value ml-1" t-field="face.face_type"/>
-                                    </div>
-                                    <div class="spec-row">
-                                        <span class="spec-label">SIZE:</span>
-                                        <span t-esc="'%.0f' % face.width"/> X <span t-esc="'%.0f' % face.height"/>
-                                    </div>
-                                    <div class="spec-row">
-                                        <span class="spec-label">CHANGEOVER:</span>
-                                        <span class="date-highlight" t-field="face.next_available_date"/>
-                                    </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="spec-row">
+                                    <span class="spec-label">STATUS:</span>
+                                    <span t-if="face.occupancy_status == 'booked'" class="status-occupied">OCCUPIED</span>
+                                    <span t-if="face.occupancy_status == 'available'" class="status-available">AVAILABLE</span>
+                                    <span class="spec-value ml-1" t-field="face.face_type"/>
                                 </div>
-                                <div class="col-6">
-                                    <div class="spec-row">
-                                        <span class="spec-label">DATE FLIGHTED:</span>
-                                        <span t-field="face.current_booking_start"/>
-                                    </div>
-                                    <div class="spec-row">
-                                        <span class="spec-label">EXPIRES:</span>
-                                        <span t-field="face.current_booking_end"/>
-                                    </div>
+                                <div class="spec-row">
+                                    <span class="spec-label">SIZE:</span>
+                                    <span t-esc="'%.0f' % face.width"/> X <span t-esc="'%.0f' % face.height"/>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-label">CHANGEOVER:</span>
+                                    <span class="date-highlight" t-field="face.next_available_date"/>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="spec-row">
+                                    <span class="spec-label">DATE FLIGHTED:</span>
+                                    <span t-field="face.current_booking_start"/>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-label">EXPIRES:</span>
+                                    <span t-field="face.current_booking_end"/>
                                 </div>
                             </div>
                         </div>
-                    </t>
+                    </div>
 
                     <!-- Hero Image -->
                     <div class="text-center">
-                        <t t-set="main_image" t-value="faces[0].face_image if faces and faces[0].face_image else (site.billboard_image_1 or site.billboard_image_2)"/>
+                        <t t-set="main_image" t-value="face.face_image or site.billboard_image_1 or site.billboard_image_2"/>
                         <img t-if="main_image" t-att-src="image_data_uri(main_image)" class="hero-image"/>
                     </div>
-
 
                     <!-- Footer -->
                     <div class="footer-box o_background_footer">
@@ -182,6 +178,7 @@
                     <div style="page-break-after: always;"/>
                 </div>
             </t>
+
         </t>
     </template>
 
