@@ -1,185 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="report_media_asset_template">
-        <t t-call="web.basic_layout">
-            <style>
-                .asset-page {
-                    padding: 20px;
-                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-                    color: #333;
-                }
-                .header-top {
-                    text-align: center;
-                    font-size: 14px;
-                    margin-bottom: 5px;
-                }
-                .header-title {
-                    text-align: center;
-                    text-transform: uppercase;
-                    font-weight: bold;
-                    font-style: italic;
-                    text-decoration: underline;
-                    letter-spacing: 2px;
-                    font-size: 24px;
-                    margin-bottom: 20px;
-                }
-                .city-name {
-                    color: #A52A2A;
-                    font-size: 48px;
-                    font-weight: bold;
-                    text-transform: uppercase;
-                    margin-bottom: 5px;
-                }
-                .asset-name {
-                    font-size: 20px;
-                    margin-bottom: 10px;
-                }
-                .spec-row {
-                    margin-bottom: 5px;
-                    font-size: 16px;
-                }
-                .spec-label {
-                    font-weight: bold;
-                    font-style: italic;
-                    text-transform: uppercase;
-                }
-                .spec-value {
-                    text-transform: uppercase;
-                }
-                .map-link {
-                    color: #007bff;
-                    text-decoration: underline;
-                    font-size: 14px;
-                }
-                .hero-image {
-                    margin-top: 20px;
-                    width: 100%;
-                    max-height: 500px;
-                    object-fit: contain;
-                    border: 1px solid #eee;
-                }
-                .footer-box {
-                    margin-top: 30px;
-                    border-top: 2px solid #eee;
-                    padding-top: 15px;
-                    font-size: 12px;
-                }
-                .contact-info i {
-                    color: #A52A2A;
-                    margin-right: 5px;
-                }
-                .qr-placeholder {
-                    width: 80px;
-                    height: 80px;
-                    background: #f8f9fa;
-                    border: 1px solid #ddd;
-                    text-align: center;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 8px;
-                    color: #999;
-                }
-                .status-occupied { color: #A52A2A; font-weight: bold; }
-                .status-available { color: #28a745; font-weight: bold; }
-                .date-highlight { color: #FFA500; font-weight: bold; }
-            </style>
-
+        <t t-call="web.html_container">
             <t t-foreach="docs" t-as="face">
-                <t t-set="site" t-value="face.site_id"/>
-                <div class="page asset-page">
-                    <!-- Page Number Placeholder -->
-                    <div class="header-top">
-                        <span class="page"/>
-                    </div>
-                    
-                    <div class="header-title">
-                        BILLBOARDS
-                    </div>
+                <t t-call="web.external_layout">
+                    <div class="page asset-page">
+                        <style>
+                            .asset-page {
+                                padding-top: 10px;
+                                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                                color: #333;
+                            }
+                            .header-title {
+                                text-align: center;
+                                text-transform: uppercase;
+                                font-weight: bold;
+                                font-style: italic;
+                                text-decoration: underline;
+                                letter-spacing: 2px;
+                                font-size: 24px;
+                                margin-bottom: 20px;
+                            }
+                            .city-name {
+                                color: #A52A2A;
+                                font-size: 48px;
+                                font-weight: bold;
+                                text-transform: uppercase;
+                                margin-bottom: 5px;
+                            }
+                            .asset-name {
+                                font-size: 20px;
+                                margin-bottom: 10px;
+                            }
+                            .spec-row {
+                                margin-bottom: 5px;
+                                font-size: 16px;
+                            }
+                            .spec-label {
+                                font-weight: bold;
+                                font-style: italic;
+                                text-transform: uppercase;
+                            }
+                            .spec-value {
+                                text-transform: uppercase;
+                            }
+                            .map-link {
+                                color: #007bff;
+                                text-decoration: underline;
+                                font-size: 14px;
+                            }
+                            .hero-image {
+                                margin-top: 20px;
+                                width: 100%;
+                                max-height: 500px;
+                                object-fit: contain;
+                                border: 1px solid #eee;
+                            }
+                            .status-occupied { color: #A52A2A; font-weight: bold; }
+                            .status-available { color: #28a745; font-weight: bold; }
+                            .date-highlight { color: #FFA500; font-weight: bold; }
+                        </style>
 
-                    <div class="city-name" t-field="site.county_id.name"/>
-                    
-                    <div class="asset-details mb-4">
-                        <div class="asset-name">
-                            <span t-field="face.name"/> (<span t-field="face.face_type" class="spec-value"/>)
+                        <t t-set="site" t-value="face.site_id"/>
+                        
+                        <div class="header-title">
+                            BILLBOARDS
                         </div>
 
-                        <div class="spec-row">
-                            <span class="spec-label">LOCATION:</span> 
-                            <span t-field="site.billboard_location_text"/>
-                            <a t-if="site.google_maps_link" t-att-href="site.google_maps_link" class="map-link ml-2" target="_blank">
-                                <span t-field="site.google_maps_link"/>
-                            </a>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="spec-row">
-                                    <span class="spec-label">STATUS:</span>
-                                    <span t-if="face.occupancy_status == 'booked'" class="status-occupied">OCCUPIED</span>
-                                    <span t-if="face.occupancy_status == 'available'" class="status-available">AVAILABLE</span>
-                                    <span class="spec-value ml-1" t-field="face.face_type"/>
-                                </div>
-                                <div class="spec-row">
-                                    <span class="spec-label">SIZE:</span>
-                                    <span t-esc="'%.0f' % face.width"/> X <span t-esc="'%.0f' % face.height"/>
-                                </div>
-                                <div class="spec-row">
-                                    <span class="spec-label">CHANGEOVER:</span>
-                                    <span class="date-highlight" t-field="face.next_available_date"/>
-                                </div>
+                        <div class="city-name" t-field="site.county_id.name"/>
+                        
+                        <div class="asset-details mb-4">
+                            <div class="asset-name">
+                                <span t-field="face.name"/> (<span t-field="face.face_type" class="spec-value"/>)
                             </div>
-                            <div class="col-6">
-                                <div class="spec-row">
-                                    <span class="spec-label">DATE FLIGHTED:</span>
-                                    <span t-field="face.current_booking_start"/>
-                                </div>
-                                <div class="spec-row">
-                                    <span class="spec-label">EXPIRES:</span>
-                                    <span t-field="face.current_booking_end"/>
-                                </div>
+
+                            <div class="spec-row">
+                                <span class="spec-label">LOCATION:</span> 
+                                <span t-field="site.billboard_location_text"/>
+                                <a t-if="site.google_maps_link" t-att-href="site.google_maps_link" class="map-link ml-2" target="_blank">
+                                    <span t-field="site.google_maps_link"/>
+                                </a>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Hero Image -->
-                    <div class="text-center">
-                        <t t-set="main_image" t-value="face.face_image or site.billboard_image_1 or site.billboard_image_2"/>
-                        <img t-if="main_image" t-att-src="image_data_uri(main_image)" class="hero-image"/>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="footer-box o_background_footer">
-                        <div class="row align-items-center">
-                            <div class="col-9 contact-info">
-                                <div class="row">
-                                    <div class="col-4">
-                                        <i class="fa fa-phone"/> +254 790 888000
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="spec-row">
+                                        <span class="spec-label">STATUS:</span>
+                                        <span t-if="face.occupancy_status == 'booked'" class="status-occupied">OCCUPIED</span>
+                                        <span t-if="face.occupancy_status == 'available'" class="status-available">AVAILABLE</span>
+                                        <span class="spec-value ml-1" t-field="face.face_type"/>
                                     </div>
-                                    <div class="col-4">
-                                        <i class="fa fa-paper-plane"/> info@lookon.co.ke
+                                    <div class="spec-row">
+                                        <span class="spec-label">SIZE:</span>
+                                        <span t-esc="'%.0f' % face.width"/> X <span t-esc="'%.0f' % face.height"/>
                                     </div>
-                                    <div class="col-4">
-                                        <i class="fa fa-globe"/> www.lookon.co.ke
+                                    <div class="spec-row">
+                                        <span class="spec-label">CHANGEOVER:</span>
+                                        <span class="date-highlight" t-field="face.next_available_date"/>
                                     </div>
                                 </div>
-                                <div class="mt-2 text-muted">
-                                    <i class="fa fa-home"/> P. O. Box 81407 - 80100 Mombasa - Kenya
-                                </div>
-                            </div>
-                            <div class="col-3 text-right">
-                                <div class="float-right qr-placeholder">
-                                    QR CODE
+                                <div class="col-6">
+                                    <div class="spec-row">
+                                        <span class="spec-label">DATE FLIGHTED:</span>
+                                        <span t-field="face.current_booking_start"/>
+                                    </div>
+                                    <div class="spec-row">
+                                        <span class="spec-label">EXPIRES:</span>
+                                        <span t-field="face.current_booking_end"/>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div style="page-break-after: always;"/>
-                </div>
+                        <!-- Hero Image -->
+                        <div class="text-center">
+                            <t t-set="main_image" t-value="face.face_image or site.billboard_image_1 or site.billboard_image_2"/>
+                            <img t-if="main_image" t-att-src="image_data_uri(main_image)" class="hero-image"/>
+                        </div>
+
+                        <div style="page-break-after: always;"/>
+                    </div>
+                </t>
             </t>
-
         </t>
     </template>
+
 
 </odoo>
