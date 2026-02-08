@@ -181,16 +181,70 @@ class MediaSite(models.Model):
                 self.longitude = float(match.group(2))
                 return
 
-    @api.depends('face_ids', 'face_ids.occupancy_status', 'face_ids.price_per_month')
+    face_count = fields.Integer(compute='_compute_site_stats', string='Faces Count')
+    permit_count = fields.Integer(compute='_compute_site_stats', string='Permits Count')
+    rentals_count = fields.Integer(compute='_compute_site_stats', string='Rentals Count')
+    expenses_count = fields.Integer(compute='_compute_site_stats', string='Expenses Count')
+
+    @api.depends('face_ids', 'face_ids.occupancy_status', 'face_ids.price_per_month', 'permit_history_ids', 'expense_ids', 'lease_line_ids')
     def _compute_site_stats(self):
         for site in self:
-            site.total_faces_count = len(site.face_ids)
+            site.face_count = len(site.face_ids)
+            site.permit_count = len(site.permit_history_ids)
+            site.expenses_count = len(site.expense_ids)
+            site.rentals_count = len(site.lease_line_ids)
+            
+            site.total_faces_count = site.face_count
             site.occupied_faces_count = len(site.face_ids.filtered(lambda f: f.occupancy_status == 'booked'))
             site.available_faces_count = site.total_faces_count - site.occupied_faces_count
             site.total_monthly_revenue = sum(site.face_ids.mapped('price_per_month'))
+
+    def action_view_faces(self):
+        self.ensure_one()
+        return {
+            'name': _('Faces'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'media.face',
+            'view_mode': 'list,form',
+            'domain': [('site_id', '=', self.id)],
+            'context': {'default_site_id': self.id},
+        }
+
+    def action_view_permits(self):
+        self.ensure_one()
+        return {
+            'name': _('Permits'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'media.permit.history',
+            'view_mode': 'list,form',
+            'domain': [('site_id', '=', self.id)],
+            'context': {'default_site_id': self.id},
+        }
+
+    def action_view_rentals(self):
+        self.ensure_one()
+        return {
+            'name': _('Rentals'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order.line',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', self.lease_line_ids.ids)],
+        }
+
+    def action_view_expenses(self):
+        self.ensure_one()
+        return {
+            'name': _('Expenses'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'media.expense',
+            'view_mode': 'list,form',
+            'domain': [('site_id', '=', self.id)],
+            'context': {'default_site_id': self.id},
+        }
 
     def _compute_lease_history(self):
         for site in self:
             site.lease_line_ids = self.env['sale.order.line'].search([
                 ('media_face_id', 'in', site.face_ids.ids)
             ])
+

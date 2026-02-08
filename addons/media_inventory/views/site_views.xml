@@ -65,7 +65,21 @@
                     <button name="action_fetch_coordinates" string="Fetch Coordinates" type="object" class="btn-secondary"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_faces" type="object" class="oe_stat_button" icon="fa-th-list">
+                            <field name="face_count" widget="statinfo" string="Faces"/>
+                        </button>
+                        <button name="action_view_permits" type="object" class="oe_stat_button" icon="fa-certificate">
+                            <field name="permit_count" widget="statinfo" string="Permits"/>
+                        </button>
+                        <button name="action_view_rentals" type="object" class="oe_stat_button" icon="fa-money">
+                            <field name="rentals_count" widget="statinfo" string="Rentals"/>
+                        </button>
+                        <button name="action_view_expenses" type="object" class="oe_stat_button" icon="fa-credit-card">
+                            <field name="expenses_count" widget="statinfo" string="Expenses"/>
+                        </button>
+                    </div>
+
                     <div class="oe_title">
                         <label for="name" string="Billboard Name"/>
                         <h1>
@@ -193,7 +207,15 @@
                     <button name="action_fetch_coordinates" string="Fetch Coordinates" type="object" class="btn-secondary"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_rentals" type="object" class="oe_stat_button" icon="fa-money">
+                            <field name="rentals_count" widget="statinfo" string="Rentals"/>
+                        </button>
+                        <button name="action_view_expenses" type="object" class="oe_stat_button" icon="fa-credit-card">
+                            <field name="expenses_count" widget="statinfo" string="Expenses"/>
+                        </button>
+                    </div>
+
                     <div class="oe_title">
                         <label for="name" string="Shop Name"/>
                         <h1>

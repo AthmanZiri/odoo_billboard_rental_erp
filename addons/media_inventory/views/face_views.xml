@@ -25,8 +25,12 @@
             <list string="Faces">
                 <field name="name"/>
                 <field name="code"/>
+                <field name="site_id"/>
+                <field name="pricing_type"/>
+                <field name="price_per_month" sum="Total Monthly Revenue"/>
                 <field name="occupancy_status" widget="badge"/>
             </list>
+
         </field>
     </record>
 
@@ -37,6 +41,15 @@
         <field name="arch" type="xml">
             <form string="Face">
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_rentals" type="object" class="oe_stat_button" icon="fa-money">
+                            <field name="rentals_count" widget="statinfo" string="Rentals"/>
+                        </button>
+                        <button name="action_view_expenses" type="object" class="oe_stat_button" icon="fa-credit-card">
+                            <field name="expenses_count" widget="statinfo" string="Expenses"/>
+                        </button>
+                    </div>
+
                     <div class="oe_title">
                         <h1><field name="name" placeholder="Face Name"/></h1>
                     </div>
@@ -56,22 +69,44 @@
                                 <group string="Dimensions">
                                     <field name="height"/>
                                     <field name="width"/>
+                                    <field name="length_m"/>
                                 </group>
+
                                 <group string="Pricing">
                                     <field name="pricing_type"/>
                                     <field name="price_per_month" invisible="pricing_type != 'fixed'"/>
                                     <field name="price_per_day" invisible="pricing_type != 'daily'"/>
+                                    <field name="price_slot_monthly" invisible="pricing_type != 'slot_monthly'"/>
+                                    <field name="price_slot_biweekly" invisible="pricing_type != 'slot_biweekly'"/>
+                                    <field name="price_slot_weekly" invisible="pricing_type != 'slot_weekly'"/>
+                                    <field name="cpm_rate" invisible="pricing_type != 'cpm'"/>
+                                    <field name="currency_id" invisible="1"/>
                                 </group>
                             </group>
                         </page>
                         <page string="Digital Specs" name="digital_specs" invisible="face_type != 'digital'">
                             <group>
-                                <field name="pixel_pitch"/>
-                                <field name="resolution"/>
-                                <field name="refresh_rate"/>
-                                <field name="supported_formats"/>
+                                <group string="Display Information">
+                                    <field name="pixel_pitch"/>
+                                    <field name="resolution"/>
+                                    <field name="refresh_rate"/>
+                                    <field name="orientation"/>
+                                </group>
+                                <group string="Operations">
+                                    <field name="operating_hours_start" widget="float_time"/>
+                                    <field name="operating_hours_end" widget="float_time"/>
+                                    <field name="views_per_day"/>
+                                </group>
+                                <group string="Content Specifications">
+                                    <field name="supported_formats"/>
+                                    <field name="content_size_rec"/>
+                                </group>
+                                <group string="Audience">
+                                    <field name="target_audience"/>
+                                </group>
                             </group>
                         </page>
+
                         <page string="Artwork History" name="artwork_history">
                             <field name="lease_line_ids" readonly="1">
                                 <list>
@@ -94,11 +129,7 @@
                         </page>
                     </notebook>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="activity_ids"/>
-                    <field name="message_ids"/>
-                </div>
+                <oe_chatter/>
             </form>
         </field>
     </record>

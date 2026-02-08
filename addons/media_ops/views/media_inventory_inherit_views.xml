@@ -6,6 +6,11 @@
         <field name="model">media.site</field>
         <field name="inherit_id" ref="media_inventory.view_media_site_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_job_cards" type="object" class="oe_stat_button" icon="fa-wrench">
+                    <field name="job_card_count" widget="statinfo" string="Job Cards"/>
+                </button>
+            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Job Cards" name="job_cards">
                     <field name="job_card_ids" readonly="1">
@@ -28,6 +33,11 @@
         <field name="model">media.site</field>
         <field name="inherit_id" ref="media_inventory.view_media_site_canopy_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_job_cards" type="object" class="oe_stat_button" icon="fa-wrench">
+                    <field name="job_card_count" widget="statinfo" string="Job Cards"/>
+                </button>
+            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Job Cards" name="job_cards">
                     <field name="job_card_ids" readonly="1">
@@ -50,6 +60,11 @@
         <field name="model">media.face</field>
         <field name="inherit_id" ref="media_inventory.view_media_face_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_job_cards" type="object" class="oe_stat_button" icon="fa-wrench">
+                    <field name="job_card_count" widget="statinfo" string="Job Cards"/>
+                </button>
+            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Job Cards" name="job_cards">
                     <field name="job_card_ids" readonly="1">
@@ -65,4 +80,5 @@
             </xpath>
         </field>
     </record>
+
 </odoo>
