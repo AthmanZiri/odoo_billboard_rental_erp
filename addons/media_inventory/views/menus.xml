@@ -8,7 +8,9 @@
     <!-- 2) Billboards -->
     <menuitem id="menu_billboard_billboards" name="Billboards" parent="menu_media_root" sequence="10"/>
     <menuitem id="menu_media_site" name="Billboard Sites" parent="menu_billboard_billboards" action="action_media_site" sequence="10"/>
+    <menuitem id="menu_media_face_list" name="Billboard Faces" parent="menu_billboard_billboards" action="action_media_face" sequence="20"/>
     <menuitem id="menu_billboard_images" name="Update Images" parent="menu_billboard_billboards" action="action_media_site" sequence="40"/>
+
 
     <!-- 3) Digital Screens (Placeholder for media_dooh) -->
     <menuitem id="menu_digital_root" name="Digital Screens" parent="menu_media_root" sequence="20"/>

@@ -1,4 +1,25 @@
 <odoo>
-    <menuitem id="menu_digital_list" name="Digital Screens" parent="media_inventory.menu_digital_root" action="action_media_dooh_slot" sequence="10"/>
+    <record id="action_media_face_digital" model="ir.actions.act_window">
+        <field name="name">Digital Faces</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('face_type', '=', 'digital')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No digital screens found.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_digital_faces" name="Digital Faces" parent="media_inventory.menu_digital_root" action="action_media_face_digital" sequence="5"/>
+    <menuitem id="menu_digital_list" name="Digital Slots" parent="media_inventory.menu_digital_root" action="action_media_dooh_slot" sequence="10"/>
     <menuitem id="menu_digital_artwork" name="Artwork/Creative History" parent="media_inventory.menu_digital_root" action="action_media_dooh_slot" sequence="20"/>
+
+
+    <menuitem id="menu_digital_reports" name="Reports" parent="media_inventory.menu_digital_root" sequence="100"/>
+    <menuitem id="menu_report_running_ads" name="Running Ads" parent="menu_digital_reports" action="action_report_running_ads" sequence="10"/>
+    <menuitem id="menu_report_expiring_ads" name="Ads Expiring Soon" parent="menu_digital_reports" action="action_report_expiring_ads" sequence="20"/>
+    <menuitem id="menu_report_available_slots" name="Available Slots" parent="menu_digital_reports" action="action_report_available_slots" sequence="30"/>
+    <menuitem id="menu_report_revenue_screen" name="Revenue per Screen" parent="menu_digital_reports" action="action_report_revenue_per_screen" sequence="40"/>
+
 </odoo>

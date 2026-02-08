@@ -10,9 +10,27 @@
                 <field name="partner_id"/>
                 <field name="state"/>
                 <field name="sov"/>
+
+
             </list>
         </field>
     </record>
+
+    <record id="view_media_dooh_slot_search" model="ir.ui.view">
+        <field name="name">media.dooh.slot.search</field>
+        <field name="model">media.dooh.slot</field>
+        <field name="arch" type="xml">
+            <search string="Search Slots">
+                <field name="name"/>
+                <field name="face_id"/>
+                <field name="partner_id"/>
+                <field name="state"/>
+                <filter string="Booked" name="filter_booked" domain="[('state', '=', 'booked')]"/>
+
+            </search>
+        </field>
+    </record>
+
 
     <record id="view_media_dooh_slot_form" model="ir.ui.view">
         <field name="name">media.dooh.slot.form</field>
@@ -38,11 +56,13 @@
                             <field name="partner_id"/>
                             <field name="sov"/>
                         </group>
-                        <group name="schedule_info">
+                        <group name="schedule_info" string="Scheduling">
                             <field name="start_date"/>
                             <field name="end_date"/>
                             <field name="billing_frequency"/>
+                            <field name="ad_duration"/>
                         </group>
+
                     </group>
                     <notebook>
                         <page string="Content &amp; Timing" name="content_timing">

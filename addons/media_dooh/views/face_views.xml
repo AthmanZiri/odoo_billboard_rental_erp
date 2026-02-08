@@ -5,8 +5,14 @@
         <field name="model">media.face</field>
         <field name="inherit_id" ref="media_inventory.view_media_face_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_slots" type="object" class="oe_stat_button" icon="fa-list-ol" invisible="face_type != 'digital'">
+                    <field name="slot_count" widget="statinfo" string="Digital Slots"/>
+                </button>
+            </xpath>
             <!-- Add Slot Management to the Digital Specs page -->
             <xpath expr="//page[@name='digital_specs']" position="inside">
+
                 <group name="group_slot_management" string="Slot Management" invisible="face_type != 'digital'">
                     <group name="slot_timing">
                         <field name="loop_duration"/>
@@ -35,4 +41,21 @@
             </xpath>
         </field>
     </record>
+    <record id="view_media_face_tree_inherit_dooh" model="ir.ui.view">
+        <field name="name">media.face.list.inherit.dooh</field>
+        <field name="model">media.face</field>
+        <field name="inherit_id" ref="media_inventory.view_media_face_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='occupancy_status']" position="before">
+                <field name="number_of_slots" column_invisible="True"/>
+                <field name="available_slots" string="Slots Avail." decoration-danger="available_slots == 0" decoration-success="available_slots > 0"/>
+                <field name="views_per_day" string="Views/Day"/>
+                <field name="orientation" optional="hide"/>
+                <field name="height" optional="show" string="H (m)"/>
+                <field name="width" optional="show" string="W (m)"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>
+
