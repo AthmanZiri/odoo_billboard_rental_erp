@@ -3,7 +3,10 @@
     'version': '1.0',
     'category': 'Operations',
     'summary': 'Flighting and Installation Workflow for Media Assets',
+    'author': 'JengaSol Consulting',
+    'website': 'https://jengasol.co.ke',
     'depends': ['media_inventory', 'project', 'media_security'],
+
     'data': [
         'security/ir.model.access.csv',
         'data/job_card_sequence.xml',

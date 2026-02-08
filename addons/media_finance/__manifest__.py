@@ -3,7 +3,10 @@
     'version': '1.0',
     'category': 'Accounting',
     'summary': 'Revenue Recognition and Site P&L for Media Assets',
+    'author': 'JengaSol Consulting',
+    'website': 'https://jengasol.co.ke',
     'depends': ['media_inventory', 'account', 'sale_management', 'board'],
+
     'data': [
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',

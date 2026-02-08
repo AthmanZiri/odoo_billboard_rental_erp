@@ -7,7 +7,9 @@
         Centralized system for managing Billboard and Canopy inventory.
         Hierarchy: Site > Face.
     """,
-    'author': 'Antigravity',
+    'author': 'JengaSol Consulting',
+    'website': 'https://jengasol.co.ke',
+
     'depends': ['sale_management', 'base_geolocalize', 'mail'],
     'data': [
         'security/ir.model.access.csv',
