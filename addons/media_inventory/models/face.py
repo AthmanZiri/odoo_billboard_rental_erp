@@ -11,7 +11,10 @@ class MediaFace(models.Model):
     code = fields.Char(string='Face Code', tracking=True)
     
     site_id = fields.Many2one('media.site', string='Site', required=True, ondelete='cascade')
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
+    currency_id = fields.Many2one('res.currency', related='company_id.currency_id', string='Currency', readonly=True)
     product_id = fields.Many2one('product.product', string='Linked Product', help='Product used for invoicing this face', ondelete='restrict')
+
     
     face_type = fields.Selection([
         ('inbound', 'Inbound Face'),
@@ -26,6 +29,8 @@ class MediaFace(models.Model):
     # Technical Specs
     height = fields.Float(string='Height (m)')
     width = fields.Float(string='Width (m)')
+    length_m = fields.Float(string='Length (m)', help="Length/Depth in meters if applicable")
+
     illumination_type = fields.Selection([
         ('backlit', 'Backlit'),
         ('frontlit', 'Frontlit'),
@@ -39,19 +44,37 @@ class MediaFace(models.Model):
     refresh_rate = fields.Char(string='Refresh Rate')
     supported_formats = fields.Char(string='Supported Formats', help='e.g., MP4, JPG, PNG')
     
+    # Professional Specs
+    operating_hours_start = fields.Float(string='Operating Hours Start', default=5.5, help="e.g. 5.5 for 5:30 AM")
+    operating_hours_end = fields.Float(string='Operating Hours End', default=23.5, help="e.g. 23.5 for 11:30 PM")
+    views_per_day = fields.Integer(string='Views per Day', compute='_compute_views_per_day', store=True)
+    orientation = fields.Selection([
+        ('portrait', 'Portrait'),
+        ('landscape', 'Landscape')
+    ], string='Orientation', default='portrait')
+    content_size_rec = fields.Char(string='Recommended Content Size', default='768 x 960')
+    target_audience = fields.Text(string='Target Audience')
+    
     # Pricing
     pricing_type = fields.Selection([
         ('fixed', 'Fixed (Monthly)'),
         ('daily', 'Daily'),
+        ('slot_monthly', 'Price per Slot (Monthly)'),
+        ('slot_biweekly', 'Price per Slot (Bi-weekly)'),
+        ('slot_weekly', 'Price per Slot (Weekly)'),
         ('cpm', 'CPM (Cost Per Mille)'),
         ('dynamic', 'Dynamic (Traffic Based)')
     ], string='Pricing Type', default='fixed')
     
     price_per_month = fields.Float(string='Price per Month')
     price_per_day = fields.Float(string='Price per Day')
+    price_slot_monthly = fields.Float(string='Slot Price (Monthly)')
+    price_slot_biweekly = fields.Float(string='Slot Price (Bi-weekly)')
+    price_slot_weekly = fields.Float(string='Slot Price (Weekly)')
     cpm_rate = fields.Float(string='CPM Rate')
-    
+
     estimated_monthly_impressions = fields.Integer(string='Est. Monthly Impressions')
+
     
     active = fields.Boolean(default=True)
     lease_line_ids = fields.One2many('sale.order.line', 'media_face_id', string='Lease Lines')
@@ -146,7 +169,38 @@ class MediaFace(models.Model):
                 record._sync_product()
         return res
 
+    rentals_count = fields.Integer(compute='_compute_face_stats', string='Rentals Count')
+    expenses_count = fields.Integer(compute='_compute_face_stats', string='Expenses Count')
+
+    @api.depends('lease_line_ids', 'expense_ids')
+    def _compute_face_stats(self):
+        for record in self:
+            record.rentals_count = len(record.lease_line_ids)
+            record.expenses_count = len(record.expense_ids)
+
+    def action_view_rentals(self):
+        self.ensure_one()
+        return {
+            'name': _('Rentals'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order.line',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', self.lease_line_ids.ids)],
+        }
+
+    def action_view_expenses(self):
+        self.ensure_one()
+        return {
+            'name': _('Expenses'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'media.expense',
+            'view_mode': 'list,form',
+            'domain': [('media_face_id', '=', self.id)],
+            'context': {'default_media_face_id': self.id, 'default_site_id': self.site_id.id},
+        }
+
     def _sync_product(self):
+
         self.ensure_one()
         product_name = self.name
         if self.site_id:

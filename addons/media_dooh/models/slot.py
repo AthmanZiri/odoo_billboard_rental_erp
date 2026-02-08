@@ -40,6 +40,28 @@ class MediaDoohSlot(models.Model):
         ('biweekly', 'Bi-Weekly'),
         ('monthly', 'Monthly')
     ], string='Billing Frequency', default='monthly')
+    
+    ad_duration = fields.Integer(string='Ad Duration (sec)', default=15, help="Duration of the ad in seconds. Must be 15s.")
+    is_expiring_soon = fields.Boolean(string='Expiring Soon', compute='_compute_expiry_status', store=True)
+
+    @api.depends('end_date', 'state')
+    def _compute_expiry_status(self):
+        today = fields.Date.today()
+        soon = today + relativedelta(days=5)
+        for slot in self:
+            slot.is_expiring_soon = (
+                slot.state == 'booked' and 
+                slot.end_date and 
+                today <= slot.end_date <= soon
+            )
+
+    @api.constrains('ad_duration')
+
+    def _check_ad_duration(self):
+        for slot in self:
+            if slot.ad_duration != 15:
+                raise UserError(_("Ad duration must be exactly 15 seconds."))
+
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -62,38 +84,48 @@ class MediaDoohSlot(models.Model):
             raise UserError(_("Please select a Client before creating a Sale Order."))
         if not self.face_id.product_id:
             raise UserError(_("The selected Billboard Face does not have a linked product for invoicing."))
+
+        # Determine price based on pricing type
+        face = self.face_id
+        price_unit = 0.0
         
-        # Create Sale Order
+        if face.pricing_type == 'slot_monthly':
+            price_unit = face.price_slot_monthly
+        elif face.pricing_type == 'slot_biweekly':
+            price_unit = face.price_slot_biweekly
+        elif face.pricing_type == 'slot_weekly':
+            price_unit = face.price_slot_weekly
+        elif face.pricing_type == 'fixed':
+            # Dynamic calculation based on SOV (which is 1/number_of_slots ideally)
+            price_unit = face.price_per_month * (self.sov / 100.0)
+            
+            # Adjust for billing frequency
+            if self.billing_frequency == 'biweekly':
+                price_unit /= 2.0
+            elif self.billing_frequency == 'weekly':
+                price_unit /= 4.0
+        else:
+            # Fallback or other pricing types
+            price_unit = face.price_per_month * (self.sov / 100.0)
+
         order_vals = {
             'partner_id': self.partner_id.id,
-            'lease_start_date': self.start_date,
-            'lease_end_date': self.end_date,
             'origin': self.name,
+            'order_line': [(0, 0, {
+                'product_id': face.product_id.id,
+                'name': _("Digital Slot: %s | Face: %s | SOV: %s%%") % (
+                    self.name, face.display_name, self.sov
+                ),
+                'product_uom_qty': 1.0,
+                'price_unit': price_unit,
+                'media_face_id': face.id,
+                'start_date': self.start_date, # Added back start_date
+                'end_date': self.end_date,     # Added back end_date
+            })],
         }
         order = self.env['sale.order'].create(order_vals)
-        
-        # Calculate price based on SOV and frequency
-        base_price = self.face_id.price_per_month
-        sov_price = base_price * (self.sov / 100.0)
-        
-        if self.billing_frequency == 'weekly':
-            sov_price = sov_price / 4.0
-        elif self.billing_frequency == 'biweekly':
-            sov_price = sov_price / 2.0
-        
-        # Create Order Line
-        line_vals = {
-            'order_id': order.id,
-            'product_id': self.face_id.product_id.id,
-            'media_face_id': self.face_id.id,
-            'start_date': self.start_date,
-            'end_date': self.end_date,
-            'price_unit': sov_price,
-            'product_uom_qty': 1.0,
-            'name': _("Digital Slot [%s] on Face %s (SOV: %s%%)") % (self.name, self.face_id.display_name, self.sov),
-        }
-        line = self.env['sale.order.line'].create(line_vals)
-        
+        line = order.order_line[0] # Get the created line
+
         self.sale_line_id = line.id
         self.state = 'reserved'
         
@@ -105,3 +137,26 @@ class MediaDoohSlot(models.Model):
             'view_mode': 'form',
             'target': 'current',
         }
+
+    @api.model
+    def _cron_notify_expiring_slots(self):
+        """ Notify users about slots expiring in 5 days """
+        expiry_date = fields.Date.today() + relativedelta(days=5)
+        expiring_slots = self.search([
+            ('state', '=', 'booked'),
+            ('end_date', '=', expiry_date)
+        ])
+        
+        for slot in expiring_slots:
+            # Create a mail activity for the salesperson or a default manager
+            user_id = slot.sale_line_id.order_id.user_id or self.env.user
+            slot.activity_schedule(
+                'mail.mail_activity_data_todo',
+                date_deadline=fields.Date.today(),
+                summary=_("Slot Expiring Soon: %s") % slot.name,
+                note=_("The digital slot %s on face %s is set to expire on %s (in 5 days).") % (
+                    slot.name, slot.face_id.display_name, slot.end_date
+                ),
+                user_id=user_id.id
+            )
+

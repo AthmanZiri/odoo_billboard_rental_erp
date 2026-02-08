@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Cron for ad expiry notification -->
+        <record id="ir_cron_notify_expiring_slots" model="ir.cron">
+            <field name="name">DOOH: Notify Expiring Slots (5 Days)</field>
+            <field name="model_id" ref="model_media_dooh_slot"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_notify_expiring_slots()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+        </record>
+
+    </data>
+
+    <!-- Report Actions -->
+    
+    <!-- 1. Current Running Ads -->
+    <record id="action_report_running_ads" model="ir.actions.act_window">
+        <field name="name">Current Running Ads</field>
+        <field name="res_model">media.dooh.slot</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'booked')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No ads are currently running.
+            </p>
+        </field>
+    </record>
+
+    <!-- 2. About to Expire Ads (5 Days) -->
+    <record id="action_report_expiring_ads" model="ir.actions.act_window">
+        <field name="name">Ads Expiring Soon (5 Days)</field>
+        <field name="res_model">media.dooh.slot</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_expiring_soon', '=', True)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No ads are expiring in the next 5 days.
+            </p>
+        </field>
+    </record>
+
+
+    <!-- 3. Available Slots -->
+    <record id="action_report_available_slots" model="ir.actions.act_window">
+        <field name="name">Available Digital Slots</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('face_type', '=', 'digital'), ('available_slots', '&gt;', 0)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                All digital slots are currently occupied.
+            </p>
+        </field>
+    </record>
+
+    <!-- 4. Revenue per Digital Screen (Pivot) -->
+    <record id="action_report_revenue_per_screen" model="ir.actions.act_window">
+        <field name="name">Revenue per Digital Screen</field>
+        <field name="res_model">sale.order.line</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="domain">[('media_face_id.face_type', '=', 'digital')]</field>
+        <field name="context">{'group_by': ['media_face_id'], 'search_default_filter_order_confirmed': 1}</field>
+    </record>
+
+</odoo>
