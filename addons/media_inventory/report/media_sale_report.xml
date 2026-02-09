@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_saleorder_document_inherit_media" inherit_id="sale.report_saleorder_document">
+        <!-- Add Custom CSS -->
+        <xpath expr="//t[@t-call='web.external_layout']" position="inside">
+            <style>
+                .media-specs {
+                    font-size: 0.85rem;
+                    color: #555;
+                    margin-top: 5px;
+                    border-top: 1px solid #eee;
+                    padding-top: 5px;
+                }
+                .media-spec-item {
+                    display: block;
+                    margin-bottom: 2px;
+                }
+                .media-spec-label {
+                    font-weight: bold;
+                }
+                .text-red-total {
+                    color: #e62117 !important;
+                    font-weight: bold;
+                }
+                .table-media th {
+                    background-color: #f8f9fa !important;
+                    text-transform: uppercase;
+                }
+            </style>
+        </xpath>
+
+        <!-- Custom Table Header -->
+        <xpath expr="//table[contains(@class, 'o_main_table')]//thead//tr" position="replace">
+            <tr>
+                <th name="th_item" class="text-start">ITEM</th>
+                <th name="th_billboard" class="text-start">Billboard</th>
+                <th name="th_priceunit" class="text-end">RATES(S) in a weeks &amp; in a day</th>
+                <th name="th_quantity" class="text-end">No. of Slots/ Sites</th>
+                <th name="th_subtotal" class="text-end">Sub- Total</th>
+            </tr>
+        </xpath>
+
+        <!-- Custom Table Body -->
+        <xpath expr="//table[contains(@class, 'o_main_table')]//tbody" position="replace">
+            <tbody class="sale_tbody">
+                <t t-set="current_subtotal" t-value="0"/>
+                <t t-foreach="lines_to_report" t-as="line">
+                    <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal"/>
+                    <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
+                        <t t-if="not line.display_type">
+                            <td name="td_item">
+                                <span t-esc="line_index + 1"/>
+                            </td>
+                            <td name="td_name">
+                                <span t-field="line.name"/>
+                                <t t-if="line.media_face_id">
+                                    <div class="media-specs">
+                                        <div class="media-spec-item">
+                                            <span class="media-spec-label">Size:</span>
+                                            <span t-esc="'%.0fx%.0f' % (line.media_face_id.width, line.media_face_id.height)"/> meters <span t-field="line.media_face_id.orientation"/>
+                                        </div>
+                                        
+                                        <t t-if="line.media_face_id.face_type == 'digital'">
+                                            <div class="media-spec-item">
+                                                <span class="media-spec-label">Content size:</span>
+                                                (<span t-field="line.media_face_id.content_size_rec"/>)
+                                            </div>
+                                            <div class="media-spec-item">
+                                                <span class="media-spec-label">Content type:</span>
+                                                <span t-field="line.media_face_id.supported_formats"/>
+                                            </div>
+                                            <div class="media-spec-item">
+                                                <span class="media-spec-label">Operating hours:</span>
+                                                <t t-set="start_hour" t-value="int(line.media_face_id.operating_hours_start)"/>
+                                                <t t-set="start_min" t-value="int((line.media_face_id.operating_hours_start % 1) * 60)"/>
+                                                <t t-set="end_hour" t-value="int(line.media_face_id.operating_hours_end)"/>
+                                                <t t-set="end_min" t-value="int((line.media_face_id.operating_hours_end % 1) * 60)"/>
+                                                <span t-esc="'%02d:%02d' % (start_hour, start_min)"/> to <span t-esc="'%02d:%02d' % (end_hour, end_min)"/>
+                                            </div>
+                                            <div class="media-spec-item">
+                                                <span class="media-spec-label">Content Duration:</span>
+                                                <span t-field="line.media_face_id.slot_duration"/>sec every <t t-esc="int((line.media_face_id.slot_duration * line.media_face_id.number_of_slots) / 60)"/> min
+                                            </div>
+                                            <div class="media-spec-item">
+                                                <span t-field="line.media_face_id.views_per_day"/> views per day
+                                            </div>
+                                            <div class="media-spec-item">
+                                                <span class="media-spec-label">Maximum clients:</span>
+                                                <span t-field="line.media_face_id.number_of_slots"/>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </t>
+                            </td>
+                            <td name="td_priceunit" class="text-end">
+                                <span t-field="line.price_unit"/>
+                            </td>
+                            <td name="td_quantity" class="text-end">
+                                <span t-field="line.product_uom_qty"/>
+                                <span t-field="line.product_uom"/>
+                            </td>
+                            <td name="td_subtotal" class="text-end o_price_total">
+                                <span t-field="line.price_subtotal"/>
+                            </td>
+                        </t>
+                        <t t-elif="line.display_type == 'line_section'">
+                            <td name="td_section_line" colspan="99">
+                                <span t-field="line.name"/>
+                            </td>
+                            <t t-set="current_section" t-value="line"/>
+                            <t t-set="current_subtotal" t-value="0"/>
+                        </t>
+                        <t t-elif="line.display_type == 'line_note'">
+                            <td name="td_note_line" colspan="99">
+                                <span t-field="line.name"/>
+                            </td>
+                        </t>
+                    </tr>
+                </t>
+            </tbody>
+        </xpath>
+
+
+        <!-- Styling the Total -->
+        <xpath expr="//tr[contains(@class, 'o_total')]//td[2]" position="attributes">
+            <attribute name="class" add="text-red-total" separator=" "/>
+        </xpath>
+    </template>
+</odoo>

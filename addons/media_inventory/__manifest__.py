@@ -25,6 +25,7 @@
         'report/media_asset_report.xml',
         'report/media_proposal_report.xml',
         'report/media_proposal_template.xml',
+        'report/media_sale_report.xml',
     ],
     'assets': {
         'web.assets_backend': [
