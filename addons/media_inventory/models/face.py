@@ -31,6 +31,8 @@ class MediaFace(models.Model):
     width = fields.Float(string='Width (m)')
     length_m = fields.Float(string='Length (m)', help="Length/Depth in meters if applicable")
     face_image = fields.Image(string='Face Image', max_width=1920, max_height=1920)
+    default_artwork = fields.Image(string='Default Artwork', help="Default artwork to display when no active contract artwork exist.")
+    artwork_history_ids = fields.One2many('media.artwork.history', 'face_id', string='Artwork History')
 
 
     illumination_type = fields.Selection([
@@ -169,6 +171,14 @@ class MediaFace(models.Model):
         if any(f in vals for f in ['name', 'code', 'site_id', 'price_per_month', 'price_per_day']):
             for record in self:
                 record._sync_product()
+        
+        if 'default_artwork' in vals:
+            for record in self:
+                self.env['media.artwork.history'].create({
+                    'face_id': record.id,
+                    'artwork_file': vals['default_artwork'],
+                    'description': _('Updated default artwork'),
+                })
         return res
 
     rentals_count = fields.Integer(compute='_compute_face_stats', string='Rentals Count')
