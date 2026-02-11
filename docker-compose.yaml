@@ -12,6 +12,7 @@ services:
       - web:/var/lib/odoo
       - ./config:/etc/odoo
       - ./addons:/mnt/extra-addons
+      - ./account:/mnt/account
   db:
     image: postgres:16
     environment:
