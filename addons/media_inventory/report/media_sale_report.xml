@@ -18,7 +18,7 @@
                 .media-spec-label {
                     font-weight: bold;
                 }
-                .text-red-total {
+                .text-red-total, .o_total td:last-child, .o_total td:nth-child(2) {
                     color: #e62117 !important;
                     font-weight: bold;
                 }
@@ -121,9 +121,5 @@
         </xpath>
 
 
-        <!-- Styling the Total -->
-        <xpath expr="//tr[contains(@class, 'o_total')]//td[2]" position="attributes">
-            <attribute name="class" add="text-red-total" separator=" "/>
-        </xpath>
     </template>
 </odoo>

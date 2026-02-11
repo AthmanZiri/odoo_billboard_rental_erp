@@ -8,7 +8,7 @@
                 <field name="name"/>
                 <field name="face_id"/>
                 <field name="partner_id"/>
-                <field name="state"/>
+                <field name="state" widget="badge" decoration-success="state == 'available'" decoration-danger="state == 'booked'" decoration-warning="state == 'reserved'"/>
                 <field name="sov"/>
 
 
