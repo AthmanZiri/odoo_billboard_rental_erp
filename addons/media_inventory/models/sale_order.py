@@ -23,7 +23,7 @@ class SaleOrderLine(models.Model):
     start_date = fields.Date(string='Start Date')
     end_date = fields.Date(string='End Date')
     
-    artwork_file = fields.Binary(string='Artwork/Graphic')
+    artwork_file = fields.Image(string='Artwork/Graphic', max_width=1920, max_height=1920)
     artwork_filename = fields.Char(string='Artwork Filename')
     
     @api.constrains('media_face_id', 'start_date', 'end_date', 'state')
@@ -67,3 +67,28 @@ class SaleOrderLine(models.Model):
         if self.media_face_id:
             res['media_face_id'] = self.media_face_id.id
         return res
+    def write(self, vals):
+        res = super(SaleOrderLine, self).write(vals)
+        if 'artwork_file' in vals and vals['artwork_file']:
+            for line in self:
+                if line.media_face_id:
+                    self.env['media.artwork.history'].create({
+                        'face_id': line.media_face_id.id,
+                        'sale_order_line_id': line.id,
+                        'artwork_file': vals['artwork_file'],
+                        'description': _('Updated artwork for contract %s') % line.order_id.name,
+                    })
+        return res
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super(SaleOrderLine, self).create(vals_list)
+        for line in lines:
+            if line.artwork_file and line.media_face_id:
+                self.env['media.artwork.history'].create({
+                    'face_id': line.media_face_id.id,
+                    'sale_order_line_id': line.id,
+                    'artwork_file': line.artwork_file,
+                    'description': _('Initial artwork for contract %s') % line.order_id.name,
+                })
+        return lines

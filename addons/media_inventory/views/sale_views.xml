@@ -15,7 +15,7 @@
             <xpath expr="//field[@name='order_line']/list//field[@name='name']" position="after">
                 <field name="start_date" optional="show"/>
                 <field name="end_date" optional="show"/>
-                <field name="artwork_file" widget="image" options="{'size': [64, 64]}" optional="hide"/>
+                <field name="artwork_file" widget="image" options="{'size': [64, 64], 'zoom': true}" optional="show"/>
                 <field name="artwork_filename" invisible="1"/>
             </xpath>
         </field>
