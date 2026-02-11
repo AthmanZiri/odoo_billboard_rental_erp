@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_multi_payment_form" model="ir.ui.view">
+        <field name="name">account.multi.payment.form</field>
+        <field name="model">account.multi.payment</field>
+        <field name="arch" type="xml">
+            <form string="Multi Invoice Payment">
+                <header>
+                    <button name="action_post" string="Post" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state != 'draft'"/>
+                    <button name="action_draft" string="Set to Draft" type="object" invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="journal_id" readonly="state != 'draft'"/>
+                            <field name="payment_type" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="payment_date" readonly="state != 'draft'"/>
+                            <field name="currency_id" groups="base.group_multi_currency" readonly="state != 'draft'"/>
+                            <field name="communication" readonly="state != 'draft'"/>
+                            <field name="amount" readonly="state != 'draft'" class="oe_highlight" style="font-size: 1.2em; font-weight: bold;"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Invoices/Bills" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom" decoration-info="amount_payment > 0">
+                                    <field name="move_id" options="{'no_create': True}"/>
+                                    <field name="amount_total" force_save="1"/>
+                                    <field name="amount_residual" force_save="1"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="amount_payment" sum="Total Payment"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                    <group class="oe_subtotal_footer oe_right">
+                        <field name="total_residual_amount" string="Total Open Amount" class="oe_subtotal_footer_separator"/>
+                        <field name="amount" string="Amount to Pay" class="oe_subtotal_footer_separator"/>
+                    </group>
+                </sheet>
+                <oe_chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_account_multi_payment_tree" model="ir.ui.view">
+        <field name="name">account.multi.payment.tree</field>
+        <field name="model">account.multi.payment</field>
+        <field name="arch" type="xml">
+            <list string="Multi Invoice Payments">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="payment_date"/>
+                <field name="journal_id"/>
+                <field name="amount" sum="Total"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_account_multi_payment" model="ir.actions.act_window">
+        <field name="name">Multi Invoice Payments</field>
+        <field name="res_model">account.multi.payment</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Register a multi-invoice payment
+          </p><p>
+            Allocate one payment across several open documents in one operation.
+          </p>
+        </field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_account_multi_payment"
+              name="Multi-Invoice Payments"
+              parent="account.menu_finance_receivables"
+              action="action_account_multi_payment"
+              sequence="15"/>
+
+    <menuitem id="menu_account_multi_payment_vendor"
+              name="Multi-Bill Payments"
+              parent="account.menu_finance_payables"
+              action="action_account_multi_payment"
+              sequence="15"/>
+
+    <!-- Server Action for Multi Selection -->
+    <record id="action_multi_invoice_payment_server" model="ir.actions.server">
+        <field name="name">Register Multi-Invoice Payment</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = env.ref('multi_invoice_payment.action_account_multi_payment').read()[0]
+    # Filter only posted and unpaid/partial invoices
+    valid_records = records.filtered(lambda r: r.state == 'posted' and r.payment_state in ('not_paid', 'partial'))
+    if not valid_records:
+        raise UserError("Please select at least one posted and unpaid invoice/bill.")
+    
+    partners = valid_records.mapped('partner_id')
+    if len(partners) > 1:
+        raise UserError("Multi-Invoice payment is only supported for a single partner.")
+    
+    # Create the multi payment record
+    total_selected = sum(valid_records.mapped('amount_residual'))
+    multi_payment = env['account.multi.payment'].create({
+        'partner_id': partners[0].id,
+        'payment_type': 'inbound' if valid_records[0].move_type in ('out_invoice', 'out_refund') else 'outbound',
+        'partner_type': 'customer' if valid_records[0].move_type in ('out_invoice', 'out_refund') else 'supplier',
+        'amount': total_selected,
+    })
+    
+    # Add lines (FIFO order for consistency)
+    for move in valid_records.sorted(key=lambda r: (r.invoice_date or fields.Date.today(), r.id)):
+        env['account.multi.payment.line'].create({
+            'multi_payment_id': multi_payment.id,
+            'move_id': move.id,
+            'amount_payment': move.amount_residual,
+        })
+    
+    action['res_id'] = multi_payment.id
+    action['view_mode'] = 'form'
+    action['views'] = [(env.ref('multi_invoice_payment.view_account_multi_payment_form').id, 'form')]
+    action['target'] = 'current'
+    action['domain'] = []
+    action['context'] = {}
+    action = action
+        </field>
+    </record>
+</odoo>
