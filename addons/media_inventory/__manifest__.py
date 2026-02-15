@@ -14,6 +14,7 @@
     'data': [
         'security/ir.model.access.csv',
         'data/kenya_locations.xml',
+        'data/ir_sequence_data.xml',
         'data/inventory_crons.xml',
         'wizard/canopy_status_wizard_views.xml',
         'views/site_views.xml',
