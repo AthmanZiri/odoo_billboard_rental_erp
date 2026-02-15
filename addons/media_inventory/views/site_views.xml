@@ -41,6 +41,29 @@
     <record id="action_media_site_map" model="ir.actions.client">
         <field name="name">Billboard Map</field>
         <field name="tag">media_inventory.billboard_map_action</field>
+        <field name="res_model">media.site</field>
+        <field name="params">{'model': 'media.site'}</field>
+        <field name="context">{'search_default_filter_active': 1}</field>
+    </record>
+
+    <!-- Site Search View -->
+    <record id="view_media_site_search" model="ir.ui.view">
+        <field name="name">media.site.search</field>
+        <field name="model">media.site</field>
+        <field name="arch" type="xml">
+            <search string="Search Sites">
+                <field name="name" string="Site Name"/>
+                <field name="code"/>
+                <field name="county_id"/>
+                <field name="sub_county_id"/>
+                
+                <filter string="Billboards" name="filter_billboard" domain="[('site_category', '=', 'billboard')]"/>
+                <filter string="Canopies" name="filter_canopy" domain="[('site_category', '=', 'canopy')]"/>
+                <separator/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
     </record>
 
     <!-- Billboard Site Views -->

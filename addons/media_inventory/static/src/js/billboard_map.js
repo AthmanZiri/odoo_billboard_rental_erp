@@ -2,7 +2,8 @@
 
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { Component, onMounted, useRef, onWillUnmount } from "@odoo/owl";
+import { Layout } from "@web/search/layout";
+import { Component, onMounted, useRef, onWillUnmount, onWillStart, onWillUpdateProps } from "@odoo/owl";
 
 export class BillboardMap extends Component {
     setup() {
@@ -11,6 +12,7 @@ export class BillboardMap extends Component {
         this.mapContainer = useRef("mapContainer");
         this.map = null;
         this.markers = [];
+        this.siteModel = "media.site";
 
         onMounted(() => {
             this.initMap();
@@ -19,6 +21,13 @@ export class BillboardMap extends Component {
         onWillUnmount(() => {
             if (this.map) {
                 this.map.remove();
+            }
+        });
+
+        // Handle domain changes from search bar
+        onWillUpdateProps(async (nextProps) => {
+            if (JSON.stringify(this.props.domain) !== JSON.stringify(nextProps.domain)) {
+                await this.loadMarkers(nextProps.domain);
             }
         });
     }
@@ -31,28 +40,49 @@ export class BillboardMap extends Component {
             attribution: '© OpenStreetMap contributors'
         }).addTo(this.map);
 
-        await this.loadMarkers();
+        await this.loadMarkers(this.props.domain);
     }
 
-    async loadMarkers() {
-        const sites = await this.orm.searchRead("media.site", [
-            ["latitude", "!=", 0],
-            ["longitude", "!=", 0]
-        ], ["name", "code", "latitude", "longitude", "city"]);
+    async loadMarkers(domain = []) {
+        // Clear existing markers
+        this.markers.forEach(marker => this.map.removeLayer(marker));
+        this.markers = [];
+
+        const sites = await this.orm.searchRead(this.siteModel, domain || [],
+            ["name", "code", "latitude", "longitude", "city", "site_category", "shop_name", "county_id", "sub_county_id", "canopy_status"]);
 
         sites.forEach(site => {
-            const marker = L.marker([site.latitude, site.longitude])
-                .addTo(this.map)
-                .bindPopup(`
-                    <div class="site-popup">
-                        <strong>${site.name}</strong><br/>
-                        Code: ${site.code || 'N/A'}<br/>
-                        City: ${site.city || 'N/A'}<br/>
-                        <button class="btn btn-primary btn-sm mt-1" onclick="window.odoo_open_site(${site.id})">
-                            Open Site
-                        </button>
+            const isCanopy = site.site_category === 'canopy';
+            const markerColor = isCanopy ? '#28a745' : '#007bff'; // Green for Canopy, Blue for Billboard
+
+            const customIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color: ${markerColor};" class="marker-pin"></div><i class="fa ${isCanopy ? 'fa-shopping-cart' : 'fa-television'}"></i>`,
+                iconSize: [30, 42],
+                iconAnchor: [15, 42]
+            });
+
+            const popupContent = `
+                <div class="site-popup">
+                    <div class="popup-header" style="border-bottom: 2px solid ${markerColor}; color: ${markerColor};">
+                        <strong>${site.name}</strong>
+                        ${site.site_category ? `<span class="badge" style="background-color: ${markerColor};">${site.site_category.toUpperCase()}</span>` : ''}
                     </div>
-                `);
+                    <div class="popup-body mt-2">
+                        ${isCanopy && site.shop_name ? `<div><strong>Shop:</strong> ${site.shop_name}</div>` : ''}
+                        <div><strong>Code:</strong> ${site.code || 'N/A'}</div>
+                        <div><strong>Location:</strong> ${site.sub_county_id ? site.sub_county_id[1] : ''}, ${site.county_id ? site.county_id[1] : ''}</div>
+                        ${isCanopy ? `<div><strong>Status:</strong> <span class="text-capitalize">${site.canopy_status || 'N/A'}</span></div>` : ''}
+                    </div>
+                    <button class="btn btn-primary btn-sm mt-2 w-100" onclick="window.odoo_open_site(${site.id})">
+                        Open details
+                    </button>
+                </div>
+            `;
+
+            const marker = L.marker([site.latitude, site.longitude], { icon: customIcon })
+                .addTo(this.map)
+                .bindPopup(popupContent);
             this.markers.push(marker);
         });
 
@@ -70,6 +100,7 @@ export class BillboardMap extends Component {
 }
 
 BillboardMap.template = "media_inventory.BillboardMap";
+BillboardMap.components = { Layout };
 
 // Register the action
 registry.category("actions").add("media_inventory.billboard_map_action", BillboardMap);
