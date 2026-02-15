@@ -13,9 +13,13 @@ export class BillboardMap extends Component {
         this.map = null;
         this.markers = [];
         this.siteModel = "media.site";
+        this.display = {
+            controlPanel: { "top-right": true, "bottom-right": true },
+        };
 
-        onMounted(() => {
-            this.initMap();
+        onMounted(async () => {
+            await this.initMap();
+            await this.loadMarkers(this.props.domain || []);
         });
 
         onWillUnmount(() => {
@@ -24,7 +28,6 @@ export class BillboardMap extends Component {
             }
         });
 
-        // Handle domain changes from search bar
         onWillUpdateProps(async (nextProps) => {
             if (JSON.stringify(this.props.domain) !== JSON.stringify(nextProps.domain)) {
                 await this.loadMarkers(nextProps.domain);
@@ -33,18 +36,13 @@ export class BillboardMap extends Component {
     }
 
     async initMap() {
-        // Initialize the map centered on a default location (e.g., Mombasa area if known, or 0,0)
         this.map = L.map(this.mapContainer.el).setView([-4.0435, 39.6682], 12);
-
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(this.map);
-
-        await this.loadMarkers(this.props.domain);
     }
 
     async loadMarkers(domain = []) {
-        // Clear existing markers
         this.markers.forEach(marker => this.map.removeLayer(marker));
         this.markers = [];
 
@@ -53,7 +51,7 @@ export class BillboardMap extends Component {
 
         sites.forEach(site => {
             const isCanopy = site.site_category === 'canopy';
-            const markerColor = isCanopy ? '#28a745' : '#007bff'; // Green for Canopy, Blue for Billboard
+            const markerColor = isCanopy ? '#28a745' : '#007bff';
 
             const customIcon = L.divIcon({
                 className: 'custom-div-icon',

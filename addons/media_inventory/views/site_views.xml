@@ -39,7 +39,7 @@
 
     <!-- Map Action -->
     <record id="action_media_site_map" model="ir.actions.client">
-        <field name="name">Billboard Map</field>
+        <field name="name" >Billboard Map</field>
         <field name="tag">media_inventory.billboard_map_action</field>
         <field name="res_model">media.site</field>
         <field name="params">{'model': 'media.site'}</field>

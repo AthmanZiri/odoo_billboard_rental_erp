@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="media_inventory.BillboardMap" owl="1">
-        <Layout display="{ controlPanel: { 'top-right': true, 'bottom-right': true } }">
+        <Layout display="display">
             <div class="o_billboard_map_container">
                 <div id="billboard_leaflet_map" t-ref="mapContainer"></div>
             </div>
