@@ -28,6 +28,7 @@ class MediaSite(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string='Site Name', required=True, copy=False, readonly=True, index=True, default=lambda self: 'New')
+    shop_name = fields.Char(string='Shop Name', tracking=True)
     code = fields.Char(string='Site Code', tracking=True)
     site_category = fields.Selection([
         ('billboard', 'Billboard'),
@@ -134,7 +135,10 @@ class MediaSite(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get('name', 'New') == 'New':
-                vals['name'] = self.env['ir.sequence'].next_by_code('media.site') or 'New'
+                if vals.get('site_category') == 'canopy':
+                    vals['name'] = self.env['ir.sequence'].next_by_code('media.site.canopy') or 'New'
+                else:
+                    vals['name'] = self.env['ir.sequence'].next_by_code('media.site') or 'New'
         return super(MediaSite, self).create(vals_list)
 
     @api.onchange('google_maps_link')

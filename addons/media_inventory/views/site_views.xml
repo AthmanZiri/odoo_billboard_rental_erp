@@ -202,7 +202,8 @@
         <field name="arch" type="xml">
             <list string="Canopies">
                 <field name="id" string="ID"/>
-                <field name="name" string="Shop Name"/>
+                <field name="name" string="Canopy Name"/>
+                <field name="shop_name"/>
                 <field name="county_id" string="County"/>
                 <field name="sub_county_id" string="Sub-County"/>
                 <field name="description_canopy" string="Description"/>
@@ -238,10 +239,14 @@
                     </div>
 
                     <div class="oe_title">
-                        <label for="name" string="Shop Name"/>
+                        <label for="name" string="Canopy Name"/>
                         <h1>
-                            <field name="name" placeholder="Chips Kuku &amp; BBQ..."/>
+                            <field name="name"/>
                         </h1>
+                        <label for="shop_name" string="Shop Name"/>
+                        <h2>
+                            <field name="shop_name" placeholder="Chips Kuku &amp; BBQ..."/>
+                        </h2>
                     </div>
                     <group>
                         <group>

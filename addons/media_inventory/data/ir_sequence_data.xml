@@ -8,5 +8,13 @@
             <field name="padding">4</field>
             <field name="company_id" eval="False"/>
         </record>
+
+        <record id="seq_media_site_canopy" model="ir.sequence">
+            <field name="name">Media Canopy Sequence</field>
+            <field name="code">media.site.canopy</field>
+            <field name="prefix">CAN/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
     </data>
 </odoo>
