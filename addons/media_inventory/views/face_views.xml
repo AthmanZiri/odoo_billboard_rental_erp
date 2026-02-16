@@ -55,7 +55,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="site_id"/>
+                            <field name="site_id" domain="[('site_category', '=', 'billboard')]"/>
                             <field name="code"/>
                             <field name="face_type"/>
                             <field name="default_artwork" widget="image" class="oe_avatar" options="{'zoom': true}"/>

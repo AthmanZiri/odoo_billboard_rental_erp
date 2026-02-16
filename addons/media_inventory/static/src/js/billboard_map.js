@@ -47,7 +47,7 @@ export class BillboardMap extends Component {
         this.markers = [];
 
         const sites = await this.orm.searchRead(this.siteModel, domain || [],
-            ["name", "code", "latitude", "longitude", "city", "site_category", "shop_name", "county_id", "sub_county_id", "canopy_status"]);
+            ["name", "code", "latitude", "longitude", "city", "site_category", "shop_name", "county_id", "sub_county_id"]);
 
         sites.forEach(site => {
             const isCanopy = site.site_category === 'canopy';
@@ -70,7 +70,6 @@ export class BillboardMap extends Component {
                         ${isCanopy && site.shop_name ? `<div><strong>Shop:</strong> ${site.shop_name}</div>` : ''}
                         <div><strong>Code:</strong> ${site.code || 'N/A'}</div>
                         <div><strong>Location:</strong> ${site.sub_county_id ? site.sub_county_id[1] : ''}, ${site.county_id ? site.county_id[1] : ''}</div>
-                        ${isCanopy ? `<div><strong>Status:</strong> <span class="text-capitalize">${site.canopy_status || 'N/A'}</span></div>` : ''}
                     </div>
                     <button class="btn btn-primary btn-sm mt-2 w-100" onclick="window.odoo_open_site(${site.id})">
                         Open details

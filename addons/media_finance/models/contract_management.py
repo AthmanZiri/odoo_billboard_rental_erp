@@ -114,3 +114,14 @@ class MediaSite(models.Model):
             'domain': [('id', 'in', invoices.ids)],
             'context': {'create': False},
         }
+
+class MediaCanopy(models.Model):
+    _inherit = 'media.canopy'
+
+    pending_invoice_count = fields.Integer(related='site_id.pending_invoice_count', readonly=True)
+    unpaid_invoices_amount = fields.Float(related='site_id.unpaid_invoices_amount', readonly=True)
+    occupancy_rate = fields.Float(related='site_id.occupancy_rate', readonly=True)
+
+    def action_view_pending_invoices(self):
+        self.ensure_one()
+        return self.site_id.action_view_pending_invoices()

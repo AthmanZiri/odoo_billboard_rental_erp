@@ -62,6 +62,8 @@
                         </style>
 
                         <t t-set="site" t-value="face.site_id"/>
+                        <!-- Check if site is a billboard -->
+                        <t t-set="billboard" t-value="face.env['media.billboard'].search([('site_id', '=', site.id)], limit=1)"/>
                         
                         <div class="header-title">
                             BILLBOARDS
@@ -76,7 +78,8 @@
 
                             <div class="spec-row">
                                 <span class="spec-label">LOCATION:</span> 
-                                <span t-field="site.billboard_location_text"/>
+                                <span t-if="billboard" t-field="billboard.location_text"/>
+                                <span t-else="" t-field="site.name"/>
                                 <a t-if="site.google_maps_link" t-att-href="site.google_maps_link" class="map-link ml-2" target="_blank">
                                     <span t-field="site.google_maps_link"/>
                                 </a>
@@ -114,7 +117,7 @@
 
                         <!-- Hero Image -->
                         <div class="text-center">
-                            <t t-set="main_image" t-value="face.face_image or site.billboard_image_1 or site.billboard_image_2"/>
+                            <t t-set="main_image" t-value="face.face_image or (billboard and billboard.image_1) or (billboard and billboard.image_2)"/>
                             <img t-if="main_image" t-att-src="image_data_uri(main_image)" class="hero-image"/>
                         </div>
 

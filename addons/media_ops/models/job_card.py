@@ -6,12 +6,7 @@ class MediaJobCard(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string='Job Number', required=True, copy=False, readonly=True, index=True, default=lambda self: _('New'))
-    job_type = fields.Selection([
-        ('flexie', 'Flexies'),
-        ('repair', 'Repair Team'),
-        ('maintenance', 'Maintenance'),
-        ('installation', 'Installation')
-    ], string='Job Type', required=True)
+    job_type_id = fields.Many2one('media.job.type', string='Job Type', required=True)
     
     maintenance_team_id = fields.Many2one('media.maintenance.team', string='Assigned Team', tracking=True)
     

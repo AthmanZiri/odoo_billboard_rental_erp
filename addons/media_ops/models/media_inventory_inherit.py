@@ -42,3 +42,14 @@ class MediaFace(models.Model):
             'context': {'default_media_face_id': self.id, 'default_site_id': self.site_id.id},
         }
 
+
+class MediaCanopy(models.Model):
+    _inherit = 'media.canopy'
+
+    # Delegate to the site_id's job cards
+    job_card_ids = fields.One2many(related='site_id.job_card_ids', string='Job Cards', readonly=True)
+    job_card_count = fields.Integer(related='site_id.job_card_count', string='Job Card Count', readonly=True)
+
+    def action_view_job_cards(self):
+        self.ensure_one()
+        return self.site_id.action_view_job_cards()

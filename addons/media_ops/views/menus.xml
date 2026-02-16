@@ -16,4 +16,8 @@
     <menuitem id="menu_config_teams" name="Repair and Maintenance Teams" 
               parent="media_inventory.menu_media_config" 
               action="action_media_maintenance_team" sequence="30"/>
+
+    <menuitem id="menu_config_job_types" name="Job Types" 
+              parent="media_inventory.menu_media_config" 
+              action="action_media_job_type" sequence="40"/>
 </odoo>

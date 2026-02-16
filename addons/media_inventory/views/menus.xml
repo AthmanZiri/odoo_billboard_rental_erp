@@ -7,9 +7,9 @@
 
     <!-- 2) Billboards -->
     <menuitem id="menu_billboard_billboards" name="Billboards" parent="menu_media_root" sequence="10"/>
-    <menuitem id="menu_media_site" name="Billboard Sites" parent="menu_billboard_billboards" action="action_media_site" sequence="10"/>
+    <menuitem id="menu_media_site" name="Billboard Assets" parent="menu_billboard_billboards" action="action_media_billboard" sequence="10"/>
     <menuitem id="menu_media_face_list" name="Billboard Faces" parent="menu_billboard_billboards" action="action_media_face" sequence="20"/>
-    <menuitem id="menu_billboard_images" name="Update Images" parent="menu_billboard_billboards" action="action_media_site" sequence="40"/>
+    <menuitem id="menu_billboard_images" name="Billboard Artwork" parent="menu_billboard_billboards" action="action_media_artwork_billboard" sequence="40"/>
 
 
     <!-- 3) Digital Screens (Placeholder for media_dooh) -->
@@ -17,9 +17,8 @@
 
     <!-- 4) Canopies -->
     <menuitem id="menu_canopy_root" name="Canopies" parent="menu_media_root" sequence="30"/>
-    <menuitem id="menu_canopy_list" name="Canopies" parent="menu_canopy_root" action="action_media_site_canopy" sequence="10"/>
-    <menuitem id="menu_canopy_artwork" name="Update Canopy Artwork" parent="menu_canopy_root" action="action_media_site_canopy" sequence="20"/>
-    <menuitem id="menu_canopy_artwork" name="Update Canopy Artwork" parent="menu_canopy_root" action="action_media_site_canopy" sequence="20"/>
+    <menuitem id="menu_canopy_list" name="Canopy Assets" parent="menu_canopy_root" action="action_media_canopy" sequence="10"/>
+    <menuitem id="menu_canopy_artwork" name="Canopy Artwork" parent="menu_canopy_root" action="action_media_artwork_canopy" sequence="20"/>
     <menuitem id="menu_canopy_update_status" name="Update Canopy Status" parent="menu_canopy_root" action="action_canopy_status_wizard" sequence="40"/>
 
     <!-- 5) Operations -->

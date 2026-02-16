@@ -1,6 +1,6 @@
 {
     'name': 'Media Inventory',
-    'version': '1.0',
+    'version': '1.1',
     'category': 'Sales',
     'summary': 'Manage Billboard/Canopy Sites and Faces for OOH Media',
     'description': """
@@ -21,6 +21,7 @@
         'views/face_views.xml',
         'views/sale_views.xml',
         'views/expense_views.xml',
+        'views/artwork_history_views.xml',
         'views/menus.xml',
         'report/media_reports.xml',
         'report/media_asset_report.xml',

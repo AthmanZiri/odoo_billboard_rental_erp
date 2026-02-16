@@ -16,7 +16,7 @@
                     <field name="job_card_ids" readonly="1">
                         <list>
                             <field name="name"/>
-                            <field name="job_type"/>
+                            <field name="job_type_id"/>
                             <field name="maintenance_team_id"/>
                             <field name="date"/>
                             <field name="state" widget="badge"/>
@@ -29,9 +29,9 @@
 
     <!-- Extend Canopy Site Form -->
     <record id="view_media_site_canopy_form_inherit_ops" model="ir.ui.view">
-        <field name="name">media.site.canopy.form.inherit.ops</field>
-        <field name="model">media.site</field>
-        <field name="inherit_id" ref="media_inventory.view_media_site_canopy_form"/>
+        <field name="name">media.canopy.form.inherit.ops</field>
+        <field name="model">media.canopy</field>
+        <field name="inherit_id" ref="media_inventory.view_media_canopy_form"/>
         <field name="arch" type="xml">
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_job_cards" type="object" class="oe_stat_button" icon="fa-wrench">
@@ -43,7 +43,7 @@
                     <field name="job_card_ids" readonly="1">
                         <list>
                             <field name="name"/>
-                            <field name="job_type"/>
+                            <field name="job_type_id"/>
                             <field name="maintenance_team_id"/>
                             <field name="date"/>
                             <field name="state" widget="badge"/>
@@ -70,7 +70,7 @@
                     <field name="job_card_ids" readonly="1">
                         <list>
                             <field name="name"/>
-                            <field name="job_type"/>
+                            <field name="job_type_id"/>
                             <field name="maintenance_team_id"/>
                             <field name="date"/>
                             <field name="state" widget="badge"/>

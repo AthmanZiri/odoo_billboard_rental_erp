@@ -9,6 +9,7 @@
 
     'data': [
         'security/ir.model.access.csv',
+        'data/media_job_type_data.xml',
         'data/job_card_sequence.xml',
         'views/project_task_views.xml',
         'views/job_card_views.xml',

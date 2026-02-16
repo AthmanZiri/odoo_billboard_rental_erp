@@ -1,128 +1,11 @@
 from odoo import models, fields, api, _
-
 import re
 import requests
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
-from odoo.exceptions import UserError
-
-class MediaCounty(models.Model):
-    _name = 'media.county'
-    _description = 'Kenya County'
-    _order = 'name'
-
-    name = fields.Char(string='County Name', required=True)
-    code = fields.Char(string='County Code')
-
-class MediaSubCounty(models.Model):
-    _name = 'media.sub_county'
-    _description = 'Kenya Sub-County'
-    _order = 'name'
-
-    name = fields.Char(string='Sub-County Name', required=True)
-    county_id = fields.Many2one('media.county', string='County', required=True, ondelete='cascade')
-
-class MediaSite(models.Model):
-    _name = 'media.site'
-    _description = 'Media Site'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
-
-    name = fields.Char(string='Site Name', required=True, copy=False, readonly=True, index=True, default=lambda self: 'New')
-    shop_name = fields.Char(string='Shop Name', tracking=True)
-    code = fields.Char(string='Site Code', tracking=True)
-    site_category = fields.Selection([
-        ('billboard', 'Billboard'),
-        ('canopy', 'Canopy')
-    ], string='Site Category', default='billboard', required=True)
-    
-    # Geographic Fields
-    street = fields.Char()
-    city = fields.Char()
-    district = fields.Char()
-    zip = fields.Char()
-    country_id = fields.Many2one('res.country', string='Country')
-    road_type = fields.Selection([
-        ('highway', 'Highway'),
-        ('main_road', 'Main Road'),
-        ('urban_road', 'Urban Road'),
-        ('rural_road', 'Rural Road')
-    ], string='Road Type')
-    
-    # Canopy Specific Fields
-    duka_type = fields.Selection([
-        ('normal_shop', 'Normal Shop'),
-        ('modern_kiosk', 'Modern Kiosk'),
-        ('kiosk', 'Kiosk'),
-        ('restaurant', 'Restaurant'),
-        ('na', 'NA')
-    ], string='Type of Duka')
-    
-    canopy_type = fields.Selection([
-        ('canopy', 'Canopy'),
-        ('kiosk', 'Kiosk'),
-        ('none', 'NONE'),
-        ('other', 'Other')
-    ], string='Canopy Type')
-    
-    description_canopy = fields.Text(string='Description')
-    
-    canopy_status = fields.Selection([
-        ('active', 'Active'),
-        ('inactive', 'Inactive'),
-        ('damaged', 'Damaged'),
-        ('withdrawn', 'Withdrawn')
-    ], string='Canopy Status', default='active', tracking=True)
-    canopy_status_reason = fields.Char(string='Status Reason')
-    
-    canopy_contact_name = fields.Char(string='Contact Name')
-    canopy_contact_phone = fields.Char(string='Contact Phone')
-    
-    # New Configurable Locations
-    county_id = fields.Many2one('media.county', string='County')
-    sub_county_id = fields.Many2one('media.sub_county', string='Sub-County')
-    
-    # Legacy fields (keeping for compatibility)
-    county = fields.Char(string='County (Legacy)')
-    area = fields.Char(string='Area (Legacy)')
-    
-    canopy_phone = fields.Char(string='Canopy Location (Phone)')
-    allocated_date = fields.Date(string='Allocated Date')
-    
-    canopy_image = fields.Image(string='Canopy Image')
-    measurement_image_1 = fields.Image(string='Image Measurement')
-    measurement_image_2 = fields.Image(string='Measurement 2')
-    measurement_image_3 = fields.Image(string='Measurement 3')
-    measurement_image_4 = fields.Image(string='Measurement 4')
-    
-    # Billboard Specific Fields
-    billboard_description = fields.Text(string='Description')
-    billboard_location_text = fields.Char(string='Location')
-    billboard_height = fields.Float(string='Height')
-    billboard_width = fields.Float(string='Width')
-    billboard_image_1 = fields.Image(string='Image 1')
-    billboard_image_2 = fields.Image(string='Image 2')
-    billboard_comments = fields.Text(string='Comments')
-    
-    # GPS and Links
-    latitude = fields.Float(string='Latitude', digits=(16, 6))
-    longitude = fields.Float(string='Longitude', digits=(16, 6))
-    google_maps_link = fields.Char(string='Google Maps Link')
-    
-    # Links
-    face_ids = fields.One2many('media.face', 'site_id', string='Faces')
-    permit_history_ids = fields.One2many('media.permit.history', 'site_id', string='Permit History')
-    lease_line_ids = fields.One2many('sale.order.line', compute='_compute_lease_history', string='Lease History')
-    expense_ids = fields.One2many('media.expense', 'site_id', string='Expenses')
-    
-    image_ids = fields.Many2many('ir.attachment', string='Site Photos')
-    color = fields.Integer(string='Color Index')
-    
-    active = fields.Boolean(default=True)
-    
-    total_faces_count = fields.Integer(compute='_compute_site_stats', string='Total Faces', store=True, group_operator="sum")
-    occupied_faces_count = fields.Integer(compute='_compute_site_stats', string='Occupied Faces', store=True, group_operator="sum")
-    available_faces_count = fields.Integer(compute='_compute_site_stats', string='Available Faces', store=True, group_operator="sum")
-    total_monthly_revenue = fields.Float(compute='_compute_site_stats', string='Monthly Revenue', store=True, group_operator="sum")
+class MediaSiteMixin(models.AbstractModel):
+    _name = 'media.site.mixin'
+    _description = 'Media Site Mixin'
 
     def action_fetch_coordinates(self):
         """Manual trigger for coordinate fetching from Google Maps Link"""
@@ -130,16 +13,6 @@ class MediaSite(models.Model):
             if record.google_maps_link:
                 record._onchange_google_maps_link()
         return True
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if vals.get('name', 'New') == 'New':
-                if vals.get('site_category') == 'canopy':
-                    vals['name'] = self.env['ir.sequence'].next_by_code('media.site.canopy') or 'New'
-                else:
-                    vals['name'] = self.env['ir.sequence'].next_by_code('media.site') or 'New'
-        return super(MediaSite, self).create(vals_list)
 
     @api.onchange('google_maps_link')
     def _onchange_google_maps_link(self):
@@ -186,44 +59,42 @@ class MediaSite(models.Model):
                 self.longitude = float(match.group(2))
                 return
 
-    face_count = fields.Integer(compute='_compute_site_stats', string='Faces Count')
-    permit_count = fields.Integer(compute='_compute_site_stats', string='Permits Count')
-    rentals_count = fields.Integer(compute='_compute_site_stats', string='Rentals Count')
-    expenses_count = fields.Integer(compute='_compute_site_stats', string='Expenses Count')
-
     @api.depends('face_ids', 'face_ids.occupancy_status', 'face_ids.price_per_month', 'permit_history_ids', 'expense_ids', 'lease_line_ids')
     def _compute_site_stats(self):
-        for site in self:
-            site.face_count = len(site.face_ids)
-            site.permit_count = len(site.permit_history_ids)
-            site.expenses_count = len(site.expense_ids)
-            site.rentals_count = len(site.lease_line_ids)
+        for record in self:
+            record.face_count = len(record.face_ids)
+            record.permit_count = len(record.permit_history_ids)
+            record.expenses_count = len(record.expense_ids)
+            record.rentals_count = len(record.lease_line_ids)
             
-            site.total_faces_count = site.face_count
-            site.occupied_faces_count = len(site.face_ids.filtered(lambda f: f.occupancy_status == 'booked'))
-            site.available_faces_count = site.total_faces_count - site.occupied_faces_count
-            site.total_monthly_revenue = sum(site.face_ids.mapped('price_per_month'))
+            record.total_faces_count = record.face_count
+            record.occupied_faces_count = len(record.face_ids.filtered(lambda f: f.occupancy_status == 'booked'))
+            record.available_faces_count = record.total_faces_count - record.occupied_faces_count
+            record.total_monthly_revenue = sum(record.face_ids.mapped('price_per_month'))
 
     def action_view_faces(self):
         self.ensure_one()
+        # Use the base site ID (self.site_id.id if called from delegated model, or self.id if base)
+        base_id = self.site_id.id if hasattr(self, 'site_id') else self.id
         return {
             'name': _('Faces'),
             'type': 'ir.actions.act_window',
             'res_model': 'media.face',
             'view_mode': 'list,form',
-            'domain': [('site_id', '=', self.id)],
-            'context': {'default_site_id': self.id},
+            'domain': [('site_id', '=', base_id)],
+            'context': {'default_site_id': base_id},
         }
 
     def action_view_permits(self):
         self.ensure_one()
+        base_id = self.site_id.id if hasattr(self, 'site_id') else self.id
         return {
             'name': _('Permits'),
             'type': 'ir.actions.act_window',
             'res_model': 'media.permit.history',
             'view_mode': 'list,form',
-            'domain': [('site_id', '=', self.id)],
-            'context': {'default_site_id': self.id},
+            'domain': [('site_id', '=', base_id)],
+            'context': {'default_site_id': base_id},
         }
 
     def action_view_rentals(self):
@@ -238,18 +109,177 @@ class MediaSite(models.Model):
 
     def action_view_expenses(self):
         self.ensure_one()
+        base_id = self.site_id.id if hasattr(self, 'site_id') else self.id
         return {
             'name': _('Expenses'),
             'type': 'ir.actions.act_window',
             'res_model': 'media.expense',
             'view_mode': 'list,form',
-            'domain': [('site_id', '=', self.id)],
-            'context': {'default_site_id': self.id},
+            'domain': [('site_id', '=', base_id)],
+            'context': {'default_site_id': base_id},
         }
 
     def _compute_lease_history(self):
-        for site in self:
-            site.lease_line_ids = self.env['sale.order.line'].search([
-                ('media_face_id', 'in', site.face_ids.ids)
+        for record in self:
+            record.lease_line_ids = self.env['sale.order.line'].search([
+                ('media_face_id', 'in', record.face_ids.ids)
             ])
+
+class MediaCounty(models.Model):
+    _name = 'media.county'
+    _description = 'Kenya County'
+    _order = 'name'
+
+    name = fields.Char(string='County Name', required=True)
+    code = fields.Char(string='County Code')
+
+class MediaSubCounty(models.Model):
+    _name = 'media.sub_county'
+    _description = 'Kenya Sub-County'
+    _order = 'name'
+
+    name = fields.Char(string='Sub-County Name', required=True)
+    county_id = fields.Many2one('media.county', string='County', required=True, ondelete='cascade')
+
+class MediaSite(models.Model):
+    _name = 'media.site'
+    _description = 'Media Site'
+    _inherit = ['media.site.mixin', 'mail.thread', 'mail.activity.mixin']
+
+    name = fields.Char(string='Site Name', required=True, copy=False, readonly=True, index=True, default=lambda self: 'New')
+    shop_name = fields.Char(string='Shop Name', tracking=True)
+    code = fields.Char(string='Site Code', tracking=True)
+    site_category = fields.Selection([
+        ('billboard', 'Billboard'),
+        ('canopy', 'Canopy')
+    ], string='Site Category', default='billboard', required=True)
+    
+    # Geographic Fields
+    street = fields.Char()
+    city = fields.Char()
+    district = fields.Char()
+    zip = fields.Char()
+    country_id = fields.Many2one('res.country', string='Country')
+    road_type = fields.Selection([
+        ('highway', 'Highway'),
+        ('main_road', 'Main Road'),
+        ('urban_road', 'Urban Road'),
+        ('rural_road', 'Rural Road')
+    ], string='Road Type')
+    
+    # Geographic / Shared Data
+    county_id = fields.Many2one('media.county', string='County')
+    sub_county_id = fields.Many2one('media.sub_county', string='Sub-County')
+    latitude = fields.Float(string='Latitude', digits=(16, 6))
+    longitude = fields.Float(string='Longitude', digits=(16, 6))
+    google_maps_link = fields.Char(string='Google Maps Link')
+    
+    # Links (Common to all assets)
+    face_ids = fields.One2many('media.face', 'site_id', string='Faces')
+    permit_history_ids = fields.One2many('media.permit.history', 'site_id', string='Permit History')
+    lease_line_ids = fields.One2many('sale.order.line', compute='_compute_lease_history', string='Lease History')
+    expense_ids = fields.One2many('media.expense', 'site_id', string='Expenses')
+    image_ids = fields.Many2many('ir.attachment', string='Site Photos')
+    color = fields.Integer(string='Color Index')
+    
+    active = fields.Boolean(default=True)
+    
+
+    
+    total_faces_count = fields.Integer(compute='_compute_site_stats', string='Total Faces', store=True, aggregator="sum")
+    occupied_faces_count = fields.Integer(compute='_compute_site_stats', string='Occupied Faces', store=True, aggregator="sum")
+    available_faces_count = fields.Integer(compute='_compute_site_stats', string='Available Faces', store=True, aggregator="sum")
+    total_monthly_revenue = fields.Float(compute='_compute_site_stats', string='Monthly Revenue', store=True, aggregator="sum")
+
+    face_count = fields.Integer(compute='_compute_site_stats', string='Faces Count')
+    permit_count = fields.Integer(compute='_compute_site_stats', string='Permits Count')
+    rentals_count = fields.Integer(compute='_compute_site_stats', string='Rentals Count')
+    expenses_count = fields.Integer(compute='_compute_site_stats', string='Expenses Count')
+
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', 'New') == 'New':
+                # Sites created directly might not have a category-specific sequence
+                # but we keep this as a fallback.
+                vals['name'] = self.env['ir.sequence'].next_by_code('media.site') or 'New'
+        return super(MediaSite, self).create(vals_list)
+
+class MediaBillboard(models.Model):
+    _name = 'media.billboard'
+    _description = 'Billboard Asset'
+    _inherits = {'media.site': 'site_id'}
+    _inherit = ['media.site.mixin', 'mail.thread', 'mail.activity.mixin']
+
+    site_id = fields.Many2one('media.site', string='Base Site', required=True, ondelete='cascade')
+    
+    description = fields.Text(string='Description')
+    location_text = fields.Char(string='Location')
+    height = fields.Float(string='Height')
+    width = fields.Float(string='Width')
+    image_1 = fields.Image(string='Image 1')
+    image_2 = fields.Image(string='Image 2')
+    comments = fields.Text(string='Comments')
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            vals['site_category'] = 'billboard'
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('media.billboard') or 'New'
+        return super(MediaBillboard, self).create(vals_list)
+
+class MediaCanopy(models.Model):
+    _name = 'media.canopy'
+    _description = 'Canopy Asset'
+    _inherits = {'media.site': 'site_id'}
+    _inherit = ['media.site.mixin', 'mail.thread', 'mail.activity.mixin']
+
+    site_id = fields.Many2one('media.site', string='Base Site', required=True, ondelete='cascade')
+
+    duka_type = fields.Selection([
+        ('normal_shop', 'Normal Shop'),
+        ('modern_kiosk', 'Modern Kiosk'),
+        ('kiosk', 'Kiosk'),
+        ('restaurant', 'Restaurant'),
+        ('na', 'NA')
+    ], string='Type of Duka')
+    
+    canopy_type = fields.Selection([
+        ('canopy', 'Canopy'),
+        ('kiosk', 'Kiosk'),
+        ('none', 'NONE'),
+        ('other', 'Other')
+    ], string='Canopy Type')
+    
+    description = fields.Text(string='Description')
+    
+    status = fields.Selection([
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('damaged', 'Damaged'),
+        ('withdrawn', 'Withdrawn')
+    ], string='Status', default='active', tracking=True)
+    status_reason = fields.Char(string='Status Reason')
+    
+    contact_name = fields.Char(string='Contact Name')
+    contact_phone = fields.Char(string='Contact Phone')
+    location_phone = fields.Char(string='Canopy Location (Phone)')
+    allocated_date = fields.Date(string='Allocated Date')
+    
+    canopy_image = fields.Image(string='Canopy Image')
+    measurement_image_1 = fields.Image(string='Image Measurement')
+    measurement_image_2 = fields.Image(string='Measurement 2')
+    measurement_image_3 = fields.Image(string='Measurement 3')
+    measurement_image_4 = fields.Image(string='Measurement 4')
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            vals['site_category'] = 'canopy'
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('media.canopy') or 'New'
+        return super(MediaCanopy, self).create(vals_list)
+
 
