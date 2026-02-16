@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="job_type_flexie" model="media.job.type">
+            <field name="name">Flexies</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="job_type_repair" model="media.job.type">
+            <field name="name">Repair Team</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="job_type_maintenance" model="media.job.type">
+            <field name="name">Maintenance</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="job_type_installation" model="media.job.type">
+            <field name="name">Installation</field>
+            <field name="sequence">40</field>
+        </record>
+    </data>
+</odoo>

@@ -1,7 +1,7 @@
 .venv/
 .venv    
 .env
-data/
-data
+data_migration/
+data_migration
 ke_locolization
 ke_locolization/
