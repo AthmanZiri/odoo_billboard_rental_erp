@@ -20,29 +20,34 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     media_face_id = fields.Many2one('media.face', string='Media Face')
+    media_digital_screen_id = fields.Many2one('media.digital.screen', string='Digital Screen')
     start_date = fields.Date(string='Start Date')
     end_date = fields.Date(string='End Date')
     
     artwork_file = fields.Image(string='Artwork/Graphic', max_width=1920, max_height=1920)
     artwork_filename = fields.Char(string='Artwork Filename')
     
-    @api.constrains('media_face_id', 'start_date', 'end_date', 'state')
+    @api.constrains('media_face_id', 'media_digital_screen_id', 'start_date', 'end_date', 'state')
     def _check_availability(self):
         for line in self:
-            if not line.media_face_id or line.media_face_id.face_type == 'digital' or not line.start_date or not line.end_date:
+            if not line.start_date or not line.end_date:
                 continue
             
             # Check for overlapping bookings for static faces
-            domain = [
-                ('id', '!=', line.id),
-                ('media_face_id', '=', line.media_face_id.id),
-                ('state', 'in', ['sale', 'done']),
-                ('start_date', '<=', line.end_date),
-                ('end_date', '>=', line.start_date),
-            ]
-            overlapping = self.search_count(domain)
-            if overlapping:
-                raise ValidationError(_('The face %s is already booked for the selected period.') % line.media_face_id.name)
+            if line.media_face_id and line.media_face_id.face_type != 'digital':
+                domain = [
+                    ('id', '!=', line.id),
+                    ('media_face_id', '=', line.media_face_id.id),
+                    ('state', 'in', ['sale', 'done']),
+                    ('start_date', '<=', line.end_date),
+                    ('end_date', '>=', line.start_date),
+                ]
+                overlapping = self.search_count(domain)
+                if overlapping:
+                    raise ValidationError(_('The face %s is already booked for the selected period.') % line.media_face_id.name)
+
+            # Check for overlapping bookings for digital screens is handled by the slot logic or SOV rules.
+            # But the constraint signature must include media_digital_screen_id if we want logic for it in future.
 
     @api.onchange('media_face_id')
     def _onchange_media_face_id(self):

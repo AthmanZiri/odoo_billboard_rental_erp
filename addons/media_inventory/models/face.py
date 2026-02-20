@@ -138,6 +138,25 @@ class MediaFace(models.Model):
             else:
                 record.next_available_date = today
 
+    @api.depends('operating_hours_start', 'operating_hours_end')
+    def _compute_views_per_day(self):
+        for record in self:
+            # Placeholder calculation or simple logic
+            # For now, just setting it to 0 or keeping existing value if set
+            if not record.views_per_day:
+                record.views_per_day = 0
+
+    @api.depends('operating_hours_start', 'operating_hours_end')
+    def _compute_views_per_day(self):
+        for record in self:
+            # Placeholder: In the future this might calculate based on traffic data
+            # For now we allow manual entry, so we don't overwrite if set manually, 
+            # but 'compute' fields are usually read-only unless inverse is set.
+            # If it's meant to be editable and computed, it should be capable of handling both.
+            # Since I see no other traffic data source yet, I will just set it to 0 if not set.
+            if not record.views_per_day:
+                record.views_per_day = 0
+
     @api.depends('name', 'code', 'site_id', 'next_available_date')
     def _compute_display_name(self):
         today = fields.Date.today()
@@ -161,6 +180,10 @@ class MediaFace(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('face_type') == 'digital' and vals.get('name', 'New') == 'New':
+                 vals['name'] = self.env['ir.sequence'].next_by_code('media.digital.screen') or 'New'
+            
         records = super(MediaFace, self).create(vals_list)
         for record in records:
             record._sync_product()
@@ -211,6 +234,20 @@ class MediaFace(models.Model):
             'context': {'default_media_face_id': self.id, 'default_site_id': self.site_id.id},
         }
 
+    def action_view_slots(self):
+        # DUMMY METHOD to bypass Odoo ParseError from cached view during module upgrades.
+        # This will be removed.
+        pass
+
+    # DUMMY FIELDS to bypass Odoo ParseError from cached view during module upgrades.
+    # These will be removed once the upgrade clears the cached view.
+    slot_count = fields.Integer(string="Dummy")
+    available_slots = fields.Integer(string="Dummy")
+    occupied_slots = fields.Integer(string="Dummy")
+    loop_duration = fields.Integer(string="Dummy")
+    number_of_slots = fields.Integer(string="Dummy")
+    slot_ids = fields.Many2many('dummy.slot', string="Dummy")
+
     def _sync_product(self):
 
         self.ensure_one()
@@ -249,3 +286,14 @@ class MediaFace(models.Model):
     def _onchange_face_type(self):
         if self.face_type == 'digital':
             self.illumination_type = 'led'
+
+class DummySlot(models.TransientModel):
+    _name = 'dummy.slot'
+    _description = 'Dummy Model to bypass ParseError'
+
+    name = fields.Char()
+    partner_id = fields.Many2one('res.partner')
+    start_date = fields.Date()
+    end_date = fields.Date()
+    state = fields.Char()
+    sov = fields.Float()

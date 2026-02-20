@@ -5,3 +5,5 @@ from . import permit_history
 from . import sale_order
 from . import media_expense
 from . import artwork_history
+
+from . import digital_screen

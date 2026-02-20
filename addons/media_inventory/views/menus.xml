@@ -12,8 +12,9 @@
     <menuitem id="menu_billboard_images" name="Billboard Artwork" parent="menu_billboard_billboards" action="action_media_artwork_billboard" sequence="40"/>
 
 
-    <!-- 3) Digital Screens (Placeholder for media_dooh) -->
+    <!-- 3) Digital Screens -->
     <menuitem id="menu_digital_root" name="Digital Screens" parent="menu_media_root" sequence="20"/>
+    <menuitem id="menu_digital_screen_list" name="Digital Screens" parent="menu_digital_root" action="action_media_digital_screen_v2" sequence="5"/>
 
     <!-- 4) Canopies -->
     <menuitem id="menu_canopy_root" name="Canopies" parent="menu_media_root" sequence="30"/>

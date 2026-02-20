@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Digital Screen Search View -->
+    <record id="view_media_digital_screen_search" model="ir.ui.view">
+        <field name="name">media.digital.screen.search</field>
+        <field name="model">media.digital.screen</field>
+        <field name="arch" type="xml">
+            <search string="Search Digital Screens">
+                <field name="name" string="Screen Name"/>
+                <!--
+                <field name="code"/>
+                <field name="county_id"/>
+                <field name="sub_county_id"/>
+                <group expand="1" string="Group By">
+                    <filter string="County" name="county" context="{'group_by':'county_id'}"/>
+                    <filter string="Sub-County" name="sub_county" context="{'group_by':'sub_county_id'}"/>
+                </group>
+                -->
+            </search>
+        </field>
+    </record>
+
+    <!-- Digital Screen List View -->
+    <record id="view_media_digital_screen_tree" model="ir.ui.view">
+        <field name="name">media.digital.screen.tree</field>
+        <field name="model">media.digital.screen</field>
+        <field name="arch" type="xml">
+            <list string="Digital Screens">
+                <field name="name" string="Screen Name"/>
+                <field name="code"/>
+                <field name="county_id"/>
+                <field name="sub_county_id"/>
+                <field name="resolution"/>
+                <field name="pixel_pitch"/>
+                <!-- Status fields might need to be delegated or computed if we want them here -->
+            </list>
+        </field>
+    </record>
+
+    <!-- Digital Screen Form View -->
+    <record id="view_media_digital_screen_form" model="ir.ui.view">
+        <field name="name">media.digital.screen.form</field>
+        <field name="model">media.digital.screen</field>
+        <field name="arch" type="xml">
+            <form string="Digital Screen">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                    </div>
+                    
+                    <field name="image_1" widget="image" class="oe_avatar" options="{'size': [90, 90]}"/>
+                    
+                    <div class="oe_title">
+                        <label for="name" string="Screen Name"/>
+                        <h1>
+                            <field name="name" placeholder="E.g. CBD LED Screen 1"/>
+                        </h1>
+                        <h3>
+                            <field name="code" readonly="1"/>
+                        </h3>
+                    </div>
+
+                    <group>
+                        <group string="Location">
+                            <field name="county_id"/>
+                            <field name="sub_county_id"/>
+                            <field name="street" placeholder="Street..."/>
+                            <field name="city" placeholder="City..."/>
+                            <label for="latitude" string="Coordinates"/>
+                            <div class="o_row">
+                                <field name="latitude" placeholder="Latitude"/>
+                                <span class="oe_inline">, </span>
+                                <field name="longitude" placeholder="Longitude"/>
+                            </div>
+                            <field name="google_maps_link" widget="url"/>
+                        </group>
+                        
+                        <group string="Technical Specs">
+                            <field name="resolution"/>
+                            <field name="pixel_pitch"/>
+                            <field name="refresh_rate"/>
+                            <field name="supported_formats"/>
+                            <field name="orientation"/>
+                            <label for="height" string="Dimensions (HxW)"/>
+                            <div class="o_row">
+                                <field name="height" class="oe_inline"/> m x <field name="width" class="oe_inline"/> m
+                            </div>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Commercial &amp; Operations" name="commercial">
+                            <group>
+                                <group string="Pricing">
+                                    <field name="pricing_type"/>
+                                    <field name="price_per_month" invisible="pricing_type != 'fixed'"/>
+                                    <field name="price_per_day" invisible="pricing_type != 'daily'"/>
+                                    <field name="cpm_rate" invisible="pricing_type != 'cpm'"/>
+                                </group>
+                                <group string="Operations" name="operations">
+                                    <field name="number_of_slots"/>
+                                    <field name="operating_hours_start" widget="float_time"/>
+                                    <field name="operating_hours_end" widget="float_time"/>
+                                    <field name="views_per_day"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Content Guidelines" name="content">
+                            <group>
+                                <field name="content_size_rec"/>
+                                <field name="target_audience"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <oe_chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Digital Screen Action -->
+    <record id="action_media_digital_screen_v2" model="ir.actions.act_window">
+        <field name="name">Digital Screens</field>
+        <field name="res_model">media.digital.screen</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_media_digital_screen_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_media_digital_screen_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_media_digital_screen_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first Digital Screen Asset!</p>
+        </field>
+    </record>
+</odoo>
