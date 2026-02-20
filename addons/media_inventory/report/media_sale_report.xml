@@ -34,7 +34,7 @@
             <tr>
                 <th name="th_item" class="text-start">ITEM</th>
                 <th name="th_billboard" class="text-start">Billboard</th>
-                <th name="th_priceunit" class="text-end">RATES(S) in a weeks &amp; in a day</th>
+                <th name="th_priceunit" class="text-end">MONTHLY RATES</th>
                 <th name="th_quantity" class="text-end">No. of Slots/ Sites</th>
                 <th name="th_subtotal" class="text-end">Sub- Total</th>
             </tr>
@@ -59,6 +59,20 @@
                                             <span class="media-spec-label">Size:</span>
                                             <span t-esc="'%.0fx%.0f' % (line.media_face_id.width, line.media_face_id.height)"/> meters <span t-field="line.media_face_id.orientation"/>
                                         </div>
+                                        
+                                        <t t-set="billboard" t-value="line.env['media.billboard'].search([('site_id', '=', line.media_face_id.site_id.id)], limit=1)"/>
+                                        <t t-if="billboard and billboard.location_text">
+                                            <div class="media-spec-item">
+                                                <span class="media-spec-label">Location:</span>
+                                                <span t-esc="billboard.location_text"/>
+                                            </div>
+                                        </t>
+                                        <t t-elif="line.media_face_id.site_id.street or line.media_face_id.site_id.city or line.media_face_id.site_id.county_id">
+                                            <div class="media-spec-item">
+                                                <span class="media-spec-label">Location:</span>
+                                                <span t-esc="', '.join([x for x in [line.media_face_id.site_id.street, line.media_face_id.site_id.city, line.media_face_id.site_id.county_id.name] if x])"/>
+                                            </div>
+                                        </t>
                                         
                                         <t t-if="line.media_face_id.face_type == 'digital'">
                                             <div class="media-spec-item">
