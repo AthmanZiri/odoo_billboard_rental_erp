@@ -246,13 +246,6 @@ class MediaCanopy(models.Model):
         ('na', 'NA')
     ], string='Type of Duka')
     
-    canopy_type = fields.Selection([
-        ('canopy', 'Canopy'),
-        ('kiosk', 'Kiosk'),
-        ('none', 'NONE'),
-        ('other', 'Other')
-    ], string='Canopy Type')
-    
     description = fields.Text(string='Description')
     
     status = fields.Selection([

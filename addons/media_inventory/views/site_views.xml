@@ -238,7 +238,6 @@
             </xpath>
             <xpath expr="//group[@name='location_primary']" position="inside">
                 <field name="duka_type"/>
-                <field name="canopy_type" string="Type"/>
             </xpath>
             <xpath expr="//group[@name='location_gps']" position="after">
                 <group string="Canopy Management">
