@@ -36,8 +36,11 @@
     </record>
     <menuitem id="menu_ops_permits" name="Permits" parent="menu_media_ops" action="action_media_permit_history" sequence="70"/>
 
-    <!-- 6) Map -->
-    <menuitem id="menu_media_map" name="Map" parent="menu_media_root" action="action_media_site_map" sequence="50"/>
+    <!-- 6) Maps -->
+    <menuitem id="menu_media_maps_root" name="Maps" parent="menu_media_root" sequence="50"/>
+    <menuitem id="menu_media_billboard_map" name="Billboard Map" parent="menu_media_maps_root" action="action_media_billboard_map" sequence="10"/>
+    <menuitem id="menu_media_canopy_map" name="Canopy Map" parent="menu_media_maps_root" action="action_media_canopy_map" sequence="20"/>
+    <menuitem id="menu_media_digital_screen_map" name="Digital Screen Map" parent="menu_media_maps_root" action="action_media_digital_screen_map" sequence="30"/>
 
     <!-- 7) Reports -->
     <menuitem id="menu_media_reports_root" name="Reports" parent="menu_media_root" sequence="60"/>

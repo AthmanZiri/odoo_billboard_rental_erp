@@ -12,14 +12,15 @@ export class BillboardMap extends Component {
         this.mapContainer = useRef("mapContainer");
         this.map = null;
         this.markers = [];
-        this.siteModel = "media.site";
+        this.siteModel = this.props.action?.params?.model || "media.site";
+        this.domain = this.props.action?.params?.domain || [];
         this.display = {
             controlPanel: { "top-right": true, "bottom-right": true },
         };
 
         onMounted(async () => {
             await this.initMap();
-            await this.loadMarkers(this.props.domain || []);
+            await this.loadMarkers(this.domain);
         });
 
         onWillUnmount(() => {
@@ -29,8 +30,10 @@ export class BillboardMap extends Component {
         });
 
         onWillUpdateProps(async (nextProps) => {
-            if (JSON.stringify(this.props.domain) !== JSON.stringify(nextProps.domain)) {
-                await this.loadMarkers(nextProps.domain);
+            const nextDomain = nextProps.action?.params?.domain || [];
+            if (JSON.stringify(this.domain) !== JSON.stringify(nextDomain)) {
+                this.domain = nextDomain;
+                await this.loadMarkers(this.domain);
             }
         });
     }
@@ -46,16 +49,36 @@ export class BillboardMap extends Component {
         this.markers.forEach(marker => this.map.removeLayer(marker));
         this.markers = [];
 
-        const sites = await this.orm.searchRead(this.siteModel, domain || [],
-            ["name", "code", "latitude", "longitude", "city", "site_category", "shop_name", "county_id", "sub_county_id"]);
+        let fields = ["name", "code", "latitude", "longitude", "city", "county_id", "sub_county_id"];
+        if (this.siteModel === "media.site") {
+            fields.push("site_category", "shop_name");
+        }
+
+        const sites = await this.orm.searchRead(this.siteModel, domain || [], fields);
 
         sites.forEach(site => {
-            const isCanopy = site.site_category === 'canopy';
-            const markerColor = isCanopy ? '#28a745' : '#007bff';
+            if (!site.latitude || !site.longitude) return;
+
+            let isCanopy = false;
+            let isDigitalScreen = this.siteModel === 'media.digital.screen';
+            let markerColor = '#007bff'; // Default Billboard Blue
+            let iconClass = 'fa-picture-o';
+            let categoryLabel = 'BILLBOARD';
+
+            if (this.siteModel === 'media.site' && site.site_category === 'canopy') {
+                isCanopy = true;
+                markerColor = '#28a745'; // Canopy Green
+                iconClass = 'fa-shopping-cart';
+                categoryLabel = 'CANOPY';
+            } else if (isDigitalScreen) {
+                markerColor = '#dc3545'; // Digital Screen Red
+                iconClass = 'fa-television';
+                categoryLabel = 'DIGITAL SCREEN';
+            }
 
             const customIcon = L.divIcon({
                 className: 'custom-div-icon',
-                html: `<div style="background-color: ${markerColor};" class="marker-pin"></div><i class="fa ${isCanopy ? 'fa-shopping-cart' : 'fa-television'}"></i>`,
+                html: `<div style="background-color: ${markerColor};" class="marker-pin"></div><i class="fa ${iconClass}"></i>`,
                 iconSize: [30, 42],
                 iconAnchor: [15, 42]
             });
@@ -64,14 +87,14 @@ export class BillboardMap extends Component {
                 <div class="site-popup">
                     <div class="popup-header" style="border-bottom: 2px solid ${markerColor}; color: ${markerColor};">
                         <strong>${site.name}</strong>
-                        ${site.site_category ? `<span class="badge" style="background-color: ${markerColor};">${site.site_category.toUpperCase()}</span>` : ''}
+                        <span class="badge" style="background-color: ${markerColor};">${categoryLabel}</span>
                     </div>
                     <div class="popup-body mt-2">
                         ${isCanopy && site.shop_name ? `<div><strong>Shop:</strong> ${site.shop_name}</div>` : ''}
                         <div><strong>Code:</strong> ${site.code || 'N/A'}</div>
                         <div><strong>Location:</strong> ${site.sub_county_id ? site.sub_county_id[1] : ''}, ${site.county_id ? site.county_id[1] : ''}</div>
                     </div>
-                    <button class="btn btn-primary btn-sm mt-2 w-100" onclick="window.odoo_open_site(${site.id})">
+                    <button class="btn btn-primary btn-sm mt-2 w-100" onclick="window.odoo_open_site(${site.id}, '${this.siteModel}')">
                         Open details
                     </button>
                 </div>
@@ -84,10 +107,10 @@ export class BillboardMap extends Component {
         });
 
         // Add global helper to open site from popup
-        window.odoo_open_site = (siteId) => {
+        window.odoo_open_site = (siteId, model) => {
             this.action.doAction({
                 type: 'ir.actions.act_window',
-                res_model: 'media.site',
+                res_model: model,
                 res_id: siteId,
                 views: [[false, 'form']],
                 target: 'current',
