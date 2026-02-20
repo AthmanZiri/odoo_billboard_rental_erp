@@ -9,3 +9,4 @@ access_media_artwork_history,media.artwork.history,model_media_artwork_history,b
 access_media_billboard,media.billboard,model_media_billboard,base.group_user,1,1,1,1
 access_media_canopy,media.canopy,model_media_canopy,base.group_user,1,1,1,1
 access_media_digital_screen,media.digital.screen,model_media_digital_screen,base.group_user,1,1,1,1
+access_canopy_status_wizard,canopy.status.wizard,model_canopy_status_wizard,base.group_user,1,1,1,1
