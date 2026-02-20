@@ -18,6 +18,11 @@
                 .media-spec-label {
                     font-weight: bold;
                 }
+                .lease-dates {
+                    font-size: 0.9rem;
+                    color: #333;
+                    margin-bottom: 10px;
+                }
                 .text-red-total, .o_total td:last-child, .o_total td:nth-child(2) {
                     color: #e62117 !important;
                     font-weight: bold;
@@ -27,6 +32,20 @@
                     text-transform: uppercase;
                 }
             </style>
+        </xpath>
+
+        <!-- Header Dates -->
+        <xpath expr="//div[@id='informations']" position="after">
+            <div class="row lease-dates" t-if="doc.lease_start_date or doc.lease_end_date">
+                <div class="col-auto col-3 mw-100 mb-2" t-if="doc.lease_start_date">
+                    <strong>Lease Start Date:</strong>
+                    <p class="m-0" t-field="doc.lease_start_date"/>
+                </div>
+                <div class="col-auto col-3 mw-100 mb-2" t-if="doc.lease_end_date">
+                    <strong>Lease End Date:</strong>
+                    <p class="m-0" t-field="doc.lease_end_date"/>
+                </div>
+            </div>
         </xpath>
 
         <!-- Custom Table Header -->
@@ -55,6 +74,10 @@
                                 <span t-field="line.name"/>
                                 <t t-if="line.media_face_id">
                                     <div class="media-specs">
+                                        <div class="media-spec-item" t-if="line.start_date or line.end_date">
+                                            <span class="media-spec-label">Period:</span>
+                                            <span t-field="line.start_date"/> - <span t-field="line.end_date"/>
+                                        </div>
                                         <div class="media-spec-item">
                                             <span class="media-spec-label">Size:</span>
                                             <span t-esc="'%.0fx%.0f' % (line.media_face_id.width, line.media_face_id.height)"/> meters <span t-field="line.media_face_id.orientation"/>
