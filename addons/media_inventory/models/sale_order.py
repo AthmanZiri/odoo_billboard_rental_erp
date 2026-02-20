@@ -16,6 +16,14 @@ class SaleOrder(models.Model):
                 if order.lease_end_date:
                     line.end_date = order.lease_end_date
 
+    def _prepare_invoice(self):
+        vals = super(SaleOrder, self)._prepare_invoice()
+        vals.update({
+            'lease_start_date': self.lease_start_date,
+            'lease_end_date': self.lease_end_date,
+        })
+        return vals
+
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
@@ -70,7 +78,13 @@ class SaleOrderLine(models.Model):
     def _prepare_invoice_line(self, **optional_values):
         res = super(SaleOrderLine, self)._prepare_invoice_line(**optional_values)
         if self.media_face_id:
-            res['media_face_id'] = self.media_face_id.id
+            res.update({
+                'media_face_id': self.media_face_id.id,
+                'start_date': self.start_date,
+                'end_date': self.end_date,
+                'artwork_file': self.artwork_file,
+                'artwork_filename': self.artwork_filename,
+            })
         return res
     def write(self, vals):
         res = super(SaleOrderLine, self).write(vals)
