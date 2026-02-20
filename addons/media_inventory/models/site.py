@@ -258,7 +258,7 @@ class MediaCanopy(models.Model):
     
     contact_name = fields.Char(string='Contact Name')
     contact_phone = fields.Char(string='Contact Phone')
-    location_phone = fields.Char(string='Canopy Location (Phone)')
+    location_phone = fields.Char(string='Canopy Location')
     allocated_date = fields.Date(string='Allocated Date')
     
     canopy_image = fields.Image(string='Canopy Image')

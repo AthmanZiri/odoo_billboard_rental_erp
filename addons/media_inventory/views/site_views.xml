@@ -242,7 +242,7 @@
             <xpath expr="//group[@name='location_gps']" position="after">
                 <group string="Canopy Management">
                     <group>
-                        <field name="location_phone"/>
+                        <field name="location_phone" string="Canopy Location"/>
                         <field name="allocated_date"/>
                     </group>
                     <group>
