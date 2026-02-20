@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <list string="DOOH Slots">
                 <field name="name"/>
-                <field name="face_id"/>
+                <field name="digital_screen_id"/>
                 <field name="partner_id"/>
                 <field name="state" widget="badge" decoration-success="state == 'available'" decoration-danger="state == 'booked'" decoration-warning="state == 'reserved'"/>
                 <field name="sov"/>
@@ -22,7 +22,7 @@
         <field name="arch" type="xml">
             <search string="Search Slots">
                 <field name="name"/>
-                <field name="face_id"/>
+                <field name="digital_screen_id"/>
                 <field name="partner_id"/>
                 <field name="state"/>
                 <filter string="Booked" name="filter_booked" domain="[('state', '=', 'booked')]"/>
@@ -52,7 +52,7 @@
                     </div>
                     <group>
                         <group name="basic_info">
-                            <field name="face_id" options="{'no_create': True}"/>
+                            <field name="digital_screen_id" options="{'no_create': True}"/>
                             <field name="partner_id"/>
                             <field name="sov"/>
                         </group>

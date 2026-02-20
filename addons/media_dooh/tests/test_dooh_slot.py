@@ -9,7 +9,7 @@ class TestDoohSlot(TransactionCase):
     def setUp(self):
         super(TestDoohSlot, self).setUp()
         self.Partner = self.env['res.partner']
-        self.Face = self.env['media.face']
+        self.Screen = self.env['media.digital.screen']
         self.Slot = self.env['media.dooh.slot']
         self.Site = self.env['media.site']
         self.Product = self.env['product.product']
@@ -23,13 +23,11 @@ class TestDoohSlot(TransactionCase):
             'type': 'service'
         })
 
-        self.face = self.Face.create({
-            'name': 'Digital Face 1',
-            'face_type': 'digital',
+        self.screen = self.Screen.create({
+            'name': 'Digital Screen 1',
             'site_id': self.site.id,
             'price_per_month': 1000.0,
             'number_of_slots': 10,
-            'slot_duration': 15,
             'product_id': self.product.id,
         })
 
@@ -37,14 +35,14 @@ class TestDoohSlot(TransactionCase):
         """ Test that ad_duration must be 15s """
         with self.assertRaises(UserError):
             self.Slot.create({
-                'face_id': self.face.id,
+                'digital_screen_id': self.screen.id,
                 'ad_duration': 20,
                 'partner_id': self.partner.id,
             })
         
         # Valid duration
         slot = self.Slot.create({
-            'face_id': self.face.id,
+            'digital_screen_id': self.screen.id,
             'ad_duration': 15,
             'partner_id': self.partner.id,
         })
@@ -54,7 +52,7 @@ class TestDoohSlot(TransactionCase):
         """ Test sale order price calculation for different frequencies """
         # Monthly (default)
         slot_monthly = self.Slot.create({
-            'face_id': self.face.id,
+            'digital_screen_id': self.screen.id,
             'partner_id': self.partner.id,
             'billing_frequency': 'monthly',
         })
@@ -65,7 +63,7 @@ class TestDoohSlot(TransactionCase):
 
         # Weekly
         slot_weekly = self.Slot.create({
-            'face_id': self.face.id,
+            'digital_screen_id': self.screen.id,
             'partner_id': self.partner.id,
             'billing_frequency': 'weekly',
         })
@@ -76,7 +74,7 @@ class TestDoohSlot(TransactionCase):
 
         # Bi-weekly
         slot_biweekly = self.Slot.create({
-            'face_id': self.face.id,
+            'digital_screen_id': self.screen.id,
             'partner_id': self.partner.id,
             'billing_frequency': 'biweekly',
         })
@@ -89,7 +87,7 @@ class TestDoohSlot(TransactionCase):
         """ Test that the cron creates an activity for slots expiring in 5 days """
         expiry_date = fields.Date.today() + relativedelta(days=5)
         slot = self.Slot.create({
-            'face_id': self.face.id,
+            'digital_screen_id': self.screen.id,
             'partner_id': self.partner.id,
             'state': 'booked',
             'end_date': expiry_date,
@@ -100,7 +98,7 @@ class TestDoohSlot(TransactionCase):
         line = self.env['sale.order.line'].create({
             'order_id': order.id,
             'product_id': self.product.id,
-            'media_face_id': self.face.id,
+            'media_digital_screen_id': self.screen.id,
         })
         slot.sale_line_id = line.id
 

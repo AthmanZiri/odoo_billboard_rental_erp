@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_media_digital_screen_form_inherit_dooh" model="ir.ui.view">
+        <field name="name">media.digital.screen.form.inherit.dooh</field>
+        <field name="model">media.digital.screen</field>
+        <field name="inherit_id" ref="media_inventory.view_media_digital_screen_form"/>
+        <field name="arch" type="xml">
+            <!-- Add Slot Count Button -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(media_dooh.action_media_dooh_slot)d" 
+                        type="action" 
+                        class="oe_stat_button" 
+                        icon="fa-list-ol"
+                        context="{'search_default_digital_screen_id': id}">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Slots</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <!-- Add Slot Management near Technical Specs or Operations -->
+            <xpath expr="//group[@name='operations']" position="inside">
+                <group string="Slot Management" colspan="2">
+                   <group>
+                        <field name="loop_duration"/>
+                   </group>
+                   <group>
+                        <field name="occupied_slots"/>
+                        <field name="available_slots" decoration-danger="available_slots == 0" decoration-success="available_slots > 0"/>
+                   </group>
+                </group>
+            </xpath>
+
+            <!-- Add Slots Tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Digital Slots / Playlist" name="slots">
+                    <field name="slot_ids">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="partner_id"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="state" widget="badge" decoration-info="state == 'reserved'" decoration-success="state == 'booked'"/>
+                            <field name="sov"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

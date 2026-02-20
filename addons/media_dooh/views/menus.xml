@@ -11,7 +11,7 @@
         </field>
     </record>
 
-    <menuitem id="menu_digital_faces" name="Digital Faces" parent="media_inventory.menu_digital_root" action="action_media_face_digital" sequence="5"/>
+    <!-- <menuitem id="menu_digital_faces" name="Digital Faces" parent="media_inventory.menu_digital_root" action="action_media_face_digital" sequence="5"/> -->
     <menuitem id="menu_digital_list" name="Digital Slots" parent="media_inventory.menu_digital_root" action="action_media_dooh_slot" sequence="10"/>
     <menuitem id="menu_digital_artwork" name="Artwork/Creative History" parent="media_inventory.menu_digital_root" action="action_media_dooh_slot" sequence="20"/>
 

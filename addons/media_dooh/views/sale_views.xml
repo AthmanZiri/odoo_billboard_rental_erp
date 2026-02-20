@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='order_line']/list//field[@name='end_date']" position="after">
-                <field name="media_slot_id" optional="show" invisible="not media_face_id"/>
+                <field name="media_slot_id" optional="show" invisible="not media_digital_screen_id"/>
             </xpath>
         </field>
     </record>
