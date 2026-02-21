@@ -9,19 +9,19 @@ class MediaDoohSlot(models.Model):
 
     name = fields.Char(string='Slot Name', required=True, copy=False, readonly=True, index=True, default=lambda self: 'New')
     digital_screen_id = fields.Many2one('media.digital.screen', string='Digital Screen', required=True, ondelete='cascade')
-    partner_id = fields.Many2one('res.partner', string='Client')
-    sale_line_id = fields.Many2one('sale.order.line', string='Lease Line', ondelete='set null')
+    sale_line_ids = fields.One2many('sale.order.line', 'media_slot_id', string='Lease Lines')
     
     version_ids = fields.One2many('media.dooh.content.version', 'slot_id', string='Creative Versions')
     
-    start_date = fields.Date(string='Start Date', default=fields.Date.today)
-    end_date = fields.Date(string='End Date', default=lambda self: fields.Date.today() + relativedelta(months=1))
+    partner_id = fields.Many2one('res.partner', string='Client', compute='_compute_current_booking', store=True)
+    start_date = fields.Date(string='Start Date', compute='_compute_current_booking', store=True)
+    end_date = fields.Date(string='End Date', compute='_compute_current_booking', store=True)
     
     state = fields.Selection([
         ('available', 'Available'),
         ('reserved', 'Reserved'),
         ('booked', 'Booked')
-    ], string='Status', default='available', tracking=True)
+    ], string='Status', compute='_compute_current_booking', store=True, default='available', tracking=True)
     
     sov = fields.Float(string='Share of Voice (%)', compute='_compute_sov', store=True)
     
@@ -43,6 +43,42 @@ class MediaDoohSlot(models.Model):
     
     ad_duration = fields.Integer(string='Ad Duration (sec)', default=15, help="Duration of the ad in seconds. Must be 15s.")
     is_expiring_soon = fields.Boolean(string='Expiring Soon', compute='_compute_expiry_status', store=True)
+
+    @api.depends('sale_line_ids.state', 'sale_line_ids.start_date', 'sale_line_ids.end_date')
+    def _compute_current_booking(self):
+        today = fields.Date.today()
+        for slot in self:
+            # Active/Booked lines
+            active_line = slot.sale_line_ids.filtered(lambda l: 
+                l.state in ['sale', 'done'] and 
+                l.start_date and l.end_date and
+                l.start_date <= today <= l.end_date
+            ).sorted(key=lambda l: l.end_date, reverse=True)
+            
+            if active_line:
+                slot.state = 'booked'
+                slot.partner_id = active_line[0].order_id.partner_id
+                slot.start_date = active_line[0].start_date
+                slot.end_date = active_line[0].end_date
+                continue
+
+            # Reserved lines (draft SO)
+            reserved_line = slot.sale_line_ids.filtered(lambda l: 
+                l.state in ['draft', 'sent'] and 
+                l.start_date and l.end_date and
+                l.start_date <= today <= l.end_date
+            ).sorted(key=lambda l: l.create_date, reverse=True)
+
+            if reserved_line:
+                slot.state = 'reserved'
+                slot.partner_id = reserved_line[0].order_id.partner_id
+                slot.start_date = reserved_line[0].start_date
+                slot.end_date = reserved_line[0].end_date
+            else:
+                slot.state = 'available'
+                slot.partner_id = False
+                slot.start_date = False
+                slot.end_date = False
 
     @api.depends('end_date', 'state')
     def _compute_expiry_status(self):
@@ -119,15 +155,12 @@ class MediaDoohSlot(models.Model):
                 'product_uom_qty': 1.0,
                 'price_unit': price_unit,
                 'media_digital_screen_id': screen.id,
-                'start_date': self.start_date, # Added back start_date
+                'media_slot_id': self.id,
+                'start_date': self.start_date,
                 'end_date': self.end_date,     # Added back end_date
             })],
         }
         order = self.env['sale.order'].create(order_vals)
-        line = order.order_line[0] # Get the created line
-
-        self.sale_line_id = line.id
-        self.state = 'reserved'
         
         return {
             'name': _('Sale Order'),
@@ -149,7 +182,11 @@ class MediaDoohSlot(models.Model):
         
         for slot in expiring_slots:
             # Create a mail activity for the salesperson or a default manager
-            user_id = slot.sale_line_id.order_id.user_id or self.env.user
+            # Find the active sale line covering today to get the salesperson
+            today = fields.Date.today()
+            active_line = slot.sale_line_ids.filtered(lambda l: l.state in ['sale', 'done'] and l.start_date <= today <= l.end_date)
+            user_id = active_line[0].order_id.user_id if active_line else self.env.user
+            
             slot.activity_schedule(
                 'mail.mail_activity_data_todo',
                 date_deadline=fields.Date.today(),
