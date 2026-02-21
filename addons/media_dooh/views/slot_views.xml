@@ -39,9 +39,7 @@
             <form string="DOOH Slot">
                 <header>
                     <button name="action_create_sale_order" type="object" string="Create Sale Order" 
-                            class="btn-primary" invisible="state != 'available' or sale_line_id"/>
-                    <button name="%(sale.action_orders)d" type="action" string="View Sale Order" 
-                            invisible="not sale_line_id" context="{'active_id': sale_line_id}"/>
+                            class="btn-primary" invisible="state != 'available'"/>
                     <field name="state" widget="statusbar" statusbar_visible="available,reserved,booked"/>
                 </header>
                 <sheet>
@@ -68,7 +66,6 @@
                         <page string="Content &amp; Timing" name="content_timing">
                             <group>
                                 <group name="content_details" string="Content Management">
-                                    <field name="sale_line_id" readonly="1" invisible="not sale_line_id"/>
                                     <field name="content_type"/>
                                     <field name="content_file" filename="content_filename"/>
                                     <field name="content_filename" invisible="1"/>
@@ -78,6 +75,17 @@
                                     <field name="play_end_time" widget="float_time"/>
                                 </group>
                             </group>
+                        </page>
+                        <page string="Lease History" name="lease_history">
+                            <field name="sale_line_ids" readonly="1">
+                                <list>
+                                    <field name="order_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Creative History" name="creative_history">
                             <field name="version_ids">
