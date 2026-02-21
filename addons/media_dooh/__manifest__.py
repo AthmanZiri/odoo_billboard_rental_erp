@@ -15,6 +15,7 @@
         'views/menus.xml',
         'views/sale_views.xml',
         'views/digital_screen_views.xml',
+        'views/account_move_views.xml',
     ],
     'installable': True,
 }

@@ -53,3 +53,4 @@ class SaleOrderLine(models.Model):
             self.name = _("Digital Slot: %s | Screen: %s | SOV: %s%%") % (
                 self.media_slot_id.name, screen.display_name, self.media_slot_id.sov
             )
+            self._onchange_lease_duration()

@@ -15,6 +15,8 @@ class SaleOrder(models.Model):
                     line.start_date = order.lease_start_date
                 if order.lease_end_date:
                     line.end_date = order.lease_end_date
+                # Trigger quantity update
+                line._onchange_lease_duration()
 
     def _prepare_invoice(self):
         vals = super(SaleOrder, self)._prepare_invoice()
@@ -74,6 +76,7 @@ class SaleOrderLine(models.Model):
                 self.start_date = self.order_id.lease_start_date
             if self.order_id.lease_end_date:
                 self.end_date = self.order_id.lease_end_date
+            self._onchange_lease_duration()
 
     @api.onchange('media_digital_screen_id')
     def _onchange_media_digital_screen_id(self):
@@ -94,17 +97,35 @@ class SaleOrderLine(models.Model):
                 self.start_date = self.order_id.lease_start_date
             if self.order_id.lease_end_date:
                 self.end_date = self.order_id.lease_end_date
+            self._onchange_lease_duration()
+
+    @api.onchange('start_date', 'end_date')
+    def _onchange_lease_duration(self):
+        for line in self:
+            if line.start_date and line.end_date:
+                # Calculate duration in months
+                delta = relativedelta(line.end_date, line.start_date)
+                months = delta.years * 12 + delta.months
+                if delta.days > 0:
+                    # Approximation: 30 days = 1 month
+                    months += round(delta.days / 30.0, 2)
+                
+                # We expect billboards/canopies/slots to be sold per month
+                if line.media_face_id or line.media_digital_screen_id:
+                     line.product_uom_qty = max(months, 0)
 
     def _prepare_invoice_line(self, **optional_values):
         res = super(SaleOrderLine, self)._prepare_invoice_line(**optional_values)
+        res.update({
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+            'artwork_file': self.artwork_file,
+            'artwork_filename': self.artwork_filename,
+        })
         if self.media_face_id:
-            res.update({
-                'media_face_id': self.media_face_id.id,
-                'start_date': self.start_date,
-                'end_date': self.end_date,
-                'artwork_file': self.artwork_file,
-                'artwork_filename': self.artwork_filename,
-            })
+            res['media_face_id'] = self.media_face_id.id
+        if self.media_digital_screen_id:
+            res['media_digital_screen_id'] = self.media_digital_screen_id.id
         return res
     def write(self, vals):
         res = super(SaleOrderLine, self).write(vals)
