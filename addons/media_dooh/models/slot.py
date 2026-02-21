@@ -13,6 +13,14 @@ class MediaDoohSlot(models.Model):
     
     version_ids = fields.One2many('media.dooh.content.version', 'slot_id', string='Creative Versions')
     
+    @api.depends('name', 'digital_screen_id.name')
+    def _compute_display_name(self):
+        for slot in self:
+            if slot.digital_screen_id:
+                slot.display_name = "%s - %s" % (slot.digital_screen_id.name, slot.name)
+            else:
+                slot.display_name = slot.name
+    
     state = fields.Selection([
         ('available', 'Available'),
         ('reserved', 'Reserved'),

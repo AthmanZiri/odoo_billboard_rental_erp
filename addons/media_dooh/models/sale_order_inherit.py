@@ -29,3 +29,27 @@ class SaleOrderLine(models.Model):
         if self.media_slot_id:
             res['media_slot_id'] = self.media_slot_id.id
         return res
+
+    @api.onchange('media_slot_id')
+    def _onchange_media_slot_id(self):
+        if self.media_slot_id:
+            self.media_digital_screen_id = self.media_slot_id.digital_screen_id
+            screen = self.media_slot_id.digital_screen_id
+            
+            if screen.product_id:
+                self.product_id = screen.product_id
+            
+            # Use specific slot pricing if available
+            if screen.pricing_type == 'slot_monthly':
+                self.price_unit = screen.price_slot_monthly
+            elif screen.pricing_type == 'slot_biweekly':
+                self.price_unit = screen.price_slot_biweekly
+            elif screen.pricing_type == 'slot_weekly':
+                self.price_unit = screen.price_slot_weekly
+            elif screen.pricing_type == 'fixed':
+                self.price_unit = screen.price_per_month
+            
+            # Update description
+            self.name = _("Digital Slot: %s | Screen: %s | SOV: %s%%") % (
+                self.media_slot_id.name, screen.display_name, self.media_slot_id.sov
+            )

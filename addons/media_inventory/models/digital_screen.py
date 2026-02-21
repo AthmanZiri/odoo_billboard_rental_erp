@@ -76,7 +76,7 @@ class MediaDigitalScreen(models.Model):
 
     def _sync_product(self):
         self.ensure_one()
-        product_name = self.name
+        product_name = _("Slot - %s") % self.name
         
         product_vals = {
             'name': product_name,
