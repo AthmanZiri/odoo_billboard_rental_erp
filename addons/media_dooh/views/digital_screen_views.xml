@@ -51,6 +51,7 @@
                             <field name="end_date"/>
                             <field name="price_unit"/>
                             <field name="price_subtotal" sum="Total"/>
+                            <field name="currency_id" column_invisible="1"/>
                             <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state in ('sale', 'done')"/>
                         </list>
                     </field>
