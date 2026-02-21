@@ -4,7 +4,7 @@ from odoo.exceptions import ValidationError
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    media_slot_id = fields.Many2one('media.dooh.slot', string='Digital Slot', domain="[('digital_screen_id', '=', media_digital_screen_id)]")
+    media_slot_id = fields.Many2one('media.dooh.slot', string='Digital Slot')
     partner_id = fields.Many2one('res.partner', related='order_id.partner_id', string='Customer', store=True)
 
     @api.constrains('media_slot_id', 'start_date', 'end_date', 'state')
