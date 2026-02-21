@@ -45,6 +45,19 @@
                         </list>
                     </field>
                 </page>
+                <page string="Order History" name="order_history">
+                    <field name="order_line_ids" readonly="1">
+                        <list>
+                            <field name="order_id"/>
+                            <field name="partner_id"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="price_unit"/>
+                            <field name="price_subtotal" sum="Total"/>
+                            <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state in ('sale', 'done')"/>
+                        </list>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>
