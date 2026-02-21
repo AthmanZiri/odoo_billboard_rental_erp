@@ -51,16 +51,12 @@
                     <group>
                         <group name="basic_info">
                             <field name="digital_screen_id" options="{'no_create': True}"/>
-                            <field name="partner_id"/>
                             <field name="sov"/>
                         </group>
                         <group name="schedule_info" string="Scheduling">
-                            <field name="start_date"/>
-                            <field name="end_date"/>
                             <field name="billing_frequency"/>
                             <field name="ad_duration"/>
                         </group>
-
                     </group>
                     <notebook>
                         <page string="Content &amp; Timing" name="content_timing">

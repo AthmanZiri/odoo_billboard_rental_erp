@@ -37,9 +37,6 @@
                     <field name="slot_ids">
                         <list editable="bottom">
                             <field name="name"/>
-                            <field name="partner_id"/>
-                            <field name="start_date"/>
-                            <field name="end_date"/>
                             <field name="state" widget="badge" decoration-info="state == 'reserved'" decoration-success="state == 'booked'"/>
                             <field name="sov"/>
                         </list>

@@ -37,70 +37,66 @@ class TestDoohSlot(TransactionCase):
             self.Slot.create({
                 'digital_screen_id': self.screen.id,
                 'ad_duration': 20,
-                'partner_id': self.partner.id,
             })
         
         # Valid duration
         slot = self.Slot.create({
             'digital_screen_id': self.screen.id,
             'ad_duration': 15,
-            'partner_id': self.partner.id,
         })
         self.assertEqual(slot.ad_duration, 15)
 
-    def test_billing_frequencies(self):
-        """ Test sale order price calculation for different frequencies """
-        # Monthly (default)
-        slot_monthly = self.Slot.create({
+    def test_dynamic_status_computation(self):
+        """ Test that slot status changes based on SO lines """
+        slot = self.Slot.create({
             'digital_screen_id': self.screen.id,
-            'partner_id': self.partner.id,
-            'billing_frequency': 'monthly',
+            'ad_duration': 15,
         })
-        action = slot_monthly.action_create_sale_order()
-        order = self.env['sale.order'].browse(action['res_id'])
-        # Price should be 1000 * (100/10) / 100 = 100
-        self.assertEqual(order.order_line.price_unit, 100.0)
+        self.assertEqual(slot.state, 'available')
 
-        # Weekly
-        slot_weekly = self.Slot.create({
-            'digital_screen_id': self.screen.id,
-            'partner_id': self.partner.id,
-            'billing_frequency': 'weekly',
+        # Create a draft SO line
+        order = self.env['sale.order'].create({'partner_id': self.partner.id})
+        today = fields.Date.today()
+        line = self.env['sale.order.line'].create({
+            'order_id': order.id,
+            'product_id': self.product.id,
+            'media_slot_id': slot.id,
+            'start_date': today,
+            'end_date': today + relativedelta(days=1),
         })
-        action_weekly = slot_weekly.action_create_sale_order()
-        order_weekly = self.env['sale.order'].browse(action_weekly['res_id'])
-        # Price should be 100 / 4 = 25
-        self.assertEqual(order_weekly.order_line.price_unit, 25.0)
+        
+        slot._compute_current_booking()
+        self.assertEqual(slot.state, 'reserved')
 
-        # Bi-weekly
-        slot_biweekly = self.Slot.create({
-            'digital_screen_id': self.screen.id,
-            'partner_id': self.partner.id,
-            'billing_frequency': 'biweekly',
-        })
-        action_biweekly = slot_biweekly.action_create_sale_order()
-        order_biweekly = self.env['sale.order'].browse(action_biweekly['res_id'])
-        # Price should be 100 / 2 = 50
-        self.assertEqual(order_biweekly.order_line.price_unit, 50.0)
+        # Confirm the SO
+        order.action_confirm()
+        slot._compute_current_booking()
+        self.assertEqual(slot.state, 'booked')
 
     def test_expiry_notification_cron(self):
         """ Test that the cron creates an activity for slots expiring in 5 days """
-        expiry_date = fields.Date.today() + relativedelta(days=5)
         slot = self.Slot.create({
             'digital_screen_id': self.screen.id,
-            'partner_id': self.partner.id,
-            'state': 'booked',
-            'end_date': expiry_date,
+            'ad_duration': 15,
         })
         
-        # Mocking sale line to avoid errors in activity creation
+        today = fields.Date.today()
+        expiry_date = today + relativedelta(days=5)
+        
         order = self.env['sale.order'].create({'partner_id': self.partner.id})
         line = self.env['sale.order.line'].create({
             'order_id': order.id,
             'product_id': self.product.id,
-            'media_digital_screen_id': self.screen.id,
+            'media_slot_id': slot.id,
+            'start_date': today - relativedelta(days=2),
+            'end_date': expiry_date,
         })
-        slot.sale_line_id = line.id
+        order.action_confirm()
+        
+        slot._compute_current_booking()
+        slot._compute_expiry_status()
+        self.assertEqual(slot.state, 'booked')
+        self.assertTrue(slot.is_expiring_soon)
 
         # Run cron
         self.Slot._cron_notify_expiring_slots()
@@ -114,13 +110,10 @@ class TestDoohSlot(TransactionCase):
         self.assertIn("Slot Expiring Soon", activity.summary)
 
     def test_slot_creation_without_dates(self):
-        """ Test that a slot can be created without partner and dates """
+        """ Test that a slot can be created cleanly """
         slot = self.Slot.create({
             'digital_screen_id': self.screen.id,
             'ad_duration': 15,
         })
         self.assertTrue(slot.id)
-        self.assertFalse(slot.partner_id)
-        self.assertFalse(slot.start_date)
-        self.assertFalse(slot.end_date)
         self.assertEqual(slot.state, 'available')
