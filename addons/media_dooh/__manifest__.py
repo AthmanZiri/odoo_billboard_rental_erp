@@ -5,7 +5,7 @@
     'summary': 'Digital Out-of-Home Slot and Loop Management',
     'author': 'JengaSol Consulting',
     'website': 'https://jengasol.co.ke',
-    'depends': ['media_inventory'],
+    'depends': ['media_inventory', 'media_finance'],
 
     'data': [
         'security/ir.model.access.csv',

@@ -3,7 +3,7 @@
     <record id="view_move_form_inherit_dooh" model="ir.ui.view">
         <field name="name">account.move.form.inherit.dooh</field>
         <field name="model">account.move</field>
-        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="inherit_id" ref="media_finance.view_move_form_inherit_media"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='invoice_line_ids']/list//field[@name='media_digital_screen_id']" position="after">
                 <field name="media_slot_id" optional="show"/>
