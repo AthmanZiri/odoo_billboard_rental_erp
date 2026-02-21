@@ -117,7 +117,7 @@
                                             <span class="media-spec-label">Content type:</span>
                                             <span t-field="screen.supported_formats"/>
                                         </div>
-                                        <div class="media-spec-item" t-if="hasattr(screen, 'operating_hours_start')">
+                                        <div class="media-spec-item" t-if="screen._fields.get('operating_hours_start')">
                                             <span class="media-spec-label">Operating hours:</span>
                                             <t t-set="start_hour" t-value="int(screen.operating_hours_start)"/>
                                             <t t-set="start_min" t-value="int((screen.operating_hours_start % 1) * 60)"/>
@@ -125,7 +125,7 @@
                                             <t t-set="end_min" t-value="int((screen.operating_hours_end % 1) * 60)"/>
                                             <span t-esc="'%02d:%02d' % (start_hour, start_min)"/> to <span t-esc="'%02d:%02d' % (end_hour, end_min)"/>
                                         </div>
-                                        <t t-if="hasattr(screen, 'slot_duration')">
+                                        <t t-if="screen._fields.get('slot_duration')">
                                             <div class="media-spec-item">
                                                 <span class="media-spec-label">Content Duration:</span>
                                                 <span t-field="screen.slot_duration"/>sec every <t t-esc="int((screen.slot_duration * screen.number_of_slots) / 60)"/> min
