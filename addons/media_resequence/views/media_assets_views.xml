@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Billboard Tree View Inheritance -->
+    <record id="view_media_billboard_tree_inherit_resequence" model="ir.ui.view">
+        <field name="name">media.billboard.tree.inherit.resequence</field>
+        <field name="model">media.billboard</field>
+        <field name="inherit_id" ref="media_inventory.view_media_billboard_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="sequence" widget="handle"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Canopy Tree View Inheritance -->
+    <record id="view_media_canopy_tree_inherit_resequence" model="ir.ui.view">
+        <field name="name">media.canopy.tree.inherit.resequence</field>
+        <field name="model">media.canopy</field>
+        <field name="inherit_id" ref="media_inventory.view_media_canopy_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="sequence" widget="handle"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Digital Screen Tree View Inheritance -->
+    <record id="view_media_digital_screen_tree_inherit_resequence" model="ir.ui.view">
+        <field name="name">media.digital.screen.tree.inherit.resequence</field>
+        <field name="model">media.digital.screen</field>
+        <field name="inherit_id" ref="media_inventory.view_media_digital_screen_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="sequence" widget="handle"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

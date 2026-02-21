@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_media_resequence_wizard_form" model="ir.ui.view">
+        <field name="name">media.resequence.wizard.form</field>
+        <field name="model">media.resequence.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Resequence Assets">
+                <group>
+                    <group>
+                        <field name="prefix_type" widget="radio"/>
+                        <field name="custom_prefix" invisible="prefix_type != 'custom'" required="prefix_type == 'custom'"/>
+                    </group>
+                    <group>
+                        <field name="start_number"/>
+                        <field name="padding"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_resequence" string="Resequence" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_media_resequence_wizard" model="ir.actions.act_window">
+        <field name="name">Resequence Assets</field>
+        <field name="res_model">media.resequence.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" eval="False"/> <!-- Will be set in the menu/view inheritance if needed as a multi-action -->
+    </record>
+    
+    <!-- Multi-action for various models -->
+    <record id="action_resequence_billboards" model="ir.actions.act_window">
+        <field name="name">Resequence Billboards</field>
+        <field name="res_model">media.resequence.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="media_inventory.model_media_billboard"/>
+        <field name="binding_view_types">list</field>
+    </record>
+
+    <record id="action_resequence_canopies" model="ir.actions.act_window">
+        <field name="name">Resequence Canopies</field>
+        <field name="res_model">media.resequence.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="media_inventory.model_media_canopy"/>
+        <field name="binding_view_types">list</field>
+    </record>
+
+    <record id="action_resequence_digital_screens" model="ir.actions.act_window">
+        <field name="name">Resequence Digital Screens</field>
+        <field name="res_model">media.resequence.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="media_inventory.model_media_digital_screen"/>
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>
