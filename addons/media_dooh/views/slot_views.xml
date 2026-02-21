@@ -7,7 +7,6 @@
             <list string="DOOH Slots">
                 <field name="name"/>
                 <field name="digital_screen_id"/>
-                <field name="partner_id"/>
                 <field name="state" widget="badge" decoration-success="state == 'available'" decoration-danger="state == 'booked'" decoration-warning="state == 'reserved'"/>
                 <field name="sov"/>
 
@@ -23,7 +22,6 @@
             <search string="Search Slots">
                 <field name="name"/>
                 <field name="digital_screen_id"/>
-                <field name="partner_id"/>
                 <field name="state"/>
                 <filter string="Booked" name="filter_booked" domain="[('state', '=', 'booked')]"/>
 
