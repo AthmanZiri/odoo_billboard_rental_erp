@@ -121,8 +121,8 @@ class MediaDoohSlot(models.Model):
             'origin': self.name,
             'order_line': [(0, 0, {
                 'product_id': screen.product_id.id,
-                'name': _("Digital Slot: %s | Screen: %s | SOV: %s%%") % (
-                    self.name, screen.display_name, self.sov
+                'name': _("Digital Slot: %s | Screen: %s") % (
+                    self.name, screen.display_name
                 ),
                 'product_uom_qty': 1.0,
                 'price_unit': price_unit,

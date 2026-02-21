@@ -50,7 +50,7 @@ class SaleOrderLine(models.Model):
                 self.price_unit = screen.price_per_month
             
             # Update description
-            self.name = _("Digital Slot: %s | Screen: %s | SOV: %s%%") % (
-                self.media_slot_id.name, screen.display_name, self.media_slot_id.sov
+            self.name = _("Digital Slot: %s | Screen: %s") % (
+                self.media_slot_id.name, screen.display_name
             )
             self._onchange_lease_duration()
