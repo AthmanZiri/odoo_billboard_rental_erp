@@ -45,6 +45,9 @@
             <form string="Digital Screen">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_view_artwork_history" type="object" class="oe_stat_button" icon="fa-history">
+                            <field name="artwork_history_count" widget="statinfo" string="History"/>
+                        </button>
                     </div>
                     
                     <field name="image_1" widget="image" class="oe_avatar" options="{'size': [90, 90]}"/>

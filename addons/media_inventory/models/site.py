@@ -174,7 +174,8 @@ class MediaSite(models.Model):
     code = fields.Char(string='Site Code', tracking=True)
     site_category = fields.Selection([
         ('billboard', 'Billboard'),
-        ('canopy', 'Canopy')
+        ('canopy', 'Canopy'),
+        ('digital', 'Digital Screen')
     ], string='Site Category', default='billboard', required=True)
     
     # Geographic Fields

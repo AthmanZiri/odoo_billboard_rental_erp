@@ -10,7 +10,8 @@ class MediaArtworkHistory(models.Model):
     site_id = fields.Many2one('media.site', string='Site', store=True)
     site_category = fields.Selection([
         ('billboard', 'Billboard'),
-        ('canopy', 'Canopy')
+        ('canopy', 'Canopy'),
+        ('digital', 'Digital Screen')
     ], string='Site Category', store=True)
     
     sale_order_line_id = fields.Many2one('sale.order.line', string='Contract Line', ondelete='set null')

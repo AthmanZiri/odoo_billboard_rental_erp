@@ -57,7 +57,7 @@ class MediaDigitalScreen(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            vals['site_category'] = 'billboard' # or 'digital' if we added it to selection, but billboard is fine for now as general category
+            vals['site_category'] = 'digital'
             if vals.get('name', 'New') == 'New':
                  vals['name'] = self.env['ir.sequence'].next_by_code('media.digital.screen') or 'New'
         
@@ -72,6 +72,16 @@ class MediaDigitalScreen(models.Model):
         if any(f in vals for f in ['name', 'code', 'price_per_month', 'price_per_day']):
             for record in self:
                 record._sync_product()
+                
+        if 'image_1' in vals:
+            for record in self:
+                face = record.face_ids[:1]
+                if face:
+                    self.env['media.artwork.history'].create({
+                        'face_id': face.id,
+                        'artwork_file': vals['image_1'],
+                        'description': _('Updated digital screen image'),
+                    })
         return res
 
     def _sync_product(self):
