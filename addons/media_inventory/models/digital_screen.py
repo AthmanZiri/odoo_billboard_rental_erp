@@ -48,7 +48,11 @@ class MediaDigitalScreen(models.Model):
     image_1 = fields.Image(string='Screen Image')
 
     product_id = fields.Many2one('product.product', string='Linked Product', help='Product used for invoicing this screen', ondelete='restrict')
-    number_of_slots = fields.Integer(string='Number of Slots', default=6)
+    number_of_slots = fields.Integer(string='Number of Slots', default=6, inverse='_set_number_of_slots')
+
+    def _set_number_of_slots(self):
+        # This will be implemented in media_dooh to handle slot creation/removal
+        pass
 
     @api.model_create_multi
     def create(self, vals_list):
