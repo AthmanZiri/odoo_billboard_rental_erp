@@ -164,13 +164,19 @@ class MediaFace(models.Model):
             name = record.name
             if record.code:
                 name = "[%s] %s" % (record.code, name)
+            
             if record.site_id:
-                site_name = record.site_id.code or record.site_id.name
-                name = "%s / %s" % (site_name, name)
+                if record.site_id.site_category == 'canopy':
+                    # Use the same format: Shop Name - Canopy Name (Code)
+                    # For the face name specifically, it usually mirrors the canopy name
+                    site_desc = "%s - %s" % (record.site_id.shop_name or _('No Shop'), record.site_id.name)
+                    name = "%s (%s)" % (site_desc, record.site_id.code or record.site_id.name)
+                else:
+                    site_desc = record.site_id.code or record.site_id.name
+                    name = "%s / %s" % (site_desc, name)
             
             # Show availability info if booked in the future
             if record.next_available_date and record.next_available_date > today:
-                # Find the current/last rental end date
                 last_line = record.lease_line_ids.filtered(lambda l: l.state in ['sale', 'done'] and l.end_date >= today).sorted(key=lambda l: l.end_date, reverse=True)
                 if last_line:
                     name += " (Booked until: %s)" % last_line[0].end_date.strftime('%b %d')
@@ -195,13 +201,20 @@ class MediaFace(models.Model):
             for record in self:
                 record._sync_product()
         
-        if 'default_artwork' in vals:
+        if 'default_artwork' in vals or 'face_image' in vals:
             for record in self:
-                self.env['media.artwork.history'].create({
-                    'face_id': record.id,
-                    'artwork_file': vals['default_artwork'],
-                    'description': _('Updated default artwork'),
-                })
+                if 'default_artwork' in vals:
+                    self.env['media.artwork.history'].create({
+                        'face_id': record.id,
+                        'artwork_file': vals['default_artwork'],
+                        'description': _('Updated default artwork'),
+                    })
+                if 'face_image' in vals:
+                     self.env['media.artwork.history'].create({
+                        'face_id': record.id,
+                        'artwork_file': vals['face_image'],
+                        'description': _('Updated canopy/face image from Job Card') if self.env.context.get('from_job_card') else _('Updated canopy/face image'),
+                    })
         return res
 
     rentals_count = fields.Integer(compute='_compute_face_stats', string='Rentals Count')

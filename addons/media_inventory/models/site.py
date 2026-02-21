@@ -7,6 +7,24 @@ class MediaSiteMixin(models.AbstractModel):
     _name = 'media.site.mixin'
     _description = 'Media Site Mixin'
 
+    # Statistics and Actions
+    artwork_history_count = fields.Integer(compute='_compute_site_stats', string='Artwork History Count')
+    face_count = fields.Integer(compute='_compute_site_stats', string='Faces Count')
+    permit_count = fields.Integer(compute='_compute_site_stats', string='Permits Count')
+    rentals_count = fields.Integer(compute='_compute_site_stats', string='Rentals Count')
+    expenses_count = fields.Integer(compute='_compute_site_stats', string='Expenses Count')
+
+    def action_view_artwork_history(self):
+        self.ensure_one()
+        return {
+            'name': _('Artwork History'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'media.artwork.history',
+            'view_mode': 'list,form',
+            'domain': [('face_id', 'in', self.face_ids.ids)],
+            'context': {'default_site_id': self.id if self._name == 'media.site' else self.site_id.id},
+        }
+
     def action_fetch_coordinates(self):
         """Manual trigger for coordinate fetching from Google Maps Link"""
         for record in self:
@@ -66,6 +84,11 @@ class MediaSiteMixin(models.AbstractModel):
             record.permit_count = len(record.permit_history_ids)
             record.expenses_count = len(record.expense_ids)
             record.rentals_count = len(record.lease_line_ids)
+            
+            # Count history from all faces associated with this site
+            if hasattr(record, 'artwork_history_count'):
+                history = self.env['media.artwork.history'].search([('face_id', 'in', record.face_ids.ids)])
+                record.artwork_history_count = len(history)
             
             record.total_faces_count = record.face_count
             record.occupied_faces_count = len(record.face_ids.filtered(lambda f: f.occupancy_status == 'booked'))
@@ -191,11 +214,11 @@ class MediaSite(models.Model):
     available_faces_count = fields.Integer(compute='_compute_site_stats', string='Available Faces', store=True, aggregator="sum")
     total_monthly_revenue = fields.Float(compute='_compute_site_stats', string='Monthly Revenue', store=True, aggregator="sum")
 
-    face_count = fields.Integer(compute='_compute_site_stats', string='Faces Count')
-    permit_count = fields.Integer(compute='_compute_site_stats', string='Permits Count')
-    rentals_count = fields.Integer(compute='_compute_site_stats', string='Rentals Count')
-    expenses_count = fields.Integer(compute='_compute_site_stats', string='Expenses Count')
-
+    @api.depends('name', 'code')
+    def _compute_display_name(self):
+        for record in self:
+            code_part = " [%s]" % record.code if record.code else ""
+            record.display_name = "%s%s" % (record.name, code_part)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -262,6 +285,16 @@ class MediaCanopy(models.Model):
     allocated_date = fields.Date(string='Allocated Date')
     
     canopy_image = fields.Image(string='Canopy Image')
+    
+    @api.depends('name', 'code', 'shop_name')
+    def _compute_display_name(self):
+        for record in self:
+            shop_part = record.shop_name or _('No Shop Name')
+            code_part = record.code or record.name
+            if code_part and code_part != record.name:
+                record.display_name = "%s - %s (%s)" % (shop_part, record.name, code_part)
+            else:
+                record.display_name = "%s - %s" % (shop_part, record.name)
     measurement_image_1 = fields.Image(string='Image Measurement')
     measurement_image_2 = fields.Image(string='Measurement 2')
     measurement_image_3 = fields.Image(string='Measurement 3')
@@ -274,5 +307,19 @@ class MediaCanopy(models.Model):
             if vals.get('name', 'New') == 'New':
                 vals['name'] = self.env['ir.sequence'].next_by_code('media.canopy') or 'New'
         return super(MediaCanopy, self).create(vals_list)
+
+    def write(self, vals):
+        res = super(MediaCanopy, self).write(vals)
+        if 'canopy_image' in vals:
+            for record in self:
+                # Find associated face (canopies should usually have one)
+                face = record.face_ids[:1]
+                if face:
+                    self.env['media.artwork.history'].create({
+                        'face_id': face.id,
+                        'artwork_file': vals['canopy_image'],
+                        'description': _('Updated canopy image from Job Card') if self.env.context.get('from_job_card') else _('Updated canopy image'),
+                    })
+        return res
 
 
