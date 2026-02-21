@@ -112,3 +112,15 @@ class TestDoohSlot(TransactionCase):
         ])
         self.assertTrue(activity)
         self.assertIn("Slot Expiring Soon", activity.summary)
+
+    def test_slot_creation_without_dates(self):
+        """ Test that a slot can be created without partner and dates """
+        slot = self.Slot.create({
+            'digital_screen_id': self.screen.id,
+            'ad_duration': 15,
+        })
+        self.assertTrue(slot.id)
+        self.assertFalse(slot.partner_id)
+        self.assertFalse(slot.start_date)
+        self.assertFalse(slot.end_date)
+        self.assertEqual(slot.state, 'available')
