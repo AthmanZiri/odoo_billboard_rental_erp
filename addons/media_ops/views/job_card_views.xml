@@ -19,15 +19,64 @@
                     </div>
                     <group>
                         <group>
+                            <field name="site_category" invisible="1"/>
                             <field name="job_type_id" options="{'no_create': True, 'no_open': True}"/>
                             <field name="maintenance_team_id" options="{'no_create': True}"/>
-                            <field name="date"/>
+                            <field name="date" string="Renovation Date"/>
                         </group>
                         <group>
-                            <field name="site_id"/>
-                            <field name="media_face_id"/>
+                            <field name="canopy_id" invisible="site_category != 'canopy'"/>
+                            <field name="site_id" invisible="site_category == 'canopy'"/>
+                            <field name="media_face_id" invisible="site_category == 'canopy'"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page string="Canopy Photos" name="canopy_photos">
+                            <group>
+                                <group string="Before &amp; After">
+                                    <field name="old_canopy_photo" widget="image" class="oe_avatar" style="width: 200px; height: 200px;"/>
+                                    <field name="new_canopy_photo" widget="image" class="oe_avatar" style="width: 200px; height: 200px;"/>
+                                </group>
+                                <group string="Documentation">
+                                    <field name="damaged_photo" widget="image" class="oe_avatar" style="width: 200px; height: 200px;"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Measurements" name="measurement_photos">
+                            <group string="Measurement 1">
+                                <group>
+                                    <field name="old_measurement_image_1" widget="image" class="oe_avatar" style="width: 150px; height: 150px;" string="Before"/>
+                                </group>
+                                <group>
+                                    <field name="new_measurement_image_1" widget="image" class="oe_avatar" style="width: 150px; height: 150px;" string="After/New"/>
+                                </group>
+                            </group>
+                            <group string="Measurement 2">
+                                <group>
+                                    <field name="old_measurement_image_2" widget="image" class="oe_avatar" style="width: 150px; height: 150px;" string="Before"/>
+                                </group>
+                                <group>
+                                    <field name="new_measurement_image_2" widget="image" class="oe_avatar" style="width: 150px; height: 150px;" string="After/New"/>
+                                </group>
+                            </group>
+                            <group string="Measurement 3">
+                                <group>
+                                    <field name="old_measurement_image_3" widget="image" class="oe_avatar" style="width: 150px; height: 150px;" string="Before"/>
+                                </group>
+                                <group>
+                                    <field name="new_measurement_image_3" widget="image" class="oe_avatar" style="width: 150px; height: 150px;" string="After/New"/>
+                                </group>
+                            </group>
+                            <group string="Measurement 4">
+                                <group>
+                                    <field name="old_measurement_image_4" widget="image" class="oe_avatar" style="width: 150px; height: 150px;" string="Before"/>
+                                </group>
+                                <group>
+                                    <field name="new_measurement_image_4" widget="image" class="oe_avatar" style="width: 150px; height: 150px;" string="After/New"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
                     <group string="Notes">
                         <field name="notes" placeholder="Details of the job..."/>
                     </group>
@@ -63,6 +112,7 @@
         <field name="name">Canopy Repairs &amp; Maintenance</field>
         <field name="res_model">media.job.card</field>
         <field name="domain">[('site_id.site_category', '=', 'canopy')]</field>
+        <field name="context">{'default_site_category': 'canopy'}</field>
         <field name="view_mode">list,form</field>
     </record>
 
