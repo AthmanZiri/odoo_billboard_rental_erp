@@ -75,6 +75,26 @@ class SaleOrderLine(models.Model):
             if self.order_id.lease_end_date:
                 self.end_date = self.order_id.lease_end_date
 
+    @api.onchange('media_digital_screen_id')
+    def _onchange_media_digital_screen_id(self):
+        if self.media_digital_screen_id:
+            screen = self.media_digital_screen_id
+            if screen.product_id:
+                self.product_id = screen.product_id
+            
+            # Set price based on pricing type
+            # For digital screens, we usually sell per slot or fixed
+            if screen.pricing_type == 'fixed':
+                self.price_unit = screen.price_per_month
+            elif screen.pricing_type == 'slot_monthly':
+                self.price_unit = screen.price_slot_monthly
+            
+            # Default dates from header
+            if self.order_id.lease_start_date:
+                self.start_date = self.order_id.lease_start_date
+            if self.order_id.lease_end_date:
+                self.end_date = self.order_id.lease_end_date
+
     def _prepare_invoice_line(self, **optional_values):
         res = super(SaleOrderLine, self)._prepare_invoice_line(**optional_values)
         if self.media_face_id:
