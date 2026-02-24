@@ -49,7 +49,7 @@ export class BillboardMap extends Component {
         this.markers.forEach(marker => this.map.removeLayer(marker));
         this.markers = [];
 
-        let fields = ["name", "code", "latitude", "longitude", "city", "county_id", "sub_county_id"];
+        let fields = ["name", "code", "latitude", "longitude", "city", "county_id", "sub_county_id", "main_image"];
         if (this.siteModel === "media.site") {
             fields.push("site_category", "shop_name");
         }
@@ -90,6 +90,7 @@ export class BillboardMap extends Component {
                         <span class="badge" style="background-color: ${markerColor};">${categoryLabel}</span>
                     </div>
                     <div class="popup-body mt-2">
+                        ${site.main_image ? `<img src="data:image/png;base64,${site.main_image}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;"/>` : ''}
                         ${isCanopy && site.shop_name ? `<div><strong>Shop:</strong> ${site.shop_name}</div>` : ''}
                         <div><strong>Code:</strong> ${site.code || 'N/A'}</div>
                         <div><strong>Location:</strong> ${site.sub_county_id ? site.sub_county_id[1] : ''}, ${site.county_id ? site.county_id[1] : ''}</div>

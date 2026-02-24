@@ -209,6 +209,22 @@ class MediaSite(models.Model):
     
     active = fields.Boolean(default=True)
     
+    main_image = fields.Image(string='Main Image', compute='_compute_main_image')
+
+    def _compute_main_image(self):
+        for record in self:
+            image = False
+            if record.site_category == 'billboard':
+                billboard = self.env['media.billboard'].search([('site_id', '=', record.id)], limit=1)
+                image = billboard.image_1 if billboard else False
+            elif record.site_category == 'canopy':
+                canopy = self.env['media.canopy'].search([('site_id', '=', record.id)], limit=1)
+                image = canopy.canopy_image if canopy else False
+            elif record.site_category == 'digital':
+                screen = self.env['media.digital.screen'].search([('site_id', '=', record.id)], limit=1)
+                image = screen.image_1 if screen else False
+            record.main_image = image
+    
 
     
     total_faces_count = fields.Integer(compute='_compute_site_stats', string='Total Faces', store=True, aggregator="sum")
