@@ -262,16 +262,16 @@
                 <page string="Images &amp; Measurements" name="images_measurements">
                     <group>
                         <group>
-                            <field name="canopy_image" widget="image" class="oe_avatar"/>
+                            <field name="canopy_image" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'canopy_image'}"/>
                         </group>
                         <group>
-                            <field name="measurement_image_1" widget="image" class="oe_avatar"/>
+                            <field name="measurement_image_1" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'measurement_image_1'}"/>
                         </group>
                     </group>
                     <group col="3">
-                        <field name="measurement_image_2" widget="image" class="oe_avatar"/>
-                        <field name="measurement_image_3" widget="image" class="oe_avatar"/>
-                        <field name="measurement_image_4" widget="image" class="oe_avatar"/>
+                        <field name="measurement_image_2" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'measurement_image_2'}"/>
+                        <field name="measurement_image_3" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'measurement_image_3'}"/>
+                        <field name="measurement_image_4" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'measurement_image_4'}"/>
                     </group>
                 </page>
                 <page string="Canopy Renovations" name="artwork_history">

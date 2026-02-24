@@ -58,11 +58,11 @@
                             <field name="site_id" domain="[('site_category', '=', 'billboard')]"/>
                             <field name="code"/>
                             <field name="face_type"/>
-                            <field name="default_artwork" widget="image" class="oe_avatar" options="{'zoom': true}"/>
+                            <field name="default_artwork" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'default_artwork'}"/>
                         </group>
                         <group>
                             <field name="occupancy_status" widget="badge" decoration-success="occupancy_status == 'available'" decoration-danger="occupancy_status == 'booked'" decoration-warning="occupancy_status == 'maintenance'"/>
-                            <field name="face_image" widget="image" class="oe_avatar"/>
+                            <field name="face_image" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'face_image'}"/>
                         </group>
 
                     </group>

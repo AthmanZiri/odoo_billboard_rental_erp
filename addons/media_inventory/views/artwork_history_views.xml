@@ -90,11 +90,11 @@
                     <group string="Artwork Content">
                         <label for="artwork_file" string="Renovation Image" invisible="site_category != 'canopy'"/>
                         <label for="artwork_file" string="Artwork Image" invisible="site_category == 'canopy'"/>
-                        <field name="artwork_file" widget="image" nolabel="1" options="{'zoom': true}"/>
+                        <field name="artwork_file" widget="image" nolabel="1" options="{'zoom': true, 'preview_image': 'artwork_file'}"/>
                         
                         <field name="measurement_image" widget="image" 
                                invisible="site_category != 'canopy'"
-                               options="{'zoom': true}"/>
+                               options="{'zoom': true, 'preview_image': 'measurement_image'}"/>
                         
                         <field name="description" placeholder="Optional notes..."/>
                     </group>
