@@ -37,11 +37,9 @@ class MediaArtworkHistory(models.Model):
         
         records = super(MediaArtworkHistory, self).create(vals_list)
         
-        # Force recompute of occupancy status on linked faces
+        # Force recompute of occupancy status on linked faces using Odoo's trigger
         for face in records.mapped('face_id'):
-             face._compute_occupancy_status()
-             face._compute_current_booking_dates()
-             face._compute_next_available_date()
+             face.modified(['occupancy_status', 'current_booking_start', 'current_booking_end', 'next_available_date'])
         
         # Sync to face if not already coming from face update
         if not self.env.context.get('skip_face_sync'):
@@ -57,9 +55,7 @@ class MediaArtworkHistory(models.Model):
         res = super(MediaArtworkHistory, self).write(vals)
         if any(f in vals for f in ['lease_start_date', 'lease_end_date', 'face_id']):
             for face in self.mapped('face_id'):
-                face._compute_occupancy_status()
-                face._compute_current_booking_dates()
-                face._compute_next_available_date()
+                face.modified(['occupancy_status', 'current_booking_start', 'current_booking_end', 'next_available_date'])
         return res
 
     @api.onchange('site_id')

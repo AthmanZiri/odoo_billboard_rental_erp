@@ -115,6 +115,8 @@
                                 <list>
                                     <field name="upload_date"/>
                                     <field name="artwork_file" widget="image" options="{'size': [64, 64]}"/>
+                                    <field name="lease_start_date" string="Start"/>
+                                    <field name="lease_end_date" string="End"/>
                                     <field name="description"/>
                                     <field name="uploaded_by"/>
                                     <field name="sale_order_line_id" string="Contract Line"/>
