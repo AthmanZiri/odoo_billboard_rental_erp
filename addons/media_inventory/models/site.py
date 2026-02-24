@@ -287,7 +287,21 @@ class MediaCanopy(models.Model):
     allocated_date = fields.Date(string='Allocated Date')
     
     canopy_image = fields.Image(string='Canopy Image')
-    
+
+    last_renovation_date = fields.Date(string='Last Renovated', compute='_compute_last_renovation', store=True)
+    last_renovation_id = fields.Many2one('media.artwork.history', string='Last Renovation Artwork', compute='_compute_last_renovation', store=True)
+
+    @api.depends('artwork_history_ids', 'artwork_history_ids.renovation_date')
+    def _compute_last_renovation(self):
+        for record in self:
+            # Get the latest artwork history record with a renovation date
+            last_history = self.env['media.artwork.history'].search([
+                ('site_id', '=', record.site_id.id),
+                ('site_category', '=', 'canopy'),
+            ], order='renovation_date desc', limit=1)
+            record.last_renovation_date = last_history.renovation_date if last_history else False
+            record.last_renovation_id = last_history.id if last_history else False
+
     @api.depends('name', 'code', 'shop_name')
     def _compute_display_name(self):
         for record in self:
