@@ -203,6 +203,7 @@ class MediaSite(models.Model):
     permit_history_ids = fields.One2many('media.permit.history', 'site_id', string='Permit History')
     lease_line_ids = fields.One2many('sale.order.line', compute='_compute_lease_history', string='Lease History')
     expense_ids = fields.One2many('media.expense', 'site_id', string='Expenses')
+    artwork_history_ids = fields.One2many('media.artwork.history', 'site_id', string='Artwork History')
     image_ids = fields.Many2many('ir.attachment', string='Site Photos')
     color = fields.Integer(string='Color Index')
     
