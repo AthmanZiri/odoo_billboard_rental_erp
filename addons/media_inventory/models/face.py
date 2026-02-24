@@ -98,19 +98,29 @@ class MediaFace(models.Model):
     is_expired = fields.Boolean(compute='_compute_status_flags', store=True)
     is_reserved = fields.Boolean(compute='_compute_status_flags', store=True)
 
-    @api.depends('lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date')
+    @api.depends('lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date')
     def _compute_current_booking_dates(self):
         today = fields.Date.today()
         for record in self:
+            # Check lease lines
             active_lease = record.lease_line_ids.filtered(lambda l: 
                 l.state in ['sale', 'done'] and 
                 l.start_date and l.end_date and
                 l.start_date <= today <= l.end_date
             ).sorted(key=lambda l: l.end_date, reverse=True)
             
+            # Check manual artwork history bookings
+            active_history = record.artwork_history_ids.filtered(lambda h:
+                h.lease_start_date and h.lease_end_date and
+                h.lease_start_date <= today <= h.lease_end_date
+            ).sorted(key=lambda h: h.lease_end_date, reverse=True)
+
             if active_lease:
                 record.current_booking_start = active_lease[0].start_date
                 record.current_booking_end = active_lease[0].end_date
+            elif active_history:
+                record.current_booking_start = active_history[0].lease_start_date
+                record.current_booking_end = active_history[0].lease_end_date
             else:
                 record.current_booking_start = False
                 record.current_booking_end = False
@@ -124,19 +134,49 @@ class MediaFace(models.Model):
             record.is_expired = record.current_booking_end and record.current_booking_end < today
             record.is_reserved = any(l.state == 'draft' for l in record.lease_line_ids)
 
-    @api.depends('lease_line_ids.end_date', 'lease_line_ids.state')
+    @api.depends('lease_line_ids.end_date', 'lease_line_ids.state', 'artwork_history_ids.lease_end_date')
     def _compute_next_available_date(self):
         today = fields.Date.today()
         for record in self:
+            # Combine all end dates from active/future leases and history
+            end_dates = []
+            
             future_rentals = record.lease_line_ids.filtered(lambda l: 
                 l.state in ['sale', 'done'] and 
                 l.end_date and l.end_date >= today
-            ).sorted(key=lambda l: l.end_date, reverse=True)
-            
+            )
             if future_rentals:
-                record.next_available_date = future_rentals[0].end_date + relativedelta(days=1)
+                end_dates.extend(future_rentals.mapped('end_date'))
+
+            future_history = record.artwork_history_ids.filtered(lambda h:
+                h.lease_end_date and h.lease_end_date >= today
+            )
+            if future_history:
+                end_dates.extend(future_history.mapped('lease_end_date'))
+            
+            if end_dates:
+                record.next_available_date = max(end_dates) + relativedelta(days=1)
             else:
                 record.next_available_date = today
+
+    @api.depends('active', 'lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date')
+    def _compute_occupancy_status(self):
+        today = fields.Date.today()
+        for record in self:
+            # Find any active lease line covering today
+            active_lease = record.lease_line_ids.filtered(lambda l: 
+                l.state in ['sale', 'done'] and 
+                l.start_date and l.end_date and
+                l.start_date <= today <= l.end_date
+            )
+            
+            # Find any active manual artwork history covering today
+            active_history = record.artwork_history_ids.filtered(lambda h:
+                h.lease_start_date and h.lease_end_date and
+                h.lease_start_date <= today <= h.lease_end_date
+            )
+            
+            record.occupancy_status = 'booked' if active_lease or active_history else 'available'
 
     @api.depends('operating_hours_start', 'operating_hours_end')
     def _compute_views_per_day(self):
@@ -178,8 +218,18 @@ class MediaFace(models.Model):
             # Show availability info if booked in the future
             if record.next_available_date and record.next_available_date > today:
                 last_line = record.lease_line_ids.filtered(lambda l: l.state in ['sale', 'done'] and l.end_date >= today).sorted(key=lambda l: l.end_date, reverse=True)
-                if last_line:
-                    name += " (Booked until: %s)" % last_line[0].end_date.strftime('%b %d')
+                last_history = record.artwork_history_ids.filtered(lambda h: h.lease_end_date and h.lease_end_date >= today).sorted(key=lambda h: h.lease_end_date, reverse=True)
+                
+                booking_end = False
+                if last_line and last_history:
+                    booking_end = max(last_line[0].end_date, last_history[0].lease_end_date)
+                elif last_line:
+                    booking_end = last_line[0].end_date
+                elif last_history:
+                    booking_end = last_history[0].lease_end_date
+
+                if booking_end:
+                    name += " (Booked until: %s)" % booking_end.strftime('%b %d')
             
             record.display_name = name
 
@@ -201,20 +251,21 @@ class MediaFace(models.Model):
             for record in self:
                 record._sync_product()
         
-        if 'default_artwork' in vals or 'face_image' in vals:
-            for record in self:
-                if 'default_artwork' in vals:
-                    self.env['media.artwork.history'].create({
-                        'face_id': record.id,
-                        'artwork_file': vals['default_artwork'],
-                        'description': _('Updated default artwork'),
-                    })
-                if 'face_image' in vals:
-                     self.env['media.artwork.history'].create({
-                        'face_id': record.id,
-                        'artwork_file': vals['face_image'],
-                        'description': _('Updated canopy/face image from Job Card') if self.env.context.get('from_job_card') else _('Updated canopy/face image'),
-                    })
+        if not self.env.context.get('skip_history_creation'):
+            if 'default_artwork' in vals or 'face_image' in vals:
+                for record in self:
+                    if 'default_artwork' in vals:
+                        self.env['media.artwork.history'].with_context(skip_face_sync=True).create({
+                            'face_id': record.id,
+                            'artwork_file': vals['default_artwork'],
+                            'description': _('Updated default artwork'),
+                        })
+                    if 'face_image' in vals:
+                         self.env['media.artwork.history'].with_context(skip_face_sync=True).create({
+                            'face_id': record.id,
+                            'artwork_file': vals['face_image'],
+                            'description': _('Updated canopy/face image from Job Card') if self.env.context.get('from_job_card') else _('Updated canopy/face image'),
+                        })
         return res
 
     rentals_count = fields.Integer(compute='_compute_face_stats', string='Rentals Count')
