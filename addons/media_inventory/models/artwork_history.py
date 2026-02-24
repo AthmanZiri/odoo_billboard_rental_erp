@@ -6,7 +6,7 @@ class MediaArtworkHistory(models.Model):
     _description = 'Artwork History'
     _order = 'upload_date desc'
 
-    face_id = fields.Many2one('media.face', string='Face', required=True, ondelete='cascade')
+    face_id = fields.Many2one('media.face', string='Face', required=False, ondelete='cascade')
     site_id = fields.Many2one('media.site', string='Site', store=True)
     site_category = fields.Selection([
         ('billboard', 'Billboard'),
@@ -19,6 +19,11 @@ class MediaArtworkHistory(models.Model):
     
     lease_start_date = fields.Date(string='Lease Start Date')
     lease_end_date = fields.Date(string='Lease End Date')
+    
+    # Renovation Fields (for Canopies)
+    maintenance_team_id = fields.Many2one('media.maintenance.team', string='Assigned Team')
+    renovation_date = fields.Date(string='Renovation Date', default=fields.Date.today)
+    measurement_image = fields.Image(string='Measurement Image')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -49,6 +54,19 @@ class MediaArtworkHistory(models.Model):
                         'default_artwork': record.artwork_file,
                         'face_image': record.artwork_file,
                     })
+                
+                # Sync Canopy specific images
+                if record.site_category == 'canopy' and record.site_id:
+                    vals = {}
+                    if record.artwork_file:
+                        vals['canopy_image'] = record.artwork_file
+                    if record.measurement_image:
+                        vals['measurement_image_1'] = record.measurement_image
+                    
+                    if vals:
+                        canopy = self.env['media.canopy'].search([('site_id', '=', record.site_id.id)], limit=1)
+                        if canopy:
+                            canopy.with_context(skip_history_creation=True).write(vals)
         return records
 
     def write(self, vals):
@@ -103,6 +121,12 @@ class MediaArtworkHistory(models.Model):
             if record.sale_order_line_id:
                 if record.sale_order_line_id.end_date and record.sale_order_line_id.end_date < today:
                     raise ValidationError(_("You cannot update artwork for an expired contract (%s).") % record.sale_order_line_id.order_id.name)
+
+    @api.constrains('face_id', 'site_category')
+    def _check_face_required(self):
+        for record in self:
+            if record.site_category != 'canopy' and not record.face_id:
+                raise ValidationError(_("The field 'Face' is required for billboards and digital screens."))
 
     def name_get(self):
         result = []

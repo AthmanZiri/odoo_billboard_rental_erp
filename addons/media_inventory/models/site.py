@@ -312,16 +312,34 @@ class MediaCanopy(models.Model):
 
     def write(self, vals):
         res = super(MediaCanopy, self).write(vals)
-        if 'canopy_image' in vals:
-            for record in self:
-                # Find associated face (canopies should usually have one)
-                face = record.face_ids[:1]
-                if face:
-                    self.env['media.artwork.history'].create({
-                        'face_id': face.id,
-                        'artwork_file': vals['canopy_image'],
-                        'description': _('Updated canopy image from Job Card') if self.env.context.get('from_job_card') else _('Updated canopy image'),
-                    })
+        if not self.env.context.get('skip_history_creation'):
+            if 'canopy_image' in vals:
+                for record in self:
+                    # Find associated face (canopies should usually have one)
+                    face = record.face_ids[:1]
+                    if face or record.site_id:
+                        self.env['media.artwork.history'].with_context(skip_face_sync=True).create({
+                            'face_id': face.id if face else False,
+                            'site_id': record.site_id.id,
+                            'site_category': 'canopy',
+                            'artwork_file': vals['canopy_image'],
+                            'description': _('Updated canopy image from Job Card') if self.env.context.get('from_job_card') else _('Updated canopy image'),
+                        })
         return res
+    
+    def action_renovate(self):
+        self.ensure_one()
+        return {
+            'name': _('Canopy Renovation'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'media.artwork.history',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_site_id': self.site_id.id,
+                'default_site_category': 'canopy',
+                'default_renovation_date': fields.Date.today(),
+            }
+        }
 
 

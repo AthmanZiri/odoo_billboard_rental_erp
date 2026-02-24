@@ -19,7 +19,7 @@
     <!-- 4) Canopies -->
     <menuitem id="menu_canopy_root" name="Canopies" parent="menu_media_root" sequence="30"/>
     <menuitem id="menu_canopy_list" name="Canopy Assets" parent="menu_canopy_root" action="action_media_canopy" sequence="10"/>
-    <menuitem id="menu_canopy_artwork" name="Canopy Artwork" parent="menu_canopy_root" action="action_media_artwork_canopy" sequence="20"/>
+    <menuitem id="menu_canopy_artwork" name="Canopy Renovations" parent="menu_canopy_root" action="action_media_artwork_canopy" sequence="20"/>
     <menuitem id="menu_canopy_update_status" name="Update Canopy Status" parent="menu_canopy_root" action="action_canopy_status_wizard" sequence="40"/>
 
     <!-- 5) Operations -->
