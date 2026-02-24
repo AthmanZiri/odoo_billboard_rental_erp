@@ -59,14 +59,16 @@ export class BillboardMap extends Component {
         sites.forEach(site => {
             if (!site.latitude || !site.longitude) return;
 
-            let isCanopy = false;
-            let isDigitalScreen = this.siteModel === 'media.digital.screen';
+            // Determine category and visuals
+            const category = site.site_category || (this.siteModel === 'media.canopy' ? 'canopy' : (this.siteModel === 'media.digital.screen' ? 'digital' : 'billboard'));
+
+            let isCanopy = category === 'canopy';
+            let isDigitalScreen = category === 'digital';
             let markerColor = '#007bff'; // Default Billboard Blue
             let iconClass = 'fa-picture-o';
             let categoryLabel = 'BILLBOARD';
 
-            if (this.siteModel === 'media.site' && site.site_category === 'canopy') {
-                isCanopy = true;
+            if (isCanopy) {
                 markerColor = '#28a745'; // Canopy Green
                 iconClass = 'fa-shopping-cart';
                 categoryLabel = 'CANOPY';
@@ -95,7 +97,7 @@ export class BillboardMap extends Component {
                         <div><strong>Code:</strong> ${site.code || 'N/A'}</div>
                         <div><strong>Location:</strong> ${site.sub_county_id ? site.sub_county_id[1] : ''}, ${site.county_id ? site.county_id[1] : ''}</div>
                     </div>
-                    <button class="btn btn-primary btn-sm mt-2 w-100" onclick="window.odoo_open_site(${site.id}, '${this.siteModel}')">
+                    <button class="btn btn-primary btn-sm mt-2 w-100" onclick="window.odoo_open_site(${site.id}, '${this.siteModel}', '${category}')">
                         Open details
                     </button>
                 </div>
@@ -108,11 +110,28 @@ export class BillboardMap extends Component {
         });
 
         // Add global helper to open site from popup
-        window.odoo_open_site = (siteId, model) => {
+        window.odoo_open_site = async (siteId, model, category) => {
+            let resModel = model;
+            let resId = siteId;
+
+            // If we are on a general site map, try to redirect to the specific asset model
+            if (model === 'media.site') {
+                if (category === 'canopy') resModel = 'media.canopy';
+                else if (category === 'billboard') resModel = 'media.billboard';
+                else if (category === 'digital') resModel = 'media.digital.screen';
+
+                if (resModel !== 'media.site') {
+                    const children = await this.orm.search(resModel, [['site_id', '=', siteId]], { limit: 1 });
+                    if (children.length > 0) {
+                        resId = children[0];
+                    }
+                }
+            }
+
             this.action.doAction({
                 type: 'ir.actions.act_window',
-                res_model: model,
-                res_id: siteId,
+                res_model: resModel,
+                res_id: resId,
                 views: [[false, 'form']],
                 target: 'current',
             });

@@ -322,15 +322,15 @@
     <record id="action_media_billboard_map" model="ir.actions.client">
         <field name="name">Billboard Map</field>
         <field name="tag">media_inventory.billboard_map_action</field>
-        <field name="res_model">media.site</field>
-        <field name="params">{'model': 'media.site', 'domain': [('site_category', '=', 'billboard')]}</field>
+        <field name="res_model">media.billboard</field>
+        <field name="params">{'model': 'media.billboard', 'domain': []}</field>
     </record>
 
     <record id="action_media_canopy_map" model="ir.actions.client">
         <field name="name">Canopy Map</field>
         <field name="tag">media_inventory.billboard_map_action</field>
-        <field name="res_model">media.site</field>
-        <field name="params">{'model': 'media.site', 'domain': [('site_category', '=', 'canopy')]}</field>
+        <field name="res_model">media.canopy</field>
+        <field name="params">{'model': 'media.canopy', 'domain': []}</field>
     </record>
 
     <record id="action_media_digital_screen_map" model="ir.actions.client">
