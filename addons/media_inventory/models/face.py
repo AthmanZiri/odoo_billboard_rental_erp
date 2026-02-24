@@ -181,14 +181,6 @@ class MediaFace(models.Model):
     @api.depends('operating_hours_start', 'operating_hours_end')
     def _compute_views_per_day(self):
         for record in self:
-            # Placeholder calculation or simple logic
-            # For now, just setting it to 0 or keeping existing value if set
-            if not record.views_per_day:
-                record.views_per_day = 0
-
-    @api.depends('operating_hours_start', 'operating_hours_end')
-    def _compute_views_per_day(self):
-        for record in self:
             # Placeholder: In the future this might calculate based on traffic data
             # For now we allow manual entry, so we don't overwrite if set manually, 
             # but 'compute' fields are usually read-only unless inverse is set.
@@ -334,18 +326,6 @@ class MediaFace(models.Model):
         else:
             self.product_id.write(product_vals)
 
-    @api.depends('active', 'lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date')
-    def _compute_occupancy_status(self):
-        today = fields.Date.today()
-        for record in self:
-            # Find any active lease line covering today
-            active_lease = record.lease_line_ids.filtered(lambda l: 
-                l.state in ['sale', 'done'] and 
-                l.start_date and l.end_date and
-                l.start_date <= today <= l.end_date
-            )
-            record.occupancy_status = 'booked' if active_lease else 'available'
-    
     @api.onchange('face_type')
     def _onchange_face_type(self):
         if self.face_type == 'digital':
