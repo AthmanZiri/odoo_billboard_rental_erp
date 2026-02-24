@@ -50,6 +50,7 @@
     <menuitem id="menu_media_report_reserved" name="Reserved Assets" parent="menu_media_reports_root" action="action_media_face_reserved" sequence="40"/>
     <menuitem id="menu_media_report_soon" name="Soon to be Available" parent="menu_media_reports_root" action="action_media_face_soon" sequence="50"/>
     <menuitem id="menu_media_report_expired" name="Expired Assets" parent="menu_media_reports_root" action="action_media_face_expired" sequence="60"/>
+    <menuitem id="menu_media_report_canopy" name="Canopy Reports" parent="menu_media_reports_root" action="action_media_canopy" sequence="70"/>
 
     <!-- 8) Configuration -->
     <menuitem id="menu_media_config" name="Configuration" parent="menu_media_root" sequence="100"/>

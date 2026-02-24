@@ -27,6 +27,7 @@
         'views/menus.xml',
         'report/media_reports.xml',
         'report/media_asset_report.xml',
+        'report/media_canopy_report.xml',
         'report/media_proposal_report.xml',
         'report/media_proposal_template.xml',
         'report/media_sale_report.xml',
