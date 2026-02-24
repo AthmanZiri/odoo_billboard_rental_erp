@@ -21,7 +21,6 @@ class MediaArtworkHistory(models.Model):
     lease_end_date = fields.Date(string='Lease End Date')
     
     # Renovation Fields (for Canopies)
-    maintenance_team_id = fields.Many2one('media.maintenance.team', string='Assigned Team')
     renovation_date = fields.Date(string='Renovation Date', default=fields.Date.today)
     measurement_image = fields.Image(string='Measurement Image')
 

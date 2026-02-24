@@ -70,9 +70,6 @@
                             <field name="renovation_date" 
                                    string="Renovation Date"
                                    invisible="site_category != 'canopy'"/>
-                            <field name="maintenance_team_id" 
-                                   options="{'no_create': True}"
-                                   invisible="site_category != 'canopy'"/>
                             
                             <!-- Hidden Face field for Canopies (Auto-populated by model) -->
                             <field name="face_id" invisible="1" force_save="1" required="0"/>

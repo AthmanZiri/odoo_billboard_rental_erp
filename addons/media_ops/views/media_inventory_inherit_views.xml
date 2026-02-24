@@ -55,4 +55,30 @@
         </field>
     </record>
 
+    <!-- Extend Artwork History Form -->
+    <record id="view_media_artwork_history_form_inherit_ops" model="ir.ui.view">
+        <field name="name">media.artwork.history.form.inherit.ops</field>
+        <field name="model">media.artwork.history</field>
+        <field name="inherit_id" ref="media_inventory.view_media_artwork_history_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='renovation_date']" position="after">
+                <field name="maintenance_team_id" 
+                       options="{'no_create': True}"
+                       invisible="site_category != 'canopy'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Canopy Form Renovations List -->
+    <record id="view_media_canopy_form_inherit_renovations" model="ir.ui.view">
+        <field name="name">media.canopy.form.inherit.renovations</field>
+        <field name="model">media.canopy</field>
+        <field name="inherit_id" ref="media_inventory.view_media_canopy_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='artwork_history']//field[@name='partner_id']" position="after">
+                <field name="maintenance_team_id" string="Team"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>

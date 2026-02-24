@@ -53,3 +53,8 @@ class MediaCanopy(models.Model):
     def action_view_job_cards(self):
         self.ensure_one()
         return self.site_id.action_view_job_cards()
+
+class MediaArtworkHistory(models.Model):
+    _inherit = 'media.artwork.history'
+
+    maintenance_team_id = fields.Many2one('media.maintenance.team', string='Assigned Team')
