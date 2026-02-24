@@ -10,4 +10,15 @@
         <field name="binding_model_id" ref="model_media_face"/>
         <field name="binding_type">report</field>
     </record>
+
+    <record id="action_report_canopy_asset" model="ir.actions.report">
+        <field name="name">Canopy Asset Report</field>
+        <field name="model">media.canopy</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">media_inventory.report_canopy_asset_template</field>
+        <field name="report_file">media_inventory.report_canopy_asset_template</field>
+        <field name="print_report_name">'Canopy Asset Report - %s' % (object.shop_name or object.name)</field>
+        <field name="binding_model_id" ref="model_media_canopy"/>
+        <field name="binding_type">report</field>
+    </record>
 </odoo>

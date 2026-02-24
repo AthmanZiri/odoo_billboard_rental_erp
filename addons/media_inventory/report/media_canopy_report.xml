@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_canopy_asset_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page asset-page">
+                        <style>
+                            .asset-page {
+                                padding-top: 10px;
+                                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                                color: #333;
+                            }
+                            .header-title {
+                                text-align: center;
+                                text-transform: uppercase;
+                                font-weight: bold;
+                                font-style: italic;
+                                text-decoration: underline;
+                                letter-spacing: 2px;
+                                font-size: 24px;
+                                margin-bottom: 20px;
+                            }
+                            .shop-name {
+                                color: #A52A2A;
+                                font-size: 42px;
+                                font-weight: bold;
+                                text-transform: uppercase;
+                                margin-bottom: 5px;
+                            }
+                            .asset-name {
+                                font-size: 20px;
+                                margin-bottom: 10px;
+                            }
+                            .spec-row {
+                                margin-bottom: 5px;
+                                font-size: 16px;
+                            }
+                            .spec-label {
+                                font-weight: bold;
+                                font-style: italic;
+                                text-transform: uppercase;
+                            }
+                            .spec-value {
+                                text-transform: uppercase;
+                            }
+                            .map-link {
+                                color: #007bff;
+                                text-decoration: underline;
+                                font-size: 14px;
+                            }
+                            .hero-image {
+                                margin-top: 20px;
+                                width: 100%;
+                                max-height: 500px;
+                                object-fit: contain;
+                                border: 1px solid #eee;
+                            }
+                            .date-highlight { color: #FFA500; font-weight: bold; }
+                        </style>
+
+                        <div class="header-title">
+                            CANOPY ASSET REPORT
+                        </div>
+
+                        <div class="shop-name">
+                            <span t-field="o.shop_name"/>
+                            <t t-if="not o.shop_name">
+                                <span t-field="o.name"/>
+                            </t>
+                        </div>
+                        
+                        <div class="asset-details mb-4">
+                            <div class="asset-name">
+                                <span t-field="o.name"/>
+                                <t t-if="o.code">
+                                    (<span t-field="o.code"/>)
+                                </t>
+                            </div>
+
+                            <div class="spec-row">
+                                <span class="spec-label">COUNTY:</span> 
+                                <span class="spec-value" t-field="o.county_id.name"/>
+                            </div>
+                            <div class="spec-row">
+                                <span class="spec-label">SUB-COUNTY:</span> 
+                                <span class="spec-value" t-field="o.sub_county_id.name"/>
+                            </div>
+
+                            <div class="spec-row">
+                                <span class="spec-label">LOCATION:</span> 
+                                <a t-if="o.google_maps_link" t-att-href="o.google_maps_link" class="map-link" target="_blank">
+                                    <span t-field="o.google_maps_link"/>
+                                </a>
+                                <t t-else="">
+                                    <span>N/A</span>
+                                </t>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="spec-row">
+                                        <span class="spec-label">CONTACTS:</span>
+                                        <span class="spec-value" t-field="o.contact_phone"/>
+                                    </div>
+                                    <div class="spec-row">
+                                        <span class="spec-label">DATE INSTALLED:</span>
+                                        <span class="date-highlight" t-field="o.allocated_date"/>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="spec-row">
+                                        <span class="spec-label">DATE RENOVATED:</span>
+                                        <span class="date-highlight" t-field="o.last_renovation_date"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Canopy Image -->
+                        <div class="text-center">
+                            <img t-if="o.canopy_image" t-att-src="image_data_uri(o.canopy_image)" class="hero-image"/>
+                        </div>
+
+                        <div style="page-break-after: always;"/>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
