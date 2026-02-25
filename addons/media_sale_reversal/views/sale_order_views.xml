@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Sale Order Line Tree to show status -->
+    <record id="view_order_line_tree_inherit_reversal" model="ir.ui.view">
+        <field name="name">sale.order.line.list.inherit.reversal</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.view_order_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='price_subtotal']" position="after">
+                <field name="state" widget="badge" 
+                       decoration-info="state in ('draft', 'sent')" 
+                       decoration-success="state == 'sale'" 
+                       decoration-danger="state == 'cancel'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit Media Rental Form to show Cancelled in statusbar -->
+    <record id="view_media_rental_form_inherit_reversal" model="ir.ui.view">
+        <field name="name">media.rental.form.inherit.reversal</field>
+        <field name="model">media.rental</field>
+        <field name="inherit_id" ref="media_finance.view_media_rental_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="statusbar_visible">draft,active,expired,cancel</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
