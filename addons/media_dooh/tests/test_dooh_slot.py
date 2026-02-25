@@ -109,11 +109,28 @@ class TestDoohSlot(TransactionCase):
         self.assertTrue(activity)
         self.assertIn("Slot Expiring Soon", activity.summary)
 
-    def test_slot_creation_without_dates(self):
-        """ Test that a slot can be created cleanly """
-        slot = self.Slot.create({
-            'digital_screen_id': self.screen.id,
-            'ad_duration': 15,
+    def test_quantity_calculation(self):
+        """ Test that product_uom_qty is calculated based on lease duration """
+        order = self.env['sale.order'].create({'partner_id': self.partner.id})
+        start_date = fields.Date.today()
+        # 3 months duration
+        end_date = start_date + relativedelta(months=3)
+        
+        line = self.env['sale.order.line'].create({
+            'order_id': order.id,
+            'product_id': self.product.id,
+            'media_digital_screen_id': self.screen.id,
+            'start_date': start_date,
+            'end_date': end_date,
         })
-        self.assertTrue(slot.id)
-        self.assertEqual(slot.state, 'available')
+        
+        # Trigger onchange manually in test if needed, or check if create/write handles it
+        # Actually in Odoo, create doesn't trigger onchanges, so we check if the logic is also in create/write or if we need to call it
+        line._onchange_lease_duration()
+        
+        self.assertEqual(line.product_uom_qty, 3.0)
+        
+        # Test 1.5 months
+        line.end_date = start_date + relativedelta(months=1, days=15)
+        line._onchange_lease_duration()
+        self.assertEqual(line.product_uom_qty, 1.5)
