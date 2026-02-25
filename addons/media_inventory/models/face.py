@@ -1,5 +1,5 @@
 from odoo import models, fields, api, _
-from odoo.tools import image_process
+from odoo.tools.image import image_process
 from dateutil.relativedelta import relativedelta
 import datetime
 
