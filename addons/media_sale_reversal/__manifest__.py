@@ -7,7 +7,8 @@
         Automatically reverses booked assets (Faces, Digital Screens, Canopies)
         and cancels related rentals when a Sale Order is cancelled.
     """,
-    'author': 'Antigravity',
+    'author': 'JengaSol Consulting',
+    'website': 'https://jengasol.co.ke',
     'depends': ['sale', 'media_finance', 'media_inventory', 'media_dooh'],
     'data': [
         'views/sale_order_views.xml',
