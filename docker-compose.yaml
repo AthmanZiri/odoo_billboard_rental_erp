@@ -13,6 +13,10 @@ services:
       - ./config:/etc/odoo
       - ./addons:/mnt/extra-addons
       - ./account:/mnt/account
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
   db:
     image: postgres:16
     environment:
