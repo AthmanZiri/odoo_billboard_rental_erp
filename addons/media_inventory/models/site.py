@@ -234,11 +234,14 @@ class MediaSite(models.Model):
     available_faces_count = fields.Integer(compute='_compute_site_stats', string='Available Faces', store=True, aggregator="sum")
     total_monthly_revenue = fields.Float(compute='_compute_site_stats', string='Monthly Revenue', store=True, aggregator="sum")
 
-    @api.depends('name', 'code')
+    @api.depends('name', 'code', 'shop_name')
     def _compute_display_name(self):
         for record in self:
             code_part = " [%s]" % record.code if record.code else ""
-            record.display_name = "%s%s" % (record.name, code_part)
+            if record.shop_name:
+                record.display_name = "%s - %s%s" % (record.name, record.shop_name, code_part)
+            else:
+                record.display_name = "%s%s" % (record.name, code_part)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -351,12 +354,11 @@ class MediaCanopy(models.Model):
     @api.depends('name', 'code', 'shop_name')
     def _compute_display_name(self):
         for record in self:
-            shop_part = record.shop_name or _('No Shop Name')
-            code_part = record.code or record.name
-            if code_part and code_part != record.name:
-                record.display_name = "%s - %s (%s)" % (shop_part, record.name, code_part)
+            code_part = " [%s]" % record.code if record.code else ""
+            if record.shop_name:
+                record.display_name = "%s - %s%s" % (record.name, record.shop_name, code_part)
             else:
-                record.display_name = "%s - %s" % (shop_part, record.name)
+                record.display_name = "%s%s" % (record.name, code_part)
     measurement_image_1 = fields.Image(string='Image Measurement')
     measurement_image_2 = fields.Image(string='Measurement 2')
     measurement_image_3 = fields.Image(string='Measurement 3')
