@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-inherit="pl_template_new" t-inherit-mode="extension" owl="1">
+        <!-- Add Partner Dropdown before Account Dropdown -->
+        <xpath expr="//div[hasclass('account')]/.." position="before">
+            <div class="px-2">
+                <div class="partner" style="">
+                    <a type="button" class="dropdown-toggle"
+                       data-bs-toggle="dropdown"
+                       style="display: flex; gap: 5px; align-items: center;">
+                        <span class="fa fa-user"
+                              title="Partners"
+                              role="img" aria-label="Partners"/>
+                        Partners
+                        <t t-if="state.selected_partner_rec.length > 0">:
+                            <t t-foreach="state.selected_partner_rec"
+                               t-as="partner"
+                               t-key="partner.id">
+                                <span class="badge rounded-pill bg-info text-dark" style="margin-right: 2px; padding: 5px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;">
+                                    <t t-esc="partner.display_name"/>
+                                    <i class="fa fa-times text-danger" 
+                                       t-on-click.stop="(ev) => this.applyFilter(partner, ev, true)" 
+                                       style="cursor: pointer;"/>
+                                </span>
+                            </t>
+                        </t>
+                    </a>
+                    <div class="dropdown-menu p-3" role="menu" style="min-width: 300px;">
+                        <div class="mb-2">
+                            <strong>Filter by Partners</strong>
+                        </div>
+                        <div class="o_partner_filter_input">
+                            <Autocomplete
+                                placeholder="'Search Partners...'"
+                                sources="partnerSources"
+                                onSelect="(val) => this.onPartnerSelected(val)"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>
