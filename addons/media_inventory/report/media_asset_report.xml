@@ -23,7 +23,7 @@
                             }
                             .city-name {
                                 color: #A52A2A;
-                                font-size: 48px;
+                                font-size: 28px;
                                 font-weight: bold;
                                 text-transform: uppercase;
                                 margin-bottom: 5px;
