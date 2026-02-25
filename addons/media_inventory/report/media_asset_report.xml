@@ -117,8 +117,15 @@
 
                         <!-- Hero Image -->
                         <div class="text-center">
-                            <t t-set="main_image" t-value="face.face_image or (billboard and billboard.image_1) or (billboard and billboard.image_2)"/>
-                            <img t-if="main_image" t-att-src="image_data_uri(main_image)" class="hero-image"/>
+                            <t t-if="face.face_image">
+                                <span t-field="face.face_image" t-options='{"widget": "image", "class": "hero-image", "resize": "1024x1024"}'/>
+                            </t>
+                            <t t-elif="billboard and billboard.image_1">
+                                <span t-field="billboard.image_1" t-options='{"widget": "image", "class": "hero-image", "resize": "1024x1024"}'/>
+                            </t>
+                            <t t-elif="billboard and billboard.image_2">
+                                <span t-field="billboard.image_2" t-options='{"widget": "image", "class": "hero-image", "resize": "1024x1024"}'/>
+                            </t>
                         </div>
 
                         <div style="page-break-after: always;"/>
