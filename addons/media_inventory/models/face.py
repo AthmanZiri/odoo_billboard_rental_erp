@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.tools.image import image_process
+import base64
 from dateutil.relativedelta import relativedelta
 import datetime
 
@@ -36,7 +37,15 @@ class MediaFace(models.Model):
 
     def _compute_image_report(self):
         for record in self:
-            record.image_report = image_process(record.face_image, size=(400, 400), quality=60) if record.face_image else False
+            if record.face_image:
+                try:
+                    decoded = base64.b64decode(record.face_image)
+                    processed = image_process(decoded, size=(400, 400), quality=60)
+                    record.image_report = base64.b64encode(processed)
+                except Exception:
+                    record.image_report = False
+            else:
+                record.image_report = False
     default_artwork = fields.Image(string='Default Artwork', help="Default artwork to display when no active contract artwork exist.")
     artwork_history_ids = fields.One2many('media.artwork.history', 'face_id', string='Artwork History')
 

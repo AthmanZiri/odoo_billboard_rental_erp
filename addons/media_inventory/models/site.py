@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.tools.image import image_process
+import base64
 import re
 import requests
 from odoo.exceptions import UserError, ValidationError
@@ -268,7 +269,16 @@ class MediaBillboard(models.Model):
     def _compute_image_report(self):
         for record in self:
             main_image = record.image_1 or record.image_2
-            record.image_report = image_process(main_image, size=(400, 400), quality=60) if main_image else False
+            if main_image:
+                try:
+                    # In Odoo, Image fields are often Base64. PIL/image_process needs decoded bytes.
+                    decoded = base64.b64decode(main_image)
+                    processed = image_process(decoded, size=(400, 400), quality=60)
+                    record.image_report = base64.b64encode(processed)
+                except Exception:
+                    record.image_report = False
+            else:
+                record.image_report = False
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -314,7 +324,15 @@ class MediaCanopy(models.Model):
 
     def _compute_image_report(self):
         for record in self:
-            record.image_report = image_process(record.canopy_image, size=(400, 400), quality=60) if record.canopy_image else False
+            if record.canopy_image:
+                try:
+                    decoded = base64.b64decode(record.canopy_image)
+                    processed = image_process(decoded, size=(400, 400), quality=60)
+                    record.image_report = base64.b64encode(processed)
+                except Exception:
+                    record.image_report = False
+            else:
+                record.image_report = False
 
     last_renovation_date = fields.Date(string='Last Renovated', compute='_compute_last_renovation', store=True)
     last_renovation_id = fields.Many2one('media.artwork.history', string='Last Renovation Artwork', compute='_compute_last_renovation', store=True)
