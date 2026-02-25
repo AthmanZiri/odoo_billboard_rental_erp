@@ -119,7 +119,7 @@
 
                         <!-- Canopy Image -->
                         <div class="text-center">
-                            <span t-field="o.canopy_image" t-options='{"widget": "image", "class": "hero-image", "resize": "600x600"}'/>
+                            <img t-if="o.image_report" t-att-src="image_data_uri(o.image_report)" class="hero-image"/>
                         </div>
 
                         <div style="page-break-after: always;"/>

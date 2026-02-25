@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.tools import image_process
 from dateutil.relativedelta import relativedelta
 import datetime
 
@@ -31,6 +32,11 @@ class MediaFace(models.Model):
     width = fields.Float(string='Width (m)')
     length_m = fields.Float(string='Length (m)', help="Length/Depth in meters if applicable")
     face_image = fields.Image(string='Face Image', max_width=1920, max_height=1920)
+    image_report = fields.Image(compute='_compute_image_report')
+
+    def _compute_image_report(self):
+        for record in self:
+            record.image_report = image_process(record.face_image, size=(400, 400), quality=60) if record.face_image else False
     default_artwork = fields.Image(string='Default Artwork', help="Default artwork to display when no active contract artwork exist.")
     artwork_history_ids = fields.One2many('media.artwork.history', 'face_id', string='Artwork History')
 

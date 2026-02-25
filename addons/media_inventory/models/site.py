@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.tools import image_process
 import re
 import requests
 from odoo.exceptions import UserError, ValidationError
@@ -262,6 +263,12 @@ class MediaBillboard(models.Model):
     image_1 = fields.Image(string='Image 1')
     image_2 = fields.Image(string='Image 2')
     comments = fields.Text(string='Comments')
+    image_report = fields.Image(compute='_compute_image_report')
+
+    def _compute_image_report(self):
+        for record in self:
+            main_image = record.image_1 or record.image_2
+            record.image_report = image_process(main_image, size=(400, 400), quality=60) if main_image else False
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -303,6 +310,11 @@ class MediaCanopy(models.Model):
     allocated_date = fields.Date(string='Allocated Date')
     
     canopy_image = fields.Image(string='Canopy Image')
+    image_report = fields.Image(compute='_compute_image_report')
+
+    def _compute_image_report(self):
+        for record in self:
+            record.image_report = image_process(record.canopy_image, size=(400, 400), quality=60) if record.canopy_image else False
 
     last_renovation_date = fields.Date(string='Last Renovated', compute='_compute_last_renovation', store=True)
     last_renovation_id = fields.Many2one('media.artwork.history', string='Last Renovation Artwork', compute='_compute_last_renovation', store=True)
