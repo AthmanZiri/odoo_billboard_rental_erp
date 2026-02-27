@@ -26,6 +26,10 @@ class MediaArtworkHistory(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if self.env.context.get('skip_baseline_archiving'):
+            return super(MediaArtworkHistory, self).create(vals_list)
+
+        # Pre-process vals to ensure face_id and partner_id are set where possible
         for vals in vals_list:
             if vals.get('site_id') and not vals.get('face_id'):
                 site = self.env['media.site'].browse(vals['site_id'])
@@ -38,7 +42,50 @@ class MediaArtworkHistory(models.Model):
             if vals.get('sale_order_line_id') and not vals.get('partner_id'):
                 sol = self.env['sale.order.line'].browse(vals['sale_order_line_id'])
                 vals['partner_id'] = sol.order_id.partner_id.id
+
+        # Baseline check for canopies: if this is the first history record, archive current canopy image
+        baseline_vals_list = []
+        checked_sites = set()
         
+        for vals in vals_list:
+            site_id = vals.get('site_id')
+            if not site_id or site_id in checked_sites:
+                continue
+            
+            site_category = vals.get('site_category')
+            if not site_category:
+                site_category = self.env['media.site'].browse(site_id).site_category
+
+            if site_category == 'canopy':
+                checked_sites.add(site_id)
+                history_count = self.search_count([
+                    ('site_id', '=', site_id),
+                    ('site_category', '=', 'canopy')
+                ])
+                if history_count == 0:
+                    canopy = self.env['media.canopy'].search([('site_id', '=', site_id)], limit=1)
+                    if canopy and (canopy.canopy_image or canopy.measurement_image_1):
+                        partner_id = vals.get('partner_id')
+                        if not partner_id:
+                             # Fallback logic for partner
+                             last_sol = self.env['sale.order.line'].search([
+                                ('media_face_id', 'in', canopy.face_ids.ids)
+                             ], order='create_date desc', limit=1)
+                             partner_id = last_sol.order_id.partner_id.id if last_sol else self.env.user.partner_id.id
+
+                        baseline_vals_list.append({
+                            'site_id': canopy.site_id.id,
+                            'site_category': 'canopy',
+                            'artwork_file': canopy.canopy_image,
+                            'measurement_image': canopy.measurement_image_1,
+                            'partner_id': partner_id,
+                            'description': _('Baseline images before first recorded renovation'),
+                            'renovation_date': canopy.allocated_date or fields.Date.today(),
+                        })
+        
+        if baseline_vals_list:
+            self.with_context(skip_baseline_archiving=True, skip_face_sync=True).create(baseline_vals_list)
+
         records = super(MediaArtworkHistory, self).create(vals_list)
         
         # Force recompute of occupancy status on linked faces using Odoo's trigger
