@@ -23,3 +23,16 @@ from . import models
 from . import report
 from . import wizard
 from . import controllers
+
+
+def pre_init_hook(env):
+    """
+    Drop the constraint 'followup_line_followup_id_fkey' before installing
+    base_accounting_kit. This prevents the foreign key violation when
+    Odoo tries to replace/delete account.followup records from a previously
+    installed module (like om_accountant) with a restrict constraint.
+    """
+    try:
+        env.cr.execute("ALTER TABLE followup_line DROP CONSTRAINT IF EXISTS followup_line_followup_id_fkey")
+    except Exception as e:
+        pass
