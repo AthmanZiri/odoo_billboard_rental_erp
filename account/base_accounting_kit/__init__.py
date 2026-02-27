@@ -34,5 +34,7 @@ def pre_init_hook(env):
     """
     try:
         env.cr.execute("ALTER TABLE followup_line DROP CONSTRAINT IF EXISTS followup_line_followup_id_fkey")
+        env.cr.execute("DELETE FROM followup_line")
+        env.cr.execute("DELETE FROM account_followup")
     except Exception as e:
         pass
