@@ -2,7 +2,7 @@
 
 import { registry } from "@web/core/registry";
 import { patch } from "@web/core/utils/patch";
-import { Autocomplete } from "@web/core/autocomplete/autocomplete";
+import { AutoComplete } from "@web/core/autocomplete/autocomplete";
 
 const actionRegistry = registry.category("actions");
 
@@ -14,22 +14,29 @@ const actionRegistry = registry.category("actions");
 const PartnerLedger = actionRegistry.get("p_l");
 
 if (PartnerLedger) {
-    patch(PartnerLedger.prototype, "partner_ledger_filter.PartnerLedger", {
+    patch(PartnerLedger.prototype, {
         setup() {
-            this._super(...arguments);
+            super.setup();
             this.partnerSources = [
                 {
                     placeholder: "Search Partners...",
-                    search: async (term) => {
+                    options: async (term) => {
                         const partners = await this.orm.call("res.partner", "name_search", [], {
                             name: term,
-                            args: [],
+                            domain: [],
                             limit: 10,
                         });
-                        return partners.map((partner) => ({
-                            id: partner[0],
-                            display_name: partner[1],
-                        }));
+                        return partners.map((partner) => {
+                            const val = {
+                                id: partner[0],
+                                label: partner[1],
+                                display_name: partner[1],
+                            };
+                            return {
+                                ...val,
+                                onSelect: () => this.onPartnerSelected(val),
+                            };
+                        });
                     },
                 },
             ];
@@ -49,9 +56,8 @@ if (PartnerLedger) {
         }
     });
 
-    // Add Autocomplete to components
     PartnerLedger.components = {
-        ...PartnerLedger.components,
-        Autocomplete,
+        ...(PartnerLedger.components || {}),
+        AutoComplete,
     };
 }

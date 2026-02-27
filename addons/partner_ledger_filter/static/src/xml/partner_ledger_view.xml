@@ -25,15 +25,14 @@
                             </t>
                         </t>
                     </a>
-                    <div class="dropdown-menu p-3" role="menu" style="min-width: 300px;">
+                    <div class="dropdown-menu p-3" role="menu" style="min-width: 300px; padding-bottom: 50px !important; overflow: visible !important;">
                         <div class="mb-2">
                             <strong>Filter by Partners</strong>
                         </div>
-                        <div class="o_partner_filter_input">
-                            <Autocomplete
+                        <div class="o_partner_filter_input position-relative" style="z-index: 1050;">
+                            <AutoComplete
                                 placeholder="'Search Partners...'"
                                 sources="partnerSources"
-                                onSelect="(val) => this.onPartnerSelected(val)"
                             />
                         </div>
                     </div>
