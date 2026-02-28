@@ -91,23 +91,22 @@
                                         <span class="spec-label">STATUS:</span>
                                         <span t-if="face.occupancy_status == 'booked'" class="status-occupied">OCCUPIED</span>
                                         <span t-if="face.occupancy_status == 'available'" class="status-available">AVAILABLE</span>
-                                        <span class="spec-value ml-1" t-field="face.face_type"/>
                                     </div>
                                     <div class="spec-row">
                                         <span class="spec-label">SIZE:</span>
                                         <span t-esc="'%.0f' % face.width"/> X <span t-esc="'%.0f' % face.height"/>
                                     </div>
-                                    <div class="spec-row">
+                                    <div class="spec-row" t-if="face.occupancy_status != 'available'">
                                         <span class="spec-label">CHANGEOVER:</span>
                                         <span class="date-highlight" t-field="face.next_available_date"/>
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="spec-row">
+                                    <div class="spec-row" t-if="face.occupancy_status != 'available'">
                                         <span class="spec-label">DATE FLIGHTED:</span>
                                         <span t-field="face.current_booking_start"/>
                                     </div>
-                                    <div class="spec-row">
+                                    <div class="spec-row" t-if="face.occupancy_status != 'available'">
                                         <span class="spec-label">EXPIRES:</span>
                                         <span t-field="face.current_booking_end"/>
                                     </div>
