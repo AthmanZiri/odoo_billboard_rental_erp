@@ -113,6 +113,18 @@ class MediaArtworkHistory(models.Model):
                         canopy = self.env['media.canopy'].search([('site_id', '=', record.site_id.id)], limit=1)
                         if canopy:
                             canopy.with_context(skip_history_creation=True).write(vals)
+                # Sync Billboard specific images
+                elif record.site_category == 'billboard' and record.site_id:
+                    if record.artwork_file:
+                        billboard = self.env['media.billboard'].search([('site_id', '=', record.site_id.id)], limit=1)
+                        if billboard:
+                            billboard.with_context(skip_history_creation=True).write({'image_1': record.artwork_file})
+                # Sync Digital Screen specific images
+                elif record.site_category == 'digital' and record.site_id:
+                    if record.artwork_file:
+                        screen = self.env['media.digital.screen'].search([('site_id', '=', record.site_id.id)], limit=1)
+                        if screen:
+                            screen.with_context(skip_history_creation=True).write({'image_1': record.artwork_file})
         return records
 
     def write(self, vals):

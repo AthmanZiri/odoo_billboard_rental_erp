@@ -7,4 +7,11 @@
             </div>
         </Layout>
     </t>
+    <t t-name="media_inventory.FaceMap" owl="1">
+        <Layout display="display">
+            <div class="o_billboard_map_container">
+                <div id="billboard_leaflet_map" t-ref="mapContainer"></div>
+            </div>
+        </Layout>
+    </t>
 </templates>

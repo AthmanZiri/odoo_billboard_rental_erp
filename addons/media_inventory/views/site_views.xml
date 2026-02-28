@@ -326,6 +326,13 @@
         <field name="params">{'model': 'media.billboard', 'domain': []}</field>
     </record>
 
+    <record id="action_media_face_map" model="ir.actions.client">
+        <field name="name">Billboard Faces Map</field>
+        <field name="tag">media_inventory.face_map_action</field>
+        <field name="res_model">media.face</field>
+        <field name="params">{'model': 'media.face', 'domain': []}</field>
+    </record>
+
     <record id="action_media_canopy_map" model="ir.actions.client">
         <field name="name">Canopy Map</field>
         <field name="tag">media_inventory.billboard_map_action</field>

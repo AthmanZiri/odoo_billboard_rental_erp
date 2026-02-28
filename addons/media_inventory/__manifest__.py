@@ -38,6 +38,7 @@
             'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
             'media_inventory/static/src/css/map_styles.css',
             'media_inventory/static/src/js/billboard_map.js',
+            'media_inventory/static/src/js/face_map.js',
             'media_inventory/static/src/xml/map_templates.xml',
         ],
     },
