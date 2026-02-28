@@ -25,8 +25,8 @@ class SaleOrder(models.Model):
         # Search for active rental contracts
         orders = self.search([
             ('state', '=', 'sale'),
-            ('lease_start_date', '<=', today),
-            ('lease_end_date', '>=', today),
+            ('order_line.start_date', '<=', today),
+            ('order_line.end_date', '>=', today),
         ])
         
         for order in orders:
@@ -47,7 +47,7 @@ class SaleOrder(models.Model):
             expiry_date = today + relativedelta(days=days)
             orders = self.search([
                 ('state', '=', 'sale'),
-                ('lease_end_date', '=', expiry_date)
+                ('order_line.end_date', '=', expiry_date)
             ])
             for order in orders:
                 order._notify_contract_expiry(days)
@@ -56,7 +56,7 @@ class SaleOrder(models.Model):
         self.ensure_one()
         # In a real system, send email or push notification
         # For now, we'll log it or use the chatter
-        self.message_post(body=_("Contract for %s is expiring in %s days on %s.") % (self.name, days, self.lease_end_date))
+        self.message_post(body=_("Contract for %s is expiring in %s days.") % (self.name, days))
 
     def _create_monthly_invoice(self, date):
         self.ensure_one()

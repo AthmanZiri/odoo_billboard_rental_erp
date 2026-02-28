@@ -1,10 +1,5 @@
 from odoo import models, fields
 
-class AccountMove(models.Model):
-    _inherit = 'account.move'
-
-    lease_start_date = fields.Date(string='Lease Start Date')
-    lease_end_date = fields.Date(string='Lease End Date')
 
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'

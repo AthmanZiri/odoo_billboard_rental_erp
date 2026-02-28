@@ -18,11 +18,7 @@
                 .media-spec-label {
                     font-weight: bold;
                 }
-                .lease-dates {
-                    font-size: 0.9rem;
-                    color: #333;
-                    margin-bottom: 10px;
-                }
+
                 .text-red-total, .o_total td:last-child, .o_total td:nth-child(2) {
                     color: #e62117 !important;
                     font-weight: bold;
@@ -34,19 +30,7 @@
             </style>
         </xpath>
 
-        <!-- Header Dates -->
-        <xpath expr="//div[@id='informations']" position="after">
-            <div class="row lease-dates" t-if="doc.lease_start_date or doc.lease_end_date">
-                <div class="col-auto col-3 mw-100 mb-2" t-if="doc.lease_start_date">
-                    <strong>Lease Start Date:</strong>
-                    <p class="m-0" t-field="doc.lease_start_date"/>
-                </div>
-                <div class="col-auto col-3 mw-100 mb-2" t-if="doc.lease_end_date">
-                    <strong>Lease End Date:</strong>
-                    <p class="m-0" t-field="doc.lease_end_date"/>
-                </div>
-            </div>
-        </xpath>
+
 
         <!-- Custom Table Header -->
         <xpath expr="//table[contains(@class, 'o_main_table')]//thead//tr" position="replace">

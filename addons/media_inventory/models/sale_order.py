@@ -5,27 +5,7 @@ from dateutil.relativedelta import relativedelta
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    lease_start_date = fields.Date(string='Lease Start Date')
-    lease_end_date = fields.Date(string='Lease End Date')
 
-    @api.onchange('lease_start_date', 'lease_end_date')
-    def _onchange_lease_dates(self):
-        for order in self:
-            for line in order.order_line:
-                if order.lease_start_date:
-                    line.start_date = order.lease_start_date
-                if order.lease_end_date:
-                    line.end_date = order.lease_end_date
-                # Trigger quantity update
-                line._onchange_lease_duration()
-
-    def _prepare_invoice(self):
-        vals = super(SaleOrder, self)._prepare_invoice()
-        vals.update({
-            'lease_start_date': self.lease_start_date,
-            'lease_end_date': self.lease_end_date,
-        })
-        return vals
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
@@ -72,11 +52,7 @@ class SaleOrderLine(models.Model):
             elif self.media_face_id.pricing_type == 'daily':
                 self.price_unit = self.media_face_id.price_per_day
             
-            # Default dates from header
-            if self.order_id.lease_start_date:
-                self.start_date = self.order_id.lease_start_date
-            if self.order_id.lease_end_date:
-                self.end_date = self.order_id.lease_end_date
+
             self._onchange_lease_duration()
 
     @api.onchange('media_digital_screen_id')
@@ -93,11 +69,7 @@ class SaleOrderLine(models.Model):
             elif screen.pricing_type == 'slot_monthly':
                 self.price_unit = screen.price_slot_monthly
             
-            # Default dates from header
-            if self.order_id.lease_start_date:
-                self.start_date = self.order_id.lease_start_date
-            if self.order_id.lease_end_date:
-                self.end_date = self.order_id.lease_end_date
+
             self._onchange_lease_duration()
 
     @api.onchange('start_date', 'end_date')
