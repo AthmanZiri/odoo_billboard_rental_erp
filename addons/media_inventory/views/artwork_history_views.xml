@@ -74,7 +74,7 @@
                             <!-- Hidden Face field for Canopies (Auto-populated by model) -->
                             <field name="face_id" invisible="1" force_save="1" required="0"/>
 
-                            <field name="partner_id" string="Client" required="1"/>
+                            <field name="partner_id" string="Client"/>
                             <field name="sale_order_line_id" 
                                    string="Contract Line"
                                    domain="[('media_face_id', '=', face_id), ('order_id.partner_id', '=', partner_id)]"

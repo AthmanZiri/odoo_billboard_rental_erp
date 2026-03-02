@@ -15,7 +15,7 @@ class MediaArtworkHistory(models.Model):
     ], string='Site Category', store=True)
     
     sale_order_line_id = fields.Many2one('sale.order.line', string='Contract Line', ondelete='set null')
-    partner_id = fields.Many2one('res.partner', string='Client', store=True, required=True)
+    partner_id = fields.Many2one('res.partner', string='Client', store=True)
     
     lease_start_date = fields.Date(string='Lease Start Date')
     lease_end_date = fields.Date(string='Lease End Date')
