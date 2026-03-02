@@ -55,7 +55,12 @@
                                 <span t-esc="line_index + 1"/>
                             </td>
                             <td name="td_name">
-                                <span t-field="line.name"/>
+                                <t t-if="line.media_face_id">
+                                    <span t-field="line.media_face_id.code" t-options="{'widget': 'char'}" t-prefix="[" t-suffix="]"/>
+                                </t>
+                                <t t-else="">
+                                    <span t-field="line.name"/>
+                                </t>
                                 <t t-set="screen" t-value="line.media_digital_screen_id or (line.media_slot_id and line.media_slot_id.digital_screen_id) or (line.media_face_id and line.media_face_id.face_type == 'digital' and line.media_face_id)"/>
                                 <t t-if="line.media_face_id and line.media_face_id.face_type != 'digital'">
                                     <div class="media-specs">
