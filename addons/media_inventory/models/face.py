@@ -109,9 +109,35 @@ class MediaFace(models.Model):
     current_booking_start = fields.Date(string='Booking Start', compute='_compute_current_booking_dates', store=True)
     current_booking_end = fields.Date(string='Booking End', compute='_compute_current_booking_dates', store=True)
     
+    latest_lease_start_date = fields.Date(string='Latest Lease Start', compute='_compute_latest_lease_dates', store=True)
+    latest_lease_end_date = fields.Date(string='Latest Lease End', compute='_compute_latest_lease_dates', store=True)
+    
     is_soon_available = fields.Boolean(compute='_compute_status_flags', store=True)
     is_expired = fields.Boolean(compute='_compute_status_flags', store=True)
     is_reserved = fields.Boolean(compute='_compute_status_flags', store=True)
+
+    @api.depends('lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date')
+    def _compute_latest_lease_dates(self):
+        for record in self:
+            # Combine confirmed lease lines and artwork history bookings
+            confirmed_leases = record.lease_line_ids.filtered(lambda l: l.state in ['sale', 'done'] and l.start_date and l.end_date)
+            history_leases = record.artwork_history_ids.filtered(lambda h: h.lease_start_date and h.lease_end_date)
+            
+            bookings = []
+            for l in confirmed_leases:
+                bookings.append((l.start_date, l.end_date))
+            for h in history_leases:
+                bookings.append((h.lease_start_date, h.lease_end_date))
+                
+            if bookings:
+                # Sort by start date desc to get the most recent lease record
+                sorted_bookings = sorted(bookings, key=lambda x: x[0], reverse=True)
+                latest = sorted_bookings[0]
+                record.latest_lease_start_date = latest[0]
+                record.latest_lease_end_date = latest[1]
+            else:
+                record.latest_lease_start_date = False
+                record.latest_lease_end_date = False
 
     @api.depends('lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date')
     def _compute_current_booking_dates(self):
