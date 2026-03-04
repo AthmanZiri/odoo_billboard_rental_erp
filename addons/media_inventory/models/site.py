@@ -267,9 +267,8 @@ class MediaBillboard(models.Model):
     image_1 = fields.Image(string='Image 1')
     image_2 = fields.Image(string='Image 2')
     comments = fields.Text(string='Comments')
-    image_report = fields.Image(compute='_compute_image_report', store=True)
+    image_report = fields.Image(compute='_compute_image_report')
 
-    @api.depends('image_1', 'image_2')
     def _compute_image_report(self):
         for record in self:
             main_image = record.image_1 or record.image_2
@@ -324,9 +323,8 @@ class MediaCanopy(models.Model):
     allocated_date = fields.Date(string='Allocated Date')
     
     canopy_image = fields.Image(string='Canopy Image')
-    image_report = fields.Image(compute='_compute_image_report', store=True)
+    image_report = fields.Image(compute='_compute_image_report')
 
-    @api.depends('canopy_image')
     def _compute_image_report(self):
         for record in self:
             if record.canopy_image:

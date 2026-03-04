@@ -33,26 +33,15 @@ class MediaFace(models.Model):
     width = fields.Float(string='Width (m)')
     length_m = fields.Float(string='Length (m)', help="Length/Depth in meters if applicable")
     face_image = fields.Image(string='Face Image', max_width=1920, max_height=1920)
-    image_report = fields.Image(compute='_compute_image_report', store=True)
+    image_report = fields.Image(compute='_compute_image_report')
 
-    @api.depends('face_image', 'default_artwork', 'artwork_history_ids.artwork_file')
     def _compute_image_report(self):
         for record in self:
-            image_to_use = False
-            # Prioritize the most recent artwork history
-            if record.artwork_history_ids:
-                # Get the latest uploaded artwork
-                latest_history = record.artwork_history_ids.sorted(key=lambda h: h.upload_date, reverse=True)
-                if latest_history and latest_history[0].artwork_file:
-                    image_to_use = latest_history[0].artwork_file
-            
-            # Fallbacks if no history exists
-            if not image_to_use:
-                image_to_use = record.default_artwork or record.face_image
-                
-            if image_to_use:
+            # Use face_image (job card/maintenance) or default_artwork (current active artwork)
+            image_to_process = record.face_image or record.default_artwork
+            if image_to_process:
                 try:
-                    decoded = base64.b64decode(image_to_use)
+                    decoded = base64.b64decode(image_to_process)
                     processed = image_process(decoded, size=(400, 400), quality=60)
                     record.image_report = base64.b64encode(processed)
                 except Exception:
