@@ -42,7 +42,7 @@ class MediaFace(models.Model):
             if image_to_process:
                 try:
                     decoded = base64.b64decode(image_to_process)
-                    processed = image_process(decoded, size=(400, 400), quality=60)
+                    processed = image_process(decoded, size=(800, 800), quality=80)
                     record.image_report = base64.b64encode(processed)
                 except Exception:
                     record.image_report = False
