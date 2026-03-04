@@ -51,9 +51,9 @@
                             }
                             .hero-image {
                                 margin-top: 20px;
-                                width: 100%;
+                                max-width: 100%;
+                                height: auto;
                                 max-height: 500px;
-                                object-fit: contain;
                                 border: 1px solid #eee;
                             }
                             .status-occupied { color: #A52A2A; font-weight: bold; }

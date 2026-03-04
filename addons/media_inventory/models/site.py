@@ -330,7 +330,7 @@ class MediaCanopy(models.Model):
             if record.canopy_image:
                 try:
                     decoded = base64.b64decode(record.canopy_image)
-                    processed = image_process(decoded, size=(600, 600), quality=80)
+                    processed = image_process(decoded, size=(800, 800), quality=80)
                     record.image_report = base64.b64encode(processed)
                 except Exception:
                     record.image_report = False
