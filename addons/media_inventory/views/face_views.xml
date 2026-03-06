@@ -10,7 +10,7 @@
                 <field name="code"/>
                 <field name="site_id"/>
                 <filter string="Available" name="filter_available" domain="[('occupancy_status', '=', 'available')]"/>
-                <filter string="Reserved" name="filter_reserved" domain="[('is_reserved', '=', True)]"/>
+                <filter string="Reserved" name="filter_reserved" domain="[('occupancy_status', '=', 'reserved')]"/>
                 <filter string="Soon to be Available" name="filter_soon_available" domain="[('is_soon_available', '=', True)]"/>
                 <filter string="Expired" name="filter_expired" domain="[('is_expired', '=', True)]"/>
             </search>
@@ -28,7 +28,11 @@
                 <field name="site_id"/>
                 <field name="pricing_type"/>
                 <field name="price_per_month" sum="Total Monthly Revenue"/>
-                <field name="occupancy_status" widget="badge" decoration-success="occupancy_status == 'available'" decoration-danger="occupancy_status == 'booked'" decoration-warning="occupancy_status == 'maintenance'"/>
+                <field name="occupancy_status" widget="badge"
+                    decoration-success="occupancy_status == 'available'"
+                    decoration-info="occupancy_status == 'reserved'"
+                    decoration-danger="occupancy_status == 'booked'"
+                    decoration-warning="occupancy_status == 'maintenance'"/>
                 <field name="latest_lease_start_date" string="Lease Start"/>
                 <field name="latest_lease_end_date" string="Lease End"/>
             </list>
@@ -63,7 +67,11 @@
                             <field name="default_artwork" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'default_artwork'}"/>
                         </group>
                         <group>
-                            <field name="occupancy_status" widget="badge" decoration-success="occupancy_status == 'available'" decoration-danger="occupancy_status == 'booked'" decoration-warning="occupancy_status == 'maintenance'"/>
+                            <field name="occupancy_status" widget="badge"
+                                decoration-success="occupancy_status == 'available'"
+                                decoration-info="occupancy_status == 'reserved'"
+                                decoration-danger="occupancy_status == 'booked'"
+                                decoration-warning="occupancy_status == 'maintenance'"/>
                             <field name="face_image" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'face_image'}"/>
                         </group>
 
@@ -161,6 +169,7 @@
         <field name="name">Reserved Assets</field>
         <field name="res_model">media.face</field>
         <field name="view_mode">list,form</field>
+        <field name="domain">[('occupancy_status', '=', 'reserved')]</field>
         <field name="context">{'search_default_filter_reserved': 1}</field>
     </record>
 

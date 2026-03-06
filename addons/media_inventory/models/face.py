@@ -99,10 +99,12 @@ class MediaFace(models.Model):
     
     active = fields.Boolean(default=True)
     lease_line_ids = fields.One2many('sale.order.line', 'media_face_id', string='Lease Lines')
+    transferred_out_sol_ids = fields.Many2many('sale.order.line', 'media_face_sol_transfer_rel', 'face_id', 'sol_id', string='Transferred Out Bookings', help="Confirmed sale order lines that have been inventory-transferred to another billboard face. These will be ignored for occupancy on this face.")
     expense_ids = fields.One2many('media.expense', 'media_face_id', string='Expenses')
     
     occupancy_status = fields.Selection([
         ('available', 'Available'),
+        ('reserved', 'Reserved'),
         ('booked', 'Booked'),
         ('maintenance', 'Maintenance')
     ], string='Occupancy Status', compute='_compute_occupancy_status', store=True, default='available')
@@ -118,11 +120,11 @@ class MediaFace(models.Model):
     is_expired = fields.Boolean(compute='_compute_status_flags', store=True)
     is_reserved = fields.Boolean(compute='_compute_status_flags', store=True)
 
-    @api.depends('lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date')
+    @api.depends('lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date', 'transferred_out_sol_ids')
     def _compute_latest_lease_dates(self):
         for record in self:
-            # Combine confirmed lease lines and artwork history bookings
-            confirmed_leases = record.lease_line_ids.filtered(lambda l: l.state in ['sale', 'done'] and l.start_date and l.end_date)
+            # Combine confirmed lease lines (NOT transferred out) and artwork history bookings
+            confirmed_leases = record.lease_line_ids.filtered(lambda l: l.state in ['sale', 'done'] and l.start_date and l.end_date and l.id not in record.transferred_out_sol_ids.ids)
             history_leases = record.artwork_history_ids.filtered(lambda h: h.lease_start_date and h.lease_end_date)
             
             bookings = []
@@ -141,15 +143,16 @@ class MediaFace(models.Model):
                 record.latest_lease_start_date = False
                 record.latest_lease_end_date = False
 
-    @api.depends('lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date')
+    @api.depends('lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date', 'transferred_out_sol_ids')
     def _compute_current_booking_dates(self):
         today = fields.Date.today()
         for record in self:
-            # Check lease lines
+            # Check lease lines (NOT transferred out)
             active_lease = record.lease_line_ids.filtered(lambda l: 
                 l.state in ['sale', 'done'] and 
                 l.start_date and l.end_date and
-                l.start_date <= today <= l.end_date
+                l.start_date <= today <= l.end_date and
+                l.id not in record.transferred_out_sol_ids.ids
             ).sorted(key=lambda l: l.end_date, reverse=True)
             
             # Check manual artwork history bookings
@@ -175,18 +178,21 @@ class MediaFace(models.Model):
         for record in self:
             record.is_soon_available = record.occupancy_status == 'booked' and record.current_booking_end and record.current_booking_end <= soon
             record.is_expired = record.current_booking_end and record.current_booking_end < today
-            record.is_reserved = any(l.state == 'draft' for l in record.lease_line_ids)
+            # is_reserved mirrors the computed occupancy_status — it is True whenever
+            # a quotation/draft SOL exists for this face (or occupancy is 'reserved').
+            record.is_reserved = record.occupancy_status == 'reserved'
 
-    @api.depends('lease_line_ids.end_date', 'lease_line_ids.state', 'artwork_history_ids.lease_end_date')
+    @api.depends('lease_line_ids.end_date', 'lease_line_ids.state', 'artwork_history_ids.lease_end_date', 'transferred_out_sol_ids')
     def _compute_next_available_date(self):
         today = fields.Date.today()
         for record in self:
-            # Combine all end dates from active/future leases and history
+            # Combine all end dates from active/future leases (NOT transferred out) and history
             end_dates = []
             
             future_rentals = record.lease_line_ids.filtered(lambda l: 
                 l.state in ['sale', 'done'] and 
-                l.end_date and l.end_date >= today
+                l.end_date and l.end_date >= today and
+                l.id not in record.transferred_out_sol_ids.ids
             )
             if future_rentals:
                 end_dates.extend(future_rentals.mapped('end_date'))
@@ -202,24 +208,30 @@ class MediaFace(models.Model):
             else:
                 record.next_available_date = today
 
-    @api.depends('active', 'lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date')
+    @api.depends('active', 'lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date', 'transferred_out_sol_ids')
     def _compute_occupancy_status(self):
         today = fields.Date.today()
         for record in self:
-            # Find any active lease line covering today
-            active_lease = record.lease_line_ids.filtered(lambda l: 
-                l.state in ['sale', 'done'] and 
+            # Priority 1: Find any active confirmed lease (NOT transferred out) covering today → Booked
+            active_lease = record.lease_line_ids.filtered(lambda l:
+                l.state in ['sale', 'done'] and
                 l.start_date and l.end_date and
-                l.start_date <= today <= l.end_date
+                l.start_date <= today <= l.end_date and
+                l.id not in record.transferred_out_sol_ids.ids
             )
-            
-            # Find any active manual artwork history covering today
+
+            # Find any active manual artwork history covering today → Booked
             active_history = record.artwork_history_ids.filtered(lambda h:
                 h.lease_start_date and h.lease_end_date and
                 h.lease_start_date <= today <= h.lease_end_date
             )
-            
-            record.occupancy_status = 'booked' if active_lease or active_history else 'available'
+
+            if active_lease or active_history:
+                record.occupancy_status = 'booked'
+            else:
+                # Priority 2: Any draft SOL referencing this face → Reserved
+                has_draft = any(l.state == 'draft' for l in record.lease_line_ids)
+                record.occupancy_status = 'reserved' if has_draft else 'available'
 
     @api.depends('operating_hours_start', 'operating_hours_end')
     def _compute_views_per_day(self):

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Booking Transfer Wizard Action -->
+    <record id="action_media_booking_transfer" model="ir.actions.act_window">
+        <field name="name">Transfer Booking</field>
+        <field name="res_model">media.booking.transfer</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Booking Transfer Wizard View -->
+    <record id="view_media_booking_transfer_form" model="ir.ui.view">
+        <field name="name">media.booking.transfer.form</field>
+        <field name="model">media.booking.transfer</field>
+        <field name="arch" type="xml">
+            <form string="Transfer Billboard Face Booking">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Transfer Booking</h1>
+                        <p class="text-muted">
+                            Move a client's booking from one billboard face to another.
+                            Choose whether this transfer is linked to an existing sale order or is a face-to-face commitment.
+                        </p>
+                    </div>
+
+                    <group string="Transfer Type">
+                        <field name="transfer_type" widget="radio" options="{'horizontal': true}"/>
+                    </group>
+
+                    <!-- ── Mode A: Via Sale Order ──────────────────────────── -->
+                    <group string="Existing Sale Order Booking"
+                           invisible="transfer_type != 'sale_order'">
+                        <group>
+                            <field name="source_line_id"
+                                   string="Booking to Transfer"
+                                   options="{'no_create': True, 'no_open': True}"
+                                   help="Select the confirmed sale order line for the face being vacated."/>
+                            <field name="source_face_info"
+                                   string="Current Details"
+                                   invisible="not source_line_id"
+                                   readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="target_face_id"
+                                   string="Transfer To"
+                                   options="{'no_create': False}"
+                                   help="The face the client is moving to."/>
+                        </group>
+                        <div class="alert alert-info" role="alert"
+                             invisible="not source_line_id">
+                            <strong>Note:</strong>
+                            The original sale order line will be <em>unlinked</em> from the current face
+                            (not deleted), preserving your invoice history.
+                            A new line will be added to the same sale order for the target face.
+                        </div>
+                    </group>
+
+                    <!-- ── Mode B: Without Sale Order ─────────────────────── -->
+                    <group string="Face-to-Face Client Commitment"
+                           invisible="transfer_type != 'no_sale_order'">
+                        <group>
+                            <field name="source_face_id"
+                                   string="Face Being Vacated"
+                                   options="{'no_create': False}"/>
+                            <field name="target_face_id_b"
+                                   string="Transfer To"
+                                   options="{'no_create': False}"/>
+                        </group>
+                        <group>
+                            <field name="client_id"
+                                   string="Client"
+                                   options="{'no_create': False}"/>
+                            <field name="start_date" string="Commitment Start"/>
+                            <field name="end_date" string="Commitment End"/>
+                        </group>
+                        <field name="notes" string="Notes / Reason for Move" placeholder="e.g. Client requested larger visibility on the main road side."/>
+                        <div class="alert alert-warning" role="alert">
+                            <strong>No sale order will be created.</strong>
+                            A booking log entry will be recorded on the target face so its occupancy
+                            status updates correctly. You can still create a sale order / rental later.
+                        </div>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_transfer" string="Transfer Booking" type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

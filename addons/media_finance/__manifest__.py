@@ -14,6 +14,7 @@
         'views/site_views.xml',
         'views/dashboard_views.xml',
         'wizard/rental_wizard_views.xml',
+        'wizard/transfer_booking_wizard_views.xml',
         'views/rental_views.xml',
         'views/face_views_inherit.xml',
         'views/account_move_views.xml',

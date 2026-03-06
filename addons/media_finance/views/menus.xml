@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- <menuitem id="menu_media_rentals_root" name="Rentals" parent="media_inventory.menu_media_root" sequence="20"/> -->
-    <!-- <menuitem id="menu_media_rentals" name="All Rentals" parent="menu_media_rentals_root" action="action_media_rental" sequence="10"/> -->
+    <!-- Transfer Booking menu entry (under Operations section) -->
+    <menuitem id="menu_media_booking_transfer"
+              name="Transfer Booking"
+              parent="media_inventory.menu_media_ops"
+              action="action_media_booking_transfer"
+              sequence="55"/>
 </odoo>
