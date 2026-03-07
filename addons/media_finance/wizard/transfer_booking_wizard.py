@@ -61,6 +61,66 @@ class MediaBookingTransfer(models.TransientModel):
             else:
                 rec.source_face_info = ''
 
+    @api.onchange('source_face_id')
+    def _onchange_source_face_id(self):
+        """Auto-populate client and dates based on the current active booking of the face."""
+        if self.source_face_id:
+            today = fields.Date.today()
+            face = self.source_face_id
+
+            # Priority 1: Find active confirmed Sale Order Line
+            active_sol = self.env['sale.order.line'].search([
+                ('media_face_id', '=', face.id),
+                ('state', 'in', ['sale', 'done']),
+                ('start_date', '<=', today),
+                ('end_date', '>=', today),
+                ('id', 'not in', face.transferred_out_sol_ids.ids)
+            ], limit=1)
+            
+            if active_sol:
+                self.client_id = active_sol.order_id.partner_id
+                self.start_date = active_sol.start_date
+                self.end_date = active_sol.end_date
+                return
+
+            # Priority 2: Find active manual Artwork History booking
+            active_history = self.env['media.artwork.history'].search([
+                ('face_id', '=', face.id),
+                ('lease_start_date', '<=', today),
+                ('lease_end_date', '>=', today),
+                ('id', 'not in', face.transferred_out_history_ids.ids)
+            ], limit=1)
+
+            if active_history:
+                self.client_id = active_history.partner_id
+                self.start_date = active_history.lease_start_date
+                self.end_date = active_history.lease_end_date
+                return
+            
+            # Priority 3: Use the face's latest known lease dates if no active booking today
+            if face.latest_lease_start_date and face.latest_lease_end_date:
+                self.start_date = face.latest_lease_start_date
+                self.end_date = face.latest_lease_end_date
+                # We still need to find the client for the latest booking if possible
+                latest_sol = self.env['sale.order.line'].search([
+                    ('media_face_id', '=', face.id),
+                    ('state', 'in', ['sale', 'done']),
+                    ('start_date', '=', face.latest_lease_start_date),
+                    ('end_date', '=', face.latest_lease_end_date),
+                    ('id', 'not in', face.transferred_out_sol_ids.ids)
+                ], limit=1)
+                if latest_sol:
+                    self.client_id = latest_sol.order_id.partner_id
+                else:
+                    latest_history = self.env['media.artwork.history'].search([
+                        ('face_id', '=', face.id),
+                        ('lease_start_date', '=', face.latest_lease_start_date),
+                        ('lease_end_date', '=', face.latest_lease_end_date),
+                        ('id', 'not in', face.transferred_out_history_ids.ids)
+                    ], limit=1)
+                    if latest_history:
+                        self.client_id = latest_history.partner_id
+
     # ── Validation ────────────────────────────────────────────────────────────
 
     def _check_target_availability(self, target_face, start_date, end_date, exclude_line=None):
