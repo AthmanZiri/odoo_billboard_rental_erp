@@ -182,7 +182,30 @@ class MediaBookingTransfer(models.TransientModel):
 
         self._check_target_availability(target_face, self.start_date, self.end_date)
 
-        # Create an artwork history record as a face-to-face booking commitment log.
+        # 1. 'Free up' the source face by adding overlapping bookings to its exclusion lists.
+        #    This handles both Sale Order bookings and manual Artwork History bookings.
+        overlapping_sols = self.env['sale.order.line'].search([
+            ('media_face_id', '=', source_face.id),
+            ('state', 'in', ['sale', 'done']),
+            ('start_date', '<=', self.end_date),
+            ('end_date', '>=', self.start_date),
+        ])
+        if overlapping_sols:
+            source_face.sudo().write({
+                'transferred_out_sol_ids': [(4, sol.id) for sol in overlapping_sols]
+            })
+
+        overlapping_history = self.env['media.artwork.history'].search([
+            ('face_id', '=', source_face.id),
+            ('lease_start_date', '<=', self.end_date),
+            ('lease_end_date', '>=', self.start_date),
+        ])
+        if overlapping_history:
+            source_face.sudo().write({
+                'transferred_out_history_ids': [(4, hist.id) for hist in overlapping_history]
+            })
+
+        # 2. Create an artwork history record as a face-to-face booking commitment log.
         # We use a small placeholder image (1px transparent PNG) if no artwork exists,
         # since artwork_history requires artwork_file.
         TRANSPARENT_1PX = (
