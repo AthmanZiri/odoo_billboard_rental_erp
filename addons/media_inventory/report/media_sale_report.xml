@@ -52,7 +52,7 @@
                     <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
                         <t t-if="not line.display_type">
                             <td name="td_item">
-                                <span t-esc="line_index + 1"/>
+                                <span t-field="line.product_id.categ_id.name"/>
                             </td>
                             <td name="td_name">
                                 <t t-if="line.media_face_id">
