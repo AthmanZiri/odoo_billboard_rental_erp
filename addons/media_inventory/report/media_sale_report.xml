@@ -5,7 +5,7 @@
         <xpath expr="//t[@t-call='web.external_layout']" position="inside">
             <style>
                 .media-specs {
-                    font-size: 0.80rem;
+                    font-size: 0.90rem;
                     line-height: 1.1;
                     color: #555;
                     margin-top: 2px;
@@ -21,6 +21,7 @@
                     padding-top: 0px !important;
                     padding-bottom: 0px !important;
                     vertical-align: middle !important;
+                    font-size: 0.90rem !important;
                 }
                 .media-spec-label {
                     font-weight: bold;
