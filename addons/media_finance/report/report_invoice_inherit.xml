@@ -23,6 +23,11 @@
                     color: #e62117 !important;
                     font-weight: bold;
                 }
+                
+                /* Fix wkhtmltopdf bug where flex containers at the top of a new page ignore margin-top */
+                div.clearfix, div#total, .row {
+                    page-break-inside: avoid !important;
+                }
             </style>
         </xpath>
 
