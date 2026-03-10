@@ -67,10 +67,7 @@
                                 <span t-field="line.product_id.categ_id.name"/>
                             </td>
                             <td name="td_name">
-                                <t t-if="line.media_face_id">
-                                    <span t-field="line.media_face_id.code" t-options="{'widget': 'char'}" t-prefix="[" t-suffix="]"/>
-                                </t>
-                                <t t-else="">
+                                <t t-if="not line.media_face_id">
                                     <span t-field="line.name"/>
                                 </t>
                                 <t t-set="screen" t-value="line.media_digital_screen_id or (line.media_slot_id and line.media_slot_id.digital_screen_id) or (line.media_face_id and line.media_face_id.face_type == 'digital' and line.media_face_id)"/>
@@ -82,6 +79,7 @@
                                         </div>
                                         <t t-set="billboard" t-value="line.env['media.billboard'].search([('site_id', '=', line.media_face_id.site_id.id)], limit=1)"/>
                                         <div class="media-spec-item">
+                                            <span t-field="line.media_face_id.code" t-options="{'widget': 'char'}" class="font-weight-bold" style="margin-right: 5px;"/>
                                             <span class="media-spec-label">Size:</span>
                                             <span t-esc="'%.0fx%.0f' % (line.media_face_id.width, line.media_face_id.height)"/> meters <span t-field="line.media_face_id.orientation"/>
                                             <t t-if="billboard and billboard.location_text">
