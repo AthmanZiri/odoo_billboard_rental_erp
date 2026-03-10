@@ -39,6 +39,19 @@
                 }
             </style>
         </xpath>
+        
+        <!-- Customize Footer to make room for a manual stamp on the left -->
+        <xpath expr="//t[@t-call='web.external_layout']" position="inside">
+            <style>
+                .o_standard_footer {
+                    min-height: 150px !important; /* Increase footer height for stamp */
+                }
+                .o_standard_footer .text-center {
+                    text-align: right !important; /* Move default center text to the right */
+                    padding-left: 50%; /* Ensure it only takes up the right half of the footer */
+                }
+            </style>
+        </xpath>
 
 
 
