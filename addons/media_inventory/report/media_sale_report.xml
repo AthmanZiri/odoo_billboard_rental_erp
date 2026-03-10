@@ -5,15 +5,20 @@
         <xpath expr="//t[@t-call='web.external_layout']" position="inside">
             <style>
                 .media-specs {
-                    font-size: 0.85rem;
+                    font-size: 0.75rem;
                     color: #555;
-                    margin-top: 5px;
+                    margin-top: 2px;
                     border-top: 1px solid #eee;
-                    padding-top: 5px;
+                    padding-top: 2px;
                 }
                 .media-spec-item {
                     display: block;
-                    margin-bottom: 2px;
+                    margin-bottom: 0px;
+                }
+                
+                table.o_main_table tbody tr td {
+                    padding-top: 4px !important;
+                    padding-bottom: 4px !important;
                 }
                 .media-spec-label {
                     font-weight: bold;
