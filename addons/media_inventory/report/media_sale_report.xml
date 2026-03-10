@@ -5,7 +5,8 @@
         <xpath expr="//t[@t-call='web.external_layout']" position="inside">
             <style>
                 .media-specs {
-                    font-size: 0.75rem;
+                    font-size: 0.70rem;
+                    line-height: 1.1;
                     color: #555;
                     margin-top: 2px;
                     border-top: 1px solid #eee;
@@ -17,8 +18,9 @@
                 }
                 
                 table.o_main_table tbody tr td {
-                    padding-top: 4px !important;
-                    padding-bottom: 4px !important;
+                    padding-top: 0px !important;
+                    padding-bottom: 0px !important;
+                    vertical-align: middle !important;
                 }
                 .media-spec-label {
                     font-weight: bold;
@@ -36,28 +38,6 @@
                 .table-media th {
                     background-color: #f8f9fa !important;
                     text-transform: uppercase;
-                }
-            </style>
-        </xpath>
-        
-        <!-- Customize Footer to make room for a manual stamp on the left -->
-        <xpath expr="//t[@t-call='web.external_layout']" position="inside">
-            <style>
-                /* Target any footer class (standard, boxed, background, etc) */
-                .footer {
-                    min-height: 150px !important; 
-                }
-                .footer .text-center {
-                    text-align: right !important;
-                    width: 50% !important;
-                    margin-left: auto !important;
-                    padding-left: 0 !important;
-                }
-                /* Also target the content block just in case */
-                .o_footer_content {
-                    text-align: right !important;
-                    width: 55% !important;
-                    margin-left: auto !important;
                 }
             </style>
         </xpath>
@@ -100,24 +80,17 @@
                                             <span class="media-spec-label">Period:</span>
                                             <span t-field="line.start_date"/> - <span t-field="line.end_date"/>
                                         </div>
+                                        <t t-set="billboard" t-value="line.env['media.billboard'].search([('site_id', '=', line.media_face_id.site_id.id)], limit=1)"/>
                                         <div class="media-spec-item">
                                             <span class="media-spec-label">Size:</span>
                                             <span t-esc="'%.0fx%.0f' % (line.media_face_id.width, line.media_face_id.height)"/> meters <span t-field="line.media_face_id.orientation"/>
+                                            <t t-if="billboard and billboard.location_text">
+                                                | <span class="media-spec-label">Loc:</span> <span t-esc="billboard.location_text"/>
+                                            </t>
+                                            <t t-elif="line.media_face_id.site_id.street or line.media_face_id.site_id.city or line.media_face_id.site_id.county_id">
+                                                | <span class="media-spec-label">Loc:</span> <span t-esc="', '.join([x for x in [line.media_face_id.site_id.street, line.media_face_id.site_id.city, line.media_face_id.site_id.county_id.name] if x])"/>
+                                            </t>
                                         </div>
-                                        
-                                        <t t-set="billboard" t-value="line.env['media.billboard'].search([('site_id', '=', line.media_face_id.site_id.id)], limit=1)"/>
-                                        <t t-if="billboard and billboard.location_text">
-                                            <div class="media-spec-item">
-                                                <span class="media-spec-label">Location:</span>
-                                                <span t-esc="billboard.location_text"/>
-                                            </div>
-                                        </t>
-                                        <t t-elif="line.media_face_id.site_id.street or line.media_face_id.site_id.city or line.media_face_id.site_id.county_id">
-                                            <div class="media-spec-item">
-                                                <span class="media-spec-label">Location:</span>
-                                                <span t-esc="', '.join([x for x in [line.media_face_id.site_id.street, line.media_face_id.site_id.city, line.media_face_id.site_id.county_id.name] if x])"/>
-                                            </div>
-                                        </t>
                                     </div>
                                 </t>
                                 <t t-if="screen">
