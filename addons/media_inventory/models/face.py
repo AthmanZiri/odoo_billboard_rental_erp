@@ -268,7 +268,7 @@ class MediaFace(models.Model):
             
             # Show availability info if booked in the future
             if record.next_available_date and record.next_available_date > today:
-                last_line = record.lease_line_ids.filtered(lambda l: l.state in ['sale', 'done'] and l.end_date >= today).sorted(key=lambda l: l.end_date, reverse=True)
+                last_line = record.lease_line_ids.filtered(lambda l: l.state in ['sale', 'done'] and l.end_date and l.end_date >= today).sorted(key=lambda l: l.end_date, reverse=True)
                 last_history = record.artwork_history_ids.filtered(lambda h: h.lease_end_date and h.lease_end_date >= today).sorted(key=lambda h: h.lease_end_date, reverse=True)
                 
                 booking_end = False

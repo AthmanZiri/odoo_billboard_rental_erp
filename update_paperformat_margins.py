@@ -16,18 +16,14 @@ PaperFormat = env['report.paperformat']
 formats = PaperFormat.search([])
 
 for pf in formats:
-    updated = False
+    if pf.margin_top > 20:
+        print(f"Updating {pf.name}: margin_top {pf.margin_top} -> 55, header_spacing {pf.header_spacing} -> 65")
+        pf.margin_top = 55
+        pf.header_spacing = 65
     
-    if pf.margin_top < 65:
-        print(f"Updating {pf.name}: margin_top {pf.margin_top} -> 65, header_spacing {pf.header_spacing} -> 60")
-        pf.margin_top = 65
-        pf.header_spacing = 60
-        updated = True
-        
-    if pf.margin_bottom < 40:
-        print(f"Updating {pf.name}: margin_bottom {pf.margin_bottom} -> 40")
-        pf.margin_bottom = 40
-        updated = True
+    if pf.margin_bottom > 55:
+        print(f"Updating {pf.name}: margin_bottom {pf.margin_bottom} -> 55")
+        pf.margin_bottom = 55
 
 env.cr.commit()
 print("SUCCESS - Margins Updated!")
