@@ -22,10 +22,10 @@ for pf in formats:
         pf.margin_top = 55
         pf.header_spacing = 65
     
-    # Update bottom margin for footer
-    if pf.margin_bottom < 70:
-        print(f"Updating (Bottom) {pf.name}: margin_bottom {pf.margin_bottom} -> 70")
-        pf.margin_bottom = 70
+    # Update bottom margin for footer (Resetting to standard)
+    if pf.margin_bottom != 28:
+        print(f"Updating (Bottom) {pf.name}: margin_bottom {pf.margin_bottom} -> 28")
+        pf.margin_bottom = 28
 
 env.cr.commit()
 print("SUCCESS - Margins Updated!")
