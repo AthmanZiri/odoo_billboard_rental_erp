@@ -83,27 +83,47 @@ class MediaSite(models.Model):
     @api.depends('face_ids')
     def _compute_pending_invoices(self):
         for site in self:
-            # Count unpaid invoices (posted and not paid) related to faces on this site
-            face_ids = site.face_ids.ids
-            invoice_lines = self.env['account.move.line'].search([
-                ('media_face_id', 'in', face_ids),
+            # Count unpaid invoices (posted and not paid) related to faces/canopies on this site
+            domain = [
                 ('move_id.move_type', '=', 'out_invoice'),
                 ('move_id.state', '=', 'posted'),
                 ('move_id.payment_state', 'in', ['not_paid', 'partial'])
-            ])
+            ]
+            
+            asset_domain = [('media_face_id', 'in', site.face_ids.ids)]
+            if site.site_category == 'canopy':
+                canopy = self.env['media.canopy'].search([('site_id', '=', site.id)], limit=1)
+                if canopy:
+                    asset_domain = ['|'] + asset_domain + [('canopy_id', '=', canopy.id)]
+            elif site.site_category == 'digital':
+                screen = self.env['media.digital.screen'].search([('site_id', '=', site.id)], limit=1)
+                if screen:
+                    asset_domain = ['|'] + asset_domain + [('media_digital_screen_id', '=', screen.id)]
+            
+            invoice_lines = self.env['account.move.line'].search(domain + asset_domain)
             invoices = invoice_lines.mapped('move_id')
             site.pending_invoice_count = len(invoices)
             site.unpaid_invoices_amount = sum(invoices.mapped('amount_residual'))
 
     def action_view_pending_invoices(self):
         self.ensure_one()
-        face_ids = self.face_ids.ids
-        invoices = self.env['account.move.line'].search([
-            ('media_face_id', 'in', face_ids),
+        domain = [
             ('move_id.move_type', '=', 'out_invoice'),
             ('move_id.state', '=', 'posted'),
             ('move_id.payment_state', 'in', ['not_paid', 'partial'])
-        ]).mapped('move_id')
+        ]
+        
+        asset_domain = [('media_face_id', 'in', self.face_ids.ids)]
+        if self.site_category == 'canopy':
+            canopy = self.env['media.canopy'].search([('site_id', '=', self.id)], limit=1)
+            if canopy:
+                asset_domain = ['|'] + asset_domain + [('canopy_id', '=', canopy.id)]
+        elif self.site_category == 'digital':
+            screen = self.env['media.digital.screen'].search([('site_id', '=', self.id)], limit=1)
+            if screen:
+                asset_domain = ['|'] + asset_domain + [('media_digital_screen_id', '=', screen.id)]
+
+        invoices = self.env['account.move.line'].search(domain + asset_domain).mapped('move_id')
         
         return {
             'name': _('Pending Invoices'),

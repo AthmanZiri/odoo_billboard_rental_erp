@@ -87,10 +87,19 @@ class MediaSiteMixin(models.AbstractModel):
             record.expenses_count = len(record.expense_ids)
             record.rentals_count = len(record.lease_line_ids)
             
-            # Count history from all faces associated with this site
+            # Count history from all faces/canopies associated with this site
             if hasattr(record, 'artwork_history_count'):
-                history = self.env['media.artwork.history'].search([('face_id', 'in', record.face_ids.ids)])
-                record.artwork_history_count = len(history)
+                domain = []
+                if record.face_ids:
+                    domain = [('face_id', 'in', record.face_ids.ids)]
+                elif record.site_category == 'canopy':
+                    domain = [('site_id', '=', record.id), ('site_category', '=', 'canopy')]
+                
+                if domain:
+                    history = self.env['media.artwork.history'].search(domain)
+                    record.artwork_history_count = len(history)
+                else:
+                    record.artwork_history_count = 0
             
             record.total_faces_count = record.face_count
             record.occupied_faces_count = len(record.face_ids.filtered(lambda f: f.occupancy_status == 'booked'))
@@ -146,9 +155,17 @@ class MediaSiteMixin(models.AbstractModel):
 
     def _compute_lease_history(self):
         for record in self:
-            record.lease_line_ids = self.env['sale.order.line'].search([
-                ('media_face_id', 'in', record.face_ids.ids)
-            ])
+            domain = [('media_face_id', 'in', record.face_ids.ids)]
+            if record.site_category == 'canopy':
+                canopy = self.env['media.canopy'].search([('site_id', '=', record.id)], limit=1)
+                if canopy:
+                    domain = ['|'] + domain + [('canopy_id', '=', canopy.id)]
+            elif record.site_category == 'digital':
+                screen = self.env['media.digital.screen'].search([('site_id', '=', record.id)], limit=1)
+                if screen:
+                    domain = ['|'] + domain + [('media_digital_screen_id', '=', screen.id)]
+            
+            record.lease_line_ids = self.env['sale.order.line'].search(domain)
 
 class MediaCounty(models.Model):
     _name = 'media.county'

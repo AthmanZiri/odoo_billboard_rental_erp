@@ -36,8 +36,12 @@ class SaleOrderLine(models.Model):
             self.media_digital_screen_id = self.media_slot_id.digital_screen_id
             screen = self.media_slot_id.digital_screen_id
             
-            if screen.product_id:
-                self.product_id = screen.product_id
+            if not self.product_id:
+                generic_product = self.env['product.product'].search([('name', '=', 'Advertising Service')], limit=1)
+                if generic_product:
+                    self.product_id = generic_product
+                elif screen.product_id:
+                    self.product_id = screen.product_id
             
             # Use specific slot pricing if available
             if screen.pricing_type == 'slot_monthly':

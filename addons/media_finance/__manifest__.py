@@ -18,7 +18,6 @@
         'views/rental_views.xml',
         'views/face_views_inherit.xml',
         'views/account_move_views.xml',
-        'report/report_invoice_inherit.xml',
         'views/menus.xml',
     ],
     'installable': True,
