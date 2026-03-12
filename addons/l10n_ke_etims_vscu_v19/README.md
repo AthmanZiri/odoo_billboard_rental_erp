@@ -1,0 +1,1 @@
+Install product_unspsc from enterprise modules first. Then install this module. It will add the UNSPSC code field to the product template and product variant models.Also it will add fields to be used in item codes generation.

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="packaging_type_ou" model="l10n_ke_etims_vscu_v19.code">
+            <field name="code_type">17</field>
+            <field name="code">OU</field>
+            <field name="name">Non-Exterior Packaging Unit</field>
+            <field name="description">Non-Exterior Packaging Unit</field>
+            <field name="sequence">33</field>
+        </record>
+    </data>
+</odoo>
