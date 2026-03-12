@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Update A4 Paper Format to match our needed spacing -->
+        <record id="report.paperformat_euro" model="report.paperformat">
+            <field name="margin_top">55</field>
+            <field name="header_spacing">65</field>
+            <field name="margin_bottom">28</field>
+        </record>
+    </data>
+</odoo>
