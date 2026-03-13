@@ -15,6 +15,7 @@ class SaleOrderLine(models.Model):
     canopy_id = fields.Many2one('media.canopy', string='Canopy')
     start_date = fields.Date(string='Start Date')
     end_date = fields.Date(string='End Date')
+    item_description = fields.Text(string='Item Description')
     
     artwork_file = fields.Image(string='Artwork/Graphic', max_width=1920, max_height=1920)
     artwork_filename = fields.Char(string='Artwork Filename')
@@ -95,12 +96,8 @@ class SaleOrderLine(models.Model):
     def _onchange_generate_custom_description(self):
         for line in self:
             desc_lines = []
-            # if line.product_id:
-            #     desc_lines.append(line.product_id.display_name)
             
-            if line.start_date and line.end_date:
-                desc_lines.append(f"Period: {line.start_date.strftime('%m/%d/%Y')} - {line.end_date.strftime('%m/%d/%Y')}")
-            
+            # 1. Site / Face / Canopy / Slot details first
             if line.media_face_id:
                 face = line.media_face_id
                 face_code = getattr(face, 'code', False) or face.name
@@ -157,29 +154,6 @@ class SaleOrderLine(models.Model):
                     loc_str = f"Loc: {', '.join(loc_parts)}" if loc_parts else ""
                 desc_lines.append(f"{slot_code}{size_str}{loc_str}".strip())
 
-                # Add DOOH specific technical details
-                if slot.digital_screen_id:
-                    s = slot.digital_screen_id
-                    if s.content_size_rec:
-                        desc_lines.append(f"Content size: ({s.content_size_rec})")
-                    if s.supported_formats:
-                        desc_lines.append(f"Content type: {s.supported_formats}")
-                    if s._fields.get('operating_hours_start') and s._fields.get('operating_hours_end'):
-                        sh = int(s.operating_hours_start)
-                        sm = int((s.operating_hours_start % 1) * 60)
-                        eh = int(s.operating_hours_end)
-                        em = int((s.operating_hours_end % 1) * 60)
-                        desc_lines.append(f"Operating hours: {sh:02d}:{sm:02d} to {eh:02d}:{em:02d}")
-                    if s._fields.get('slot_duration'):
-                         dur = s.slot_duration
-                         clients = s.number_of_slots
-                         freq_min = int((dur * clients) / 60) if clients > 0 else 0
-                         desc_lines.append(f"Content Duration: {dur}sec every {freq_min} min")
-                    if s.views_per_day:
-                         desc_lines.append(f"{s.views_per_day:,} views per day")
-                    if s.number_of_slots:
-                         desc_lines.append(f"Maximum clients: {s.number_of_slots}")
-
             elif line.canopy_id:
                 canopy = line.canopy_id
                 canopy_code = getattr(canopy, 'code', False) or canopy.name
@@ -196,10 +170,38 @@ class SaleOrderLine(models.Model):
                          loc_parts.append(canopy.site_id.county_id.name)
                     loc_str = f" | Loc: {', '.join(loc_parts)}" if loc_parts else ""
                 desc_lines.append(f"{canopy_code}{loc_str}".strip())
-                
-            if len(desc_lines) > 1 or (len(desc_lines) == 1 and not line.name):
-                line.name = "\n".join(desc_lines)
 
+            # 2. Period comes second
+            if line.start_date and line.end_date:
+                desc_lines.append(f"Period: {line.start_date.strftime('%m/%d/%Y')} - {line.end_date.strftime('%m/%d/%Y')}")
+
+            # 3. Technical details for DOOH (stays at bottom if applicable)
+            if hasattr(line, 'media_slot_id') and line.media_slot_id and line.media_slot_id.digital_screen_id:
+                s = line.media_slot_id.digital_screen_id
+                if s.content_size_rec:
+                    desc_lines.append(f"Content size: ({s.content_size_rec})")
+                if s.supported_formats:
+                    desc_lines.append(f"Content type: {s.supported_formats}")
+                if s._fields.get('operating_hours_start') and s._fields.get('operating_hours_end'):
+                    sh = int(s.operating_hours_start)
+                    sm = int((s.operating_hours_start % 1) * 60)
+                    eh = int(s.operating_hours_end)
+                    em = int((s.operating_hours_end % 1) * 60)
+                    desc_lines.append(f"Operating hours: {sh:02d}:{sm:02d} to {eh:02d}:{em:02d}")
+                if s._fields.get('slot_duration'):
+                     dur = s.slot_duration
+                     clients = s.number_of_slots
+                     freq_min = int((dur * clients) / 60) if clients > 0 else 0
+                     desc_lines.append(f"Content Duration: {dur}sec every {freq_min} min")
+                if s.views_per_day:
+                     desc_lines.append(f"{s.views_per_day:,} views per day")
+                if s.number_of_slots:
+                     desc_lines.append(f"Maximum clients: {s.number_of_slots}")
+                
+            if len(desc_lines) > 0:
+                line.item_description = "\n".join(desc_lines)
+            else:
+                line.item_description = False
 
     @api.onchange('start_date', 'end_date')
     def _onchange_lease_duration(self):
@@ -221,6 +223,7 @@ class SaleOrderLine(models.Model):
         res.update({
             'start_date': self.start_date,
             'end_date': self.end_date,
+            'item_description': self.item_description,
             'artwork_file': self.artwork_file,
             'artwork_filename': self.artwork_filename,
         })

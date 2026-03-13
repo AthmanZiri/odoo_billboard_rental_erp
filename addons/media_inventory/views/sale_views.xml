@@ -9,6 +9,7 @@
             <xpath expr="//field[@name='order_line']/list//field[@name='product_id']" position="before">
                 <field name="media_face_id" string="Face" optional="show"/>
                 <field name="canopy_id" optional="show"/>
+                <field name="item_description" optional="show"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/list//field[@name='name']" position="after">
                 <field name="start_date" optional="show"/>
