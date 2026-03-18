@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_media_history" model="ir.ui.view">
+        <field name="name">res.partner.form.media.history</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button class="oe_stat_button" type="object" name="action_view_billboard_history" icon="fa-th-large">
+                    <field string="Billboards" name="billboard_count" widget="statinfo"/>
+                </button>
+                <button class="oe_stat_button" type="object" name="action_view_digital_history" icon="fa-television">
+                    <field string="Digital" name="digital_count" widget="statinfo"/>
+                </button>
+                <button class="oe_stat_button" type="object" name="action_view_canopy_history" icon="fa-home">
+                    <field string="Canopies" name="canopy_count" widget="statinfo"/>
+                </button>
+                <button class="oe_stat_button" type="object" name="action_view_printing_history" icon="fa-print">
+                    <field string="Printing" name="printing_count" widget="statinfo"/>
+                </button>
+            </div>
+            <xpath expr="//notebook" position="inside">
+                <page string="Media History" name="media_history">
+                    <separator string="Billboard Rentals"/>
+                    <field name="billboard_line_ids" widget="many2many"/>
+                    
+                    <separator string="Digital Slot Rentals"/>
+                    <field name="digital_line_ids" widget="many2many"/>
+
+                    <separator string="Canopy Rentals"/>
+                    <field name="canopy_line_ids" widget="many2many"/>
+
+                    <separator string="Printing &amp; Other Services"/>
+                    <field name="printing_line_ids" widget="many2many"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
