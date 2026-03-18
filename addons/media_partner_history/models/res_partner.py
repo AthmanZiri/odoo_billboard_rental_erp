@@ -15,6 +15,10 @@ class ResPartner(models.Model):
     canopy_count = fields.Integer(compute='_compute_media_history_lines', string='Canopies')
     printing_count = fields.Integer(compute='_compute_media_history_lines', string='Printing')
 
+    billboard_artwork_count = fields.Integer(compute='_compute_artwork_counts', string='Billboard Art')
+    digital_artwork_count = fields.Integer(compute='_compute_artwork_counts', string='Digital Art')
+    canopy_artwork_count = fields.Integer(compute='_compute_artwork_counts', string='Canopy Art')
+
     def _compute_media_history_lines(self):
         for partner in self:
             # We fetch all confirmed sale order lines for this partner
@@ -59,6 +63,13 @@ class ResPartner(models.Model):
             partner.canopy_count = len(canopy_lines)
             partner.printing_count = len(printing_lines)
 
+    def _compute_artwork_counts(self):
+        for partner in self:
+            hist = self.env['media.artwork.history'].search([('partner_id', '=', partner.id)])
+            partner.billboard_artwork_count = len(hist.filtered(lambda h: h.site_category == 'billboard'))
+            partner.digital_artwork_count = len(hist.filtered(lambda h: h.site_category == 'digital'))
+            partner.canopy_artwork_count = len(hist.filtered(lambda h: h.site_category == 'canopy'))
+
     def action_view_billboard_history(self):
         return self._action_view_history(self.billboard_line_ids, _('Billboard History'))
 
@@ -70,6 +81,25 @@ class ResPartner(models.Model):
 
     def action_view_printing_history(self):
         return self._action_view_history(self.printing_line_ids, _('Printing History'))
+
+    def action_view_billboard_artwork(self):
+        return self._action_view_artwork('billboard', _('Billboard Artwork History'))
+
+    def action_view_digital_artwork(self):
+        return self._action_view_artwork('digital', _('Digital Artwork History'))
+
+    def action_view_canopy_artwork(self):
+        return self._action_view_artwork('canopy', _('Canopy Artwork History'))
+
+    def _action_view_artwork(self, category, name):
+        return {
+            'name': name,
+            'type': 'ir.actions.act_window',
+            'res_model': 'media.artwork.history',
+            'view_mode': 'list,form',
+            'domain': [('partner_id', '=', self.id), ('site_category', '=', category)],
+            'context': {'default_partner_id': self.id, 'default_site_category': category},
+        }
 
     def _action_view_history(self, lines, name):
         return {

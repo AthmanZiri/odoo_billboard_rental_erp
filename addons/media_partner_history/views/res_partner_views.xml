@@ -18,6 +18,15 @@
                 <button class="oe_stat_button" type="object" name="action_view_printing_history" icon="fa-print">
                     <field string="Printing" name="printing_count" widget="statinfo"/>
                 </button>
+                <button class="oe_stat_button" type="object" name="action_view_billboard_artwork" icon="fa-image">
+                    <field string="Billboard Art" name="billboard_artwork_count" widget="statinfo"/>
+                </button>
+                <button class="oe_stat_button" type="object" name="action_view_digital_artwork" icon="fa-file-video-o">
+                    <field string="Digital Art" name="digital_artwork_count" widget="statinfo"/>
+                </button>
+                <button class="oe_stat_button" type="object" name="action_view_canopy_artwork" icon="fa-paint-brush">
+                    <field string="Canopy Art" name="canopy_artwork_count" widget="statinfo"/>
+                </button>
             </div>
             <xpath expr="//notebook" position="inside">
                 <page string="Media History" name="media_history">

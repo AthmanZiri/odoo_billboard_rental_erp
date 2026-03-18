@@ -20,6 +20,10 @@ class MediaArtworkHistory(models.Model):
     lease_start_date = fields.Date(string='Lease Start Date')
     lease_end_date = fields.Date(string='Lease End Date')
     
+    is_returned = fields.Boolean(string='Returned to Client?', default=False, tracking=True)
+    previous_history_id = fields.Many2one('media.artwork.history', string='Previous Artwork')
+    previous_artwork_returned = fields.Boolean(related='previous_history_id.is_returned', string='Previous Returned')
+    
     # Renovation Fields (for Canopies)
     renovation_date = fields.Date(string='Renovation Date', default=fields.Date.today)
     measurement_image = fields.Image(string='Measurement Image')
@@ -42,6 +46,18 @@ class MediaArtworkHistory(models.Model):
             if vals.get('sale_order_line_id') and not vals.get('partner_id'):
                 sol = self.env['sale.order.line'].browse(vals['sale_order_line_id'])
                 vals['partner_id'] = sol.order_id.partner_id.id
+            
+            # Link to previous history record
+            face_id = vals.get('face_id')
+            site_id = vals.get('site_id')
+            if face_id:
+                prev = self.search([('face_id', '=', face_id)], order='upload_date desc', limit=1)
+                if prev:
+                    vals['previous_history_id'] = prev.id
+            elif site_id:
+                prev = self.search([('site_id', '=', site_id), ('face_id', '=', False)], order='upload_date desc', limit=1)
+                if prev:
+                    vals['previous_history_id'] = prev.id
 
         # Baseline check for canopies: if this is the first history record, archive current canopy image
         baseline_vals_list = []

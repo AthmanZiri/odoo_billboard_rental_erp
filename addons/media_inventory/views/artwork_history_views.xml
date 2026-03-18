@@ -30,6 +30,7 @@
                 <field name="lease_end_date" string="End"/>
                 <field name="site_id" string="Site/Canopy"/>
                 <field name="face_id" string="Face" optional="hide" invisible="site_category == 'canopy'"/>
+                <field name="is_returned" string="Returned?" widget="boolean_toggle"/>
                 <field name="site_category" invisible="1"/>
                 <field name="uploaded_by"/>
             </list>
@@ -81,6 +82,9 @@
                                    options="{'no_create': True}"/>
                             <field name="lease_start_date"/>
                             <field name="lease_end_date"/>
+                            <field name="is_returned" string="Artwork Returned?" widget="boolean_toggle"/>
+                            <field name="previous_history_id" readonly="1" invisible="not previous_history_id"/>
+                            <field name="previous_artwork_returned" readonly="1" invisible="not previous_history_id" decoration-success="previous_artwork_returned" decoration-danger="not previous_artwork_returned" widget="boolean_toggle"/>
                         </group>
                         <group name="metadata">
                             <field name="upload_date" readonly="1"/>

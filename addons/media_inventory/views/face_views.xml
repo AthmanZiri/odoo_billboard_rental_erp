@@ -130,6 +130,7 @@
                                     <field name="description"/>
                                     <field name="uploaded_by"/>
                                     <field name="sale_order_line_id" string="Contract Line"/>
+                                    <field name="is_returned" string="Returned?" widget="boolean_toggle"/>
                                 </list>
                             </field>
                         </page>

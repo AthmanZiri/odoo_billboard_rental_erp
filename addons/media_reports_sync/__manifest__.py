@@ -7,7 +7,6 @@
     'website': 'https://jengasol.co.ke',
     'depends': ['sale', 'account', 'media_inventory', 'media_finance'],
     'data': [
-        # 'data/paperformat_data.xml',
         'report/report_templates.xml',
     ],
     'installable': True,
