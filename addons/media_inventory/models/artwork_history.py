@@ -23,11 +23,60 @@ class MediaArtworkHistory(models.Model):
     is_returned = fields.Boolean(string='Returned to Client?', default=False, tracking=True)
     previous_history_id = fields.Many2one('media.artwork.history', string='Previous Artwork')
     previous_artwork_returned = fields.Boolean(related='previous_history_id.is_returned', string='Previous Returned')
-    item_description = fields.Text(related='sale_order_line_id.item_description', string='Item Description')
+    item_description = fields.Text(string='Description', compute='_compute_item_description')
     
     # Renovation Fields (for Canopies)
     renovation_date = fields.Date(string='Renovation Date', default=fields.Date.today)
     measurement_image = fields.Image(string='Measurement Image')
+
+    @api.depends('face_id', 'site_id', 'lease_start_date', 'lease_end_date', 'site_category')
+    def _compute_item_description(self):
+        for record in self:
+            lines = []
+            # 1. Period
+            if record.lease_start_date and record.lease_end_date:
+                lines.append(f"Period: {record.lease_start_date.strftime('%m/%d/%Y')} - {record.lease_end_date.strftime('%m/%d/%Y')}")
+            
+            # 2. Face/Site Details
+            details = []
+            if record.face_id:
+                face = record.face_id
+                code = face.code or face.name
+                details.append(code)
+                details.append(f"Size: {face.width}x{face.height} meters {face.orientation.capitalize() if face.orientation else ''}")
+                
+                if face.site_id:
+                    loc_parts = []
+                    if face.site_id.street:
+                        loc_parts.append(face.site_id.street)
+                    elif record.site_category == 'billboard':
+                        billboard = self.env['media.billboard'].search([('site_id', '=', face.site_id.id)], limit=1)
+                        if billboard and billboard.location_text:
+                            loc_parts.append(billboard.location_text)
+                    
+                    if face.site_id.sub_county_id:
+                        loc_parts.append(face.site_id.sub_county_id.name)
+                    if face.site_id.county_id:
+                        loc_parts.append(face.site_id.county_id.name)
+                    if loc_parts:
+                        details.append(f"| Loc: {', '.join(loc_parts)}")
+            elif record.site_id:
+                 site = record.site_id
+                 details.append(site.code or site.name)
+                 loc_parts = []
+                 if site.street:
+                     loc_parts.append(site.street)
+                 if site.sub_county_id:
+                     loc_parts.append(site.sub_county_id.name)
+                 if site.county_id:
+                     loc_parts.append(site.county_id.name)
+                 if loc_parts:
+                     details.append(f"| Loc: {', '.join(loc_parts)}")
+            
+            if details:
+                lines.append(" ".join(details))
+            
+            record.item_description = "\n".join(lines)
 
     @api.model_create_multi
     def create(self, vals_list):
