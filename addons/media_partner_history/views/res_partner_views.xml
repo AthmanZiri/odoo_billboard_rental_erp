@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Custom List View for Media History (Sale Order Lines) -->
+    <record id="view_sale_order_line_media_history_list" model="ir.ui.view">
+        <field name="name">sale.order.line.media.history.list</field>
+        <field name="model">sale.order.line</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <list string="Media History" create="0" edit="0">
+                <field name="order_id" string="Order Reference"/>
+                <field name="item_description" string="Item Description" widget="text"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="product_uom_qty" string="Qty"/>
+                <field name="price_subtotal" sum="Total"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state in ('sale', 'done')"/>
+            </list>
+        </field>
+    </record>
+
     <record id="view_partner_form_media_history" model="ir.ui.view">
         <field name="name">res.partner.form.media.history</field>
         <field name="model">res.partner</field>
@@ -31,13 +49,19 @@
             <xpath expr="//notebook" position="inside">
                 <page string="Media History" name="media_history">
                     <separator string="Billboard Rentals"/>
-                    <field name="billboard_line_ids" widget="many2many"/>
+                    <field name="billboard_line_ids" widget="many2many" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
+                        <list ref="media_partner_history.view_sale_order_line_media_history_list"/>
+                    </field>
                     
                     <separator string="Digital Slot Rentals"/>
-                    <field name="digital_line_ids" widget="many2many"/>
-
+                    <field name="digital_line_ids" widget="many2many" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
+                        <list ref="media_partner_history.view_sale_order_line_media_history_list"/>
+                    </field>
+ 
                     <separator string="Canopy Rentals"/>
-                    <field name="canopy_line_ids" widget="many2many"/>
+                    <field name="canopy_line_ids" widget="many2many" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
+                        <list ref="media_partner_history.view_sale_order_line_media_history_list"/>
+                    </field>
 
                     <separator string="Printing &amp; Other Services"/>
                     <field name="printing_line_ids" widget="many2many"/>

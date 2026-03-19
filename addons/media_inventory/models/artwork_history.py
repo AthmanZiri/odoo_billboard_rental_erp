@@ -23,6 +23,7 @@ class MediaArtworkHistory(models.Model):
     is_returned = fields.Boolean(string='Returned to Client?', default=False, tracking=True)
     previous_history_id = fields.Many2one('media.artwork.history', string='Previous Artwork')
     previous_artwork_returned = fields.Boolean(related='previous_history_id.is_returned', string='Previous Returned')
+    item_description = fields.Text(related='sale_order_line_id.item_description', string='Item Description')
     
     # Renovation Fields (for Canopies)
     renovation_date = fields.Date(string='Renovation Date', default=fields.Date.today)

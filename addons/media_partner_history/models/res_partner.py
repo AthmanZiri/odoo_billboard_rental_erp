@@ -71,13 +71,16 @@ class ResPartner(models.Model):
             partner.canopy_artwork_count = len(hist.filtered(lambda h: h.site_category == 'canopy'))
 
     def action_view_billboard_history(self):
-        return self._action_view_history(self.billboard_line_ids, _('Billboard History'))
+        view_id = self.env.ref('media_partner_history.view_sale_order_line_media_history_list').id
+        return self._action_view_history(self.billboard_line_ids, _('Billboard History'), view_id=view_id)
 
     def action_view_digital_history(self):
-        return self._action_view_history(self.digital_line_ids, _('Digital History'))
+        view_id = self.env.ref('media_partner_history.view_sale_order_line_media_history_list').id
+        return self._action_view_history(self.digital_line_ids, _('Digital History'), view_id=view_id)
 
     def action_view_canopy_history(self):
-        return self._action_view_history(self.canopy_line_ids, _('Canopy History'))
+        view_id = self.env.ref('media_partner_history.view_sale_order_line_media_history_list').id
+        return self._action_view_history(self.canopy_line_ids, _('Canopy History'), view_id=view_id)
 
     def action_view_printing_history(self):
         return self._action_view_history(self.printing_line_ids, _('Printing History'))
@@ -101,8 +104,8 @@ class ResPartner(models.Model):
             'context': {'default_partner_id': self.id, 'default_site_category': category},
         }
 
-    def _action_view_history(self, lines, name):
-        return {
+    def _action_view_history(self, lines, name, view_id=False):
+        action = {
             'name': name,
             'type': 'ir.actions.act_window',
             'res_model': 'sale.order.line',
@@ -110,3 +113,6 @@ class ResPartner(models.Model):
             'domain': [('id', 'in', lines.ids)],
             'context': {'create': False},
         }
+        if view_id:
+            action['views'] = [(view_id, 'list'), (False, 'form')]
+        return action
