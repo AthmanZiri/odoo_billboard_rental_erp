@@ -128,8 +128,8 @@ class MediaBookingTransfer(models.TransientModel):
         domain = [
             ('media_face_id', '=', target_face.id),
             ('state', 'in', ['sale', 'done']),
-            ('start_date', '<=', end_date),
-            ('end_date', '>=', start_date),
+            ('start_date', '<', end_date),
+            ('end_date', '>', start_date),
         ]
         if exclude_line:
             domain += [('id', '!=', exclude_line.id)]
@@ -247,8 +247,8 @@ class MediaBookingTransfer(models.TransientModel):
         overlapping_sols = self.env['sale.order.line'].search([
             ('media_face_id', '=', source_face.id),
             ('state', 'in', ['sale', 'done']),
-            ('start_date', '<=', self.end_date),
-            ('end_date', '>=', self.start_date),
+            ('start_date', '<', self.end_date),
+            ('end_date', '>', self.start_date),
         ])
         if overlapping_sols:
             source_face.sudo().write({
@@ -257,8 +257,8 @@ class MediaBookingTransfer(models.TransientModel):
 
         overlapping_history = self.env['media.artwork.history'].search([
             ('face_id', '=', source_face.id),
-            ('lease_start_date', '<=', self.end_date),
-            ('lease_end_date', '>=', self.start_date),
+            ('lease_start_date', '<', self.end_date),
+            ('lease_end_date', '>', self.start_date),
         ])
         if overlapping_history:
             source_face.sudo().write({

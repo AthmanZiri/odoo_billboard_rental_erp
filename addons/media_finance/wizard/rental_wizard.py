@@ -23,8 +23,8 @@ class MediaRentalWizard(models.TransientModel):
             booked_lines = self.env['sale.order.line'].search([
                 ('media_face_id', '!=', False),
                 ('state', 'in', ['sale', 'done']),
-                ('start_date', '<=', wizard.end_date),
-                ('end_date', '>=', wizard.start_date),
+                ('start_date', '<', wizard.end_date),
+                ('end_date', '>', wizard.start_date),
             ])
             booked_face_ids = booked_lines.mapped('media_face_id').ids
             wizard.available_faces_domain = self.env['media.face'].search([('id', 'not in', booked_face_ids)])

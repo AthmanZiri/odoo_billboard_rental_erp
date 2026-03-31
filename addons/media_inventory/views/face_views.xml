@@ -12,6 +12,7 @@
                 <filter string="Available" name="filter_available" domain="[('occupancy_status', '=', 'available')]"/>
                 <filter string="Reserved" name="filter_reserved" domain="[('occupancy_status', '=', 'reserved')]"/>
                 <filter string="Soon to be Available" name="filter_soon_available" domain="[('is_soon_available', '=', True)]"/>
+                <filter string="Available in 7 Days" name="filter_available_7_days" domain="[('is_available_in_7_days', '=', True)]"/>
                 <filter string="Expired" name="filter_expired" domain="[('is_expired', '=', True)]"/>
             </search>
         </field>

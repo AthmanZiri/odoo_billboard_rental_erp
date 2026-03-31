@@ -17,8 +17,8 @@ class SaleOrderLine(models.Model):
                 ('id', '!=', line.id),
                 ('media_slot_id', '=', line.media_slot_id.id),
                 ('state', 'in', ['sale', 'done']),
-                ('start_date', '<=', line.end_date),
-                ('end_date', '>=', line.start_date),
+                ('start_date', '<', line.end_date),
+                ('end_date', '>', line.start_date),
             ]
             overlapping = self.search_count(domain)
             if overlapping:

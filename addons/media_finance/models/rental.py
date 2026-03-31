@@ -83,8 +83,8 @@ class MediaRental(models.Model):
             booked_lines = self.env['sale.order.line'].search([
                 ('media_face_id', '!=', False),
                 ('state', 'in', ['sale', 'done']),
-                ('start_date', '<=', record.end_date),
-                ('end_date', '>=', record.start_date),
+                ('start_date', '<', record.end_date),
+                ('end_date', '>', record.start_date),
             ])
             booked_face_ids = booked_lines.mapped('media_face_id').ids
             

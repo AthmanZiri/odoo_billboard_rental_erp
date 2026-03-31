@@ -118,6 +118,7 @@ class MediaFace(models.Model):
     latest_lease_end_date = fields.Date(string='Latest Lease End', compute='_compute_latest_lease_dates', store=True)
     
     is_soon_available = fields.Boolean(compute='_compute_status_flags', store=True)
+    is_available_in_7_days = fields.Boolean(compute='_compute_status_flags', store=True)
     is_expired = fields.Boolean(compute='_compute_status_flags', store=True)
     is_reserved = fields.Boolean(compute='_compute_status_flags', store=True)
 
@@ -177,8 +178,10 @@ class MediaFace(models.Model):
     def _compute_status_flags(self):
         today = fields.Date.today()
         soon = today + relativedelta(days=30)
+        very_soon = today + relativedelta(days=7)
         for record in self:
             record.is_soon_available = record.occupancy_status == 'booked' and record.current_booking_end and record.current_booking_end <= soon
+            record.is_available_in_7_days = record.occupancy_status == 'booked' and record.current_booking_end and record.current_booking_end <= very_soon
             record.is_expired = record.current_booking_end and record.current_booking_end < today
             # is_reserved mirrors the computed occupancy_status — it is True whenever
             # a quotation/draft SOL exists for this face (or occupancy is 'reserved').
@@ -207,7 +210,7 @@ class MediaFace(models.Model):
                 end_dates.extend(future_history.mapped('lease_end_date'))
             
             if end_dates:
-                record.next_available_date = max(end_dates) + relativedelta(days=1)
+                record.next_available_date = max(end_dates)
             else:
                 record.next_available_date = today
 
