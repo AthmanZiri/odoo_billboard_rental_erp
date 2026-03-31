@@ -113,6 +113,10 @@ class MediaFace(models.Model):
     next_available_date = fields.Date(string='Available From', compute='_compute_next_available_date', store=True)
     current_booking_start = fields.Date(string='Booking Start', compute='_compute_current_booking_dates', store=True)
     current_booking_end = fields.Date(string='Booking End', compute='_compute_current_booking_dates', store=True)
+    current_partner_id = fields.Many2one('res.partner', string='Client', compute='_compute_current_booking_dates', store=True)
+    
+    face_size = fields.Char(string='Size', compute='_compute_face_size', store=True)
+    location_text = fields.Char(string='Location', compute='_compute_location_text', store=True)
     
     latest_lease_start_date = fields.Date(string='Latest Lease Start', compute='_compute_latest_lease_dates', store=True)
     latest_lease_end_date = fields.Date(string='Latest Lease End', compute='_compute_latest_lease_dates', store=True)
@@ -167,12 +171,36 @@ class MediaFace(models.Model):
             if active_lease:
                 record.current_booking_start = active_lease[0].start_date
                 record.current_booking_end = active_lease[0].end_date
+                record.current_partner_id = active_lease[0].order_id.partner_id.id
             elif active_history:
                 record.current_booking_start = active_history[0].lease_start_date
                 record.current_booking_end = active_history[0].lease_end_date
+                record.current_partner_id = active_history[0].partner_id.id
             else:
                 record.current_booking_start = False
                 record.current_booking_end = False
+                record.current_partner_id = False
+
+    @api.depends('width', 'height')
+    def _compute_face_size(self):
+        for record in self:
+            if record.width and record.height:
+                record.face_size = f"{record.width} x {record.height}m"
+            else:
+                record.face_size = False
+
+    @api.depends('site_id', 'site_id.street', 'site_id.sub_county_id', 'site_id.county_id')
+    def _compute_location_text(self):
+        for record in self:
+            loc_parts = []
+            if record.site_id:
+                if record.site_id.street:
+                    loc_parts.append(record.site_id.street)
+                if record.site_id.sub_county_id:
+                    loc_parts.append(record.site_id.sub_county_id.name)
+                if record.site_id.county_id:
+                    loc_parts.append(record.site_id.county_id.name)
+            record.location_text = ", ".join(loc_parts) if loc_parts else False
 
     @api.depends('occupancy_status', 'current_booking_end', 'lease_line_ids.state')
     def _compute_status_flags(self):

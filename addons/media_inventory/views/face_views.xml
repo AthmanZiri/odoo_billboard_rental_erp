@@ -26,7 +26,9 @@
             <list string="Faces">
                 <field name="name"/>
                 <field name="code"/>
+                <field name="face_size" string="Size"/>
                 <field name="site_id"/>
+                <field name="location_text" string="Location"/>
                 <field name="pricing_type"/>
                 <field name="price_per_month" sum="Total Monthly Revenue"/>
                 <field name="occupancy_status" widget="badge"
@@ -34,6 +36,7 @@
                     decoration-info="occupancy_status == 'reserved'"
                     decoration-danger="occupancy_status == 'booked'"
                     decoration-warning="occupancy_status == 'maintenance'"/>
+                <field name="current_partner_id" string="Client"/>
                 <field name="latest_lease_start_date" string="Lease Start"/>
                 <field name="latest_lease_end_date" string="Lease End"/>
             </list>
