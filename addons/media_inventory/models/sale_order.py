@@ -157,6 +157,9 @@ class SaleOrderLine(models.Model):
             elif line.canopy_id:
                 canopy = line.canopy_id
                 canopy_code = getattr(canopy, 'code', False) or canopy.name
+                shop_str = ""
+                if canopy.shop_name:
+                    shop_str = f" | Shop Name: {canopy.shop_name}"
                 loc_str = ""
                 if canopy.location_phone:
                     loc_str = f" | Loc: {canopy.location_phone}"
@@ -169,7 +172,7 @@ class SaleOrderLine(models.Model):
                     if canopy.site_id.county_id:
                          loc_parts.append(canopy.site_id.county_id.name)
                     loc_str = f" | Loc: {', '.join(loc_parts)}" if loc_parts else ""
-                desc_lines.append(f"{canopy_code}{loc_str}".strip())
+                desc_lines.append(f"{canopy_code}{shop_str}{loc_str}".strip())
 
             # 2. Period comes second
             if line.start_date and line.end_date:
