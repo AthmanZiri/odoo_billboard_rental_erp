@@ -393,12 +393,22 @@ class MediaBookingTransfer(models.TransientModel):
             and segments[0][1] == end_date
         )
 
-        # 1. 'Free up' the source face by adding this SOL to its exclusion list.
-        #    This does NOT change the Sale Order (KRA compliance), but tells
-        #    the inventory system to ignore this line for occupancy on this face.
-        source_face.sudo().write({
-            'transferred_out_sol_ids': [(4, source_sol.id)]
-        })
+        # 1. 'Free up' the source face: ignore this SOL, and any artwork / booking
+        #    log rows on this face that mirror the same line (else occupancy would
+        #    still see history as a separate live booking and stay "booked").
+        #    The sale order line itself is not deleted (KRA / invoice continuity).
+        vacate_vals = {
+            'transferred_out_sol_ids': [(4, source_sol.id)],
+        }
+        linked_history = self.env['media.artwork.history'].search([
+            ('face_id', '=', source_face.id),
+            ('sale_order_line_id', '=', source_sol.id),
+        ])
+        if linked_history:
+            vacate_vals['transferred_out_history_ids'] = [
+                (4, h.id) for h in linked_history
+            ]
+        source_face.sudo().write(vacate_vals)
 
         # 2. 'Book' the target face: one history row per free segment within the request window.
         TRANSPARENT_1PX = (

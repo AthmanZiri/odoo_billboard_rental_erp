@@ -116,6 +116,55 @@ class TestTransferBookingVacate(TransactionCase):
         self.assertEqual(self.face_b.occupancy_status, 'booked', "Target face should be booked after transfer")
         self.assertIn(order.order_line[0].id, self.face_a.transferred_out_sol_ids.ids, "SOL should be in transferred_out list")
 
+    def test_transfer_via_sale_order_vacates_source_with_linked_artwork_history(self):
+        """Artwork / booking log rows linked to the same SOL must be transferred out on the source, or occupancy stays booked."""
+        today = fields.Date.today()
+        start = today
+        end = today + relativedelta(days=10)
+        line = {
+            'product_id': self.face_a.product_id.id,
+            'media_face_id': self.face_a.id,
+            'start_date': start,
+            'end_date': end,
+            'price_unit': 1000,
+        }
+        order = self.SO.create({
+            'partner_id': self.partner.id,
+            'order_line': [(0, 0, line)],
+        })
+        order.action_confirm()
+        sol = order.order_line[0]
+        TRANSPARENT_1PX = (
+            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01'
+            b'\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01'
+            b'\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
+        )
+        placeholder = base64.b64encode(TRANSPARENT_1PX)
+        hist = self.ArtworkHistory.create({
+            'face_id': self.face_a.id,
+            'partner_id': self.partner.id,
+            'lease_start_date': start,
+            'lease_end_date': end,
+            'sale_order_line_id': sol.id,
+            'artwork_file': placeholder,
+            'description': 'Contract log mirroring SO',
+        })
+        self.face_a._compute_occupancy_status()
+        self.assertEqual(self.face_a.occupancy_status, 'booked')
+
+        wizard = self.TransferWizard.create({
+            'transfer_type': 'sale_order',
+            'source_line_id': sol.id,
+            'target_face_id': self.face_b.id,
+        })
+        wizard.action_transfer()
+
+        self.face_a._compute_occupancy_status()
+        self.face_b._compute_occupancy_status()
+        self.assertEqual(self.face_a.occupancy_status, 'available')
+        self.assertIn(sol.id, self.face_a.transferred_out_sol_ids.ids)
+        self.assertIn(hist.id, self.face_a.transferred_out_history_ids.ids)
+
     def test_transfer_partial_target_overlap(self):
         """When the target is already booked for part of the window, use only the free remainder on the target."""
         today = fields.Date.today()
