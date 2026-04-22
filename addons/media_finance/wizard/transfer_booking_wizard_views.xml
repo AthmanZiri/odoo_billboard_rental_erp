@@ -80,6 +80,8 @@
                             status updates correctly. You can still create a sale order / rental later.
                         </div>
                     </group>
+                    <field name="transfer_window_preview" nolabel="1" colspan="2" readonly="1"
+                           invisible="(transfer_type == 'sale_order' and (not source_line_id or not target_face_id)) or (transfer_type == 'no_sale_order' and (not start_date or not end_date or not target_face_id_b))"/>
                 </sheet>
                 <footer>
                     <button name="action_transfer" string="Transfer Booking" type="object"

@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from odoo.tools import html_escape
 
 
 class MediaBookingTransfer(models.TransientModel):
@@ -44,6 +47,11 @@ class MediaBookingTransfer(models.TransientModel):
         'media.face',
         string='Transfer To Face',
         help="The billboard face the client is moving to (no sale order mode).",
+    )
+    transfer_window_preview = fields.Html(
+        string='Transfer Window',
+        compute='_compute_transfer_window_preview',
+        sanitize=False,
     )
 
     @api.depends('source_line_id')
@@ -121,33 +129,237 @@ class MediaBookingTransfer(models.TransientModel):
                     if latest_history:
                         self.client_id = latest_history.partner_id
 
-    # ── Validation ────────────────────────────────────────────────────────────
+    @api.depends(
+        'transfer_type', 'source_line_id', 'target_face_id', 'source_face_id',
+        'target_face_id_b', 'start_date', 'end_date',
+    )
+    def _compute_transfer_window_preview(self):
+        for rec in self:
+            info = rec._get_transfer_window_preview_text()
+            if not info:
+                rec.transfer_window_preview = ''
+                continue
+            if info.get('error'):
+                rec.transfer_window_preview = (
+                    '<div class="alert alert-danger" role="alert">%s</div>' % (info['error'],)
+                )
+            elif info.get('partial'):
+                msg = info.get('message', '')
+                rec.transfer_window_preview = (
+                    '<div class="alert alert-warning" role="alert"><p>%s</p></div>' % (msg,)
+                )
+            else:
+                msg = info.get('message', '')
+                rec.transfer_window_preview = (
+                    '<div class="alert alert-info" role="alert"><p>%s</p></div>' % (msg,)
+                )
 
-    def _check_target_availability(self, target_face, start_date, end_date, exclude_line=None):
-        """Raise ValidationError if target_face already has a confirmed booking overlapping the period."""
-        domain = [
+    def _get_requested_transfer_range(self):
+        self.ensure_one()
+        if self.transfer_type == 'sale_order':
+            if not self.source_line_id:
+                return False, False
+            return self.source_line_id.start_date, self.source_line_id.end_date
+        if not self.start_date or not self.end_date:
+            return False, False
+        return self.start_date, self.end_date
+
+    @staticmethod
+    def _merge_inclusive_date_intervals(intervals):
+        """Merge list of (start, end) inclusive date pairs; adjacent days merge into one block."""
+        if not intervals:
+            return []
+        sort = sorted(intervals, key=lambda x: (x[0], x[1]))
+        merged = [sort[0]]
+        for s, e in sort[1:]:
+            ls, le = merged[-1]
+            if s <= le + timedelta(days=1):
+                merged[-1] = (ls, max(le, e))
+            else:
+                merged.append((s, e))
+        return merged
+
+    @staticmethod
+    def _complement_in_range(request_start, request_end, merged_blocks):
+        """Return list of free inclusive (s, e) segments inside [request_start, request_end]."""
+        if not request_start or not request_end or request_start > request_end:
+            return []
+        if not merged_blocks:
+            return [(request_start, request_end)]
+        relevant = []
+        for bs, be in merged_blocks:
+            if be < request_start or bs > request_end:
+                continue
+            relevant.append((max(bs, request_start), min(be, request_end)))
+        if not relevant:
+            return [(request_start, request_end)]
+        m = MediaBookingTransfer._merge_inclusive_date_intervals(relevant)
+        out = []
+        cur = request_start
+        for bs, be in m:
+            if cur < bs:
+                out.append((cur, bs - timedelta(days=1)))
+            cur = be + timedelta(days=1)
+            if cur > request_end:
+                break
+        if cur <= request_end:
+            out.append((cur, request_end))
+        return out
+
+    def _iter_target_conflicting_intervals(self, target_face, req_start, req_end, exclude_line=None):
+        """Yield (start, end) inclusive for bookings on the target face that overlap [req_start, req_end]."""
+        sol_domain = [
             ('media_face_id', '=', target_face.id),
             ('state', 'in', ['sale', 'done']),
-            ('start_date', '<', end_date),
-            ('end_date', '>', start_date),
+            ('id', 'not in', target_face.transferred_out_sol_ids.ids),
+            ('start_date', '<', req_end),
+            ('end_date', '>', req_start),
         ]
         if exclude_line:
-            domain += [('id', '!=', exclude_line.id)]
-        count = self.env['sale.order.line'].search_count(domain)
-        if count:
-            raise ValidationError(_(
-                "The face '%s' already has a confirmed booking for the period %s → %s."
-            ) % (target_face.display_name, start_date, end_date))
+            sol_domain += [('id', '!=', exclude_line.id)]
+        sol_lines = self.env['sale.order.line'].search(sol_domain)
+        on_target_sol_ids = set(sol_lines.ids)
+        for line in sol_lines:
+            yield (line.start_date, line.end_date)
+        hist_domain = [
+            ('face_id', '=', target_face.id),
+            ('id', 'not in', target_face.transferred_out_history_ids.ids),
+            ('lease_start_date', '!=', False),
+            ('lease_end_date', '!=', False),
+            ('lease_start_date', '<', req_end),
+            ('lease_end_date', '>', req_start),
+        ]
+        for hist in self.env['media.artwork.history'].search(hist_domain):
+            if (
+                hist.sale_order_line_id
+                and hist.sale_order_line_id.id in on_target_sol_ids
+            ):
+                continue
+            yield (hist.lease_start_date, hist.lease_end_date)
+
+    def _effective_transfer_segments(self, target_face, req_start, req_end, exclude_line=None):
+        """
+        Return list of (start, end) inclusive segments of the request period that are not
+        already covered by a confirmed sale order or artwork history on the target face.
+        """
+        if not target_face or not req_start or not req_end or req_start > req_end:
+            return []
+        all_iv = list(
+            self._iter_target_conflicting_intervals(
+                target_face, req_start, req_end, exclude_line=exclude_line
+            )
+        )
+        if not all_iv:
+            return [(req_start, req_end)]
+        merged = self._merge_inclusive_date_intervals(all_iv)
+        return self._complement_in_range(req_start, req_end, merged)
+
+    def _get_transfer_window_preview_text(self):
+        """Return dict with keys: message, partial (bool), error (str or None)."""
+        self.ensure_one()
+        if self.transfer_type == 'sale_order':
+            if not (self.source_line_id and self.target_face_id):
+                return None
+            target = self.target_face_id
+        else:
+            if not (self.start_date and self.end_date and self.target_face_id_b):
+                return None
+            target = self.target_face_id_b
+        req_s, req_e = self._get_requested_transfer_range()
+        if not req_s or not req_e or req_s > req_e:
+            return None
+        excl = self.source_line_id if self.transfer_type == 'sale_order' else None
+        segments = self._effective_transfer_segments(target, req_s, req_e, exclude_line=excl)
+        if not segments:
+            return {
+                'error': _(
+                    "No part of the period %(req_start)s → %(req_end)s is free on the target face <b>%(face)s</b>. "
+                    "Resolve or move existing commitments first."
+                ) % {
+                    'req_start': req_s,
+                    'req_end': req_e,
+                    'face': html_escape(target.display_name),
+                },
+                'partial': False,
+            }
+        full = len(segments) == 1 and segments[0][0] == req_s and segments[0][1] == req_e
+        seg_text = " · ".join(
+            "%s → %s" % (a, b) for a, b in segments
+        )
+        if full:
+            return {
+                'message': _(
+                    "The full requested window <b>%(req_start)s</b> → <b>%(req_end)s</b> is available on <b>%(face)s</b>."
+                ) % {
+                    'req_start': req_s,
+                    'req_end': req_e,
+                    'face': html_escape(target.display_name),
+                },
+                'partial': False,
+            }
+        return {
+            'message': _(
+                "You asked for <b>%(req_start)s</b> → <b>%(req_end)s</b> on <b>%(face)s</b>, "
+                "but part of that window is already covered by an existing commitment. "
+                "The transfer will only be recorded for: <b>%(segments)s</b> (remaining free time within your requested period)."
+            ) % {
+                'req_start': req_s,
+                'req_end': req_e,
+                'face': html_escape(target.display_name),
+                'segments': html_escape(seg_text),
+            },
+            'partial': True,
+        }
+
+    def _build_transfer_done_action(self, is_partial, req_start, req_end, segments, target_face):
+        """Success notification when the wizard closes; include partial-period explanation."""
+        self.ensure_one()
+        seg_plain = " · ".join(
+            "%s → %s" % (a, b) for a, b in segments
+        )
+        if is_partial:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'type': 'success',
+                    'sticky': True,
+                    'message': _(
+                        "Transfer recorded (partial). You requested %(req_start)s → %(req_end)s. "
+                        "The commitment on “%(face)s” was stored only for: %(segments)s. "
+                        "The rest of that window is already covered on the target face."
+                    ) % {
+                        'req_start': req_start,
+                        'req_end': req_end,
+                        'face': target_face.display_name,
+                        'segments': seg_plain,
+                    },
+                    'next': {'type': 'ir.actions.act_window_close'},
+                },
+            }
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'success',
+                'sticky': False,
+                'message': _(
+                    "Transfer recorded. Booking on “%(face)s”: %(segments)s."
+                ) % {
+                    'face': target_face.display_name,
+                    'segments': seg_plain,
+                },
+                'next': {'type': 'ir.actions.act_window_close'},
+            },
+        }
 
     # ── Actions ───────────────────────────────────────────────────────────────
 
     def action_transfer(self):
         self.ensure_one()
         if self.transfer_type == 'sale_order':
-            self._transfer_via_sale_order()
-        else:
-            self._transfer_no_sale_order()
-        return {'type': 'ir.actions.act_window_close'}
+            return self._transfer_via_sale_order()
+        return self._transfer_no_sale_order()
 
     def _transfer_via_sale_order(self):
         if not self.source_line_id:
@@ -164,7 +376,22 @@ class MediaBookingTransfer(models.TransientModel):
         if target_face == source_face:
             raise ValidationError(_("Source and target faces must be different."))
 
-        self._check_target_availability(target_face, start_date, end_date, exclude_line=source_sol)
+        segments = self._effective_transfer_segments(
+            target_face, start_date, end_date, exclude_line=source_sol
+        )
+        if not segments:
+            raise ValidationError(_(
+                "No part of the period %(s)s → %(e)s is free on the target face “%(face)s”."
+            ) % {
+                's': start_date,
+                'e': end_date,
+                'face': target_face.display_name,
+            })
+        is_partial = not (
+            len(segments) == 1
+            and segments[0][0] == start_date
+            and segments[0][1] == end_date
+        )
 
         # 1. 'Free up' the source face by adding this SOL to its exclusion list.
         #    This does NOT change the Sale Order (KRA compliance), but tells
@@ -173,8 +400,7 @@ class MediaBookingTransfer(models.TransientModel):
             'transferred_out_sol_ids': [(4, source_sol.id)]
         })
 
-        # 2. 'Book' the target face by creating an artwork history record.
-        #    We use the same dates/client as the original booking.
+        # 2. 'Book' the target face: one history row per free segment within the request window.
         TRANSPARENT_1PX = (
             b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01'
             b'\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01'
@@ -183,27 +409,46 @@ class MediaBookingTransfer(models.TransientModel):
         import base64
         placeholder = base64.b64encode(TRANSPARENT_1PX)
 
-        self.env['media.artwork.history'].with_context(skip_face_sync=True).sudo().create({
-            'face_id': target_face.id,
-            'partner_id': source_sol.order_id.partner_id.id,
-            'lease_start_date': start_date,
-            'lease_end_date': end_date,
-            'artwork_file': placeholder,
-            'description': _(
+        history = self.env['media.artwork.history'].with_context(skip_face_sync=True).sudo()
+        for seg_start, seg_end in segments:
+            base_desc = _(
                 "TRANSFER: From %s (linked to Sale Order %s)"
-            ) % (source_face.display_name, source_sol.order_id.name),
-            'sale_order_line_id': source_sol.id,
-        })
+            ) % (source_face.display_name, source_sol.order_id.name)
+            if is_partial:
+                base_desc += _(
+                    " — Requested period %s → %s; this segment: %s → %s"
+                ) % (start_date, end_date, seg_start, seg_end)
+            history.create({
+                'face_id': target_face.id,
+                'partner_id': source_sol.order_id.partner_id.id,
+                'lease_start_date': seg_start,
+                'lease_end_date': seg_end,
+                'artwork_file': placeholder,
+                'description': base_desc,
+                'sale_order_line_id': source_sol.id,
+            })
 
         # 3. Log chatter messages on both faces for full audit trail.
+        seg_chatter = " · ".join(
+            "%s → %s" % (a, b) for a, b in segments
+        )
+        period_line = _(
+            "Requested (contract) period: %s → %s"
+        ) % (start_date, end_date)
+        if is_partial:
+            period_line += _(
+                "<br/>Recorded on target face: <b>%s</b> (only the free part of the requested window)"
+            ) % seg_chatter
+        else:
+            period_line += _("<br/>Recorded on target face: <b>%s</b>") % seg_chatter
         msg_template = _(
             "<b>Booking Transfer</b><br/>"
             "Client: <b>%s</b><br/>"
-            "Period: %s → %s<br/>"
+            "%s<br/>"
             "Sale Order: %s"
         ) % (
             source_sol.order_id.partner_id.name,
-            start_date, end_date,
+            period_line,
             source_sol.order_id.name,
         )
         source_face.message_post(
@@ -220,8 +465,10 @@ class MediaBookingTransfer(models.TransientModel):
             ) % (msg_template, source_face.display_name)
         )
 
-        # 4. Recompute occupancy on both faces.
         (source_face | target_face)._compute_occupancy_status()
+        return self._build_transfer_done_action(
+            is_partial, start_date, end_date, segments, target_face
+        )
 
     def _transfer_no_sale_order(self):
         if not self.source_face_id:
@@ -240,7 +487,22 @@ class MediaBookingTransfer(models.TransientModel):
         if target_face == source_face:
             raise ValidationError(_("Source and target faces must be different."))
 
-        self._check_target_availability(target_face, self.start_date, self.end_date)
+        segments = self._effective_transfer_segments(
+            target_face, self.start_date, self.end_date, exclude_line=None
+        )
+        if not segments:
+            raise ValidationError(_(
+                "No part of the period %(s)s → %(e)s is free on the target face “%(face)s”."
+            ) % {
+                's': self.start_date,
+                'e': self.end_date,
+                'face': target_face.display_name,
+            })
+        is_partial = not (
+            len(segments) == 1
+            and segments[0][0] == self.start_date
+            and segments[0][1] == self.end_date
+        )
 
         # 1. 'Free up' the source face by adding overlapping bookings to its exclusion lists.
         #    This handles both Sale Order bookings and manual Artwork History bookings.
@@ -276,30 +538,47 @@ class MediaBookingTransfer(models.TransientModel):
         import base64
         placeholder = base64.b64encode(TRANSPARENT_1PX)
 
-        desc = _("Face-to-face booking commitment")
-        if client:
-            desc += _(" — Client: %s") % client.name
-        if self.notes:
-            desc += "\n" + self.notes
+        history = self.env['media.artwork.history'].with_context(skip_face_sync=True).sudo()
+        for seg_start, seg_end in segments:
+            desc = _("Face-to-face booking commitment")
+            if client:
+                desc += _(" — Client: %s") % client.name
+            if self.notes:
+                desc += "\n" + self.notes
+            if is_partial:
+                desc += _(
+                    "\n(Partial transfer) Requested on target: %s → %s; this log segment: %s → %s"
+                ) % (self.start_date, self.end_date, seg_start, seg_end)
+            history.create({
+                'face_id': target_face.id,
+                'partner_id': client.id if client else False,
+                'lease_start_date': seg_start,
+                'lease_end_date': seg_end,
+                'artwork_file': placeholder,
+                'description': desc,
+            })
 
-        self.env['media.artwork.history'].with_context(skip_face_sync=True).sudo().create({
-            'face_id': target_face.id,
-            'partner_id': client.id if client else False,
-            'lease_start_date': self.start_date,
-            'lease_end_date': self.end_date,
-            'artwork_file': placeholder,
-            'description': desc,
-        })
-
+        seg_chatter = " · ".join(
+            "%s → %s" % (a, b) for a, b in segments
+        )
+        period_line = _(
+            "Requested move period: %s → %s"
+        ) % (self.start_date, self.end_date)
+        if is_partial:
+            period_line += _(
+                "<br/>Recorded on target: <b>%s</b> (only the free part of the requested window on that face)"
+            ) % seg_chatter
+        else:
+            period_line += _("<br/>Recorded on target: <b>%s</b>") % seg_chatter
         # Log chatter messages on both faces.
         msg = _(
             "<b>Face-to-Face Commitment Transfer</b><br/>"
             "Client: <b>%s</b><br/>"
-            "Period: %s → %s<br/>"
+            "%s<br/>"
             "Notes: %s"
         ) % (
             client.name if client else _("Unknown"),
-            self.start_date, self.end_date,
+            period_line,
             self.notes or _("N/A"),
         )
         source_face.message_post(
@@ -311,5 +590,7 @@ class MediaBookingTransfer(models.TransientModel):
                 msg, source_face.display_name)
         )
 
-        # Recompute occupancy on both faces.
         (source_face | target_face)._compute_occupancy_status()
+        return self._build_transfer_done_action(
+            is_partial, self.start_date, self.end_date, segments, target_face
+        )
