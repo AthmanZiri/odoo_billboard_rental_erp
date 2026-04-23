@@ -165,6 +165,53 @@ class TestTransferBookingVacate(TransactionCase):
         self.assertIn(sol.id, self.face_a.transferred_out_sol_ids.ids)
         self.assertIn(hist.id, self.face_a.transferred_out_history_ids.ids)
 
+    def test_transfer_sale_order_uses_history_when_line_dates_empty(self):
+        """If the SOL has no start/end, lease window comes from linked booking log rows."""
+        today = fields.Date.today()
+        start = today
+        end = today + relativedelta(days=10)
+        order = self.SO.create({
+            'partner_id': self.partner.id,
+            'order_line': [(0, 0, {
+                'product_id': self.face_a.product_id.id,
+                'media_face_id': self.face_a.id,
+                'price_unit': 1000,
+            })],
+        })
+        order.action_confirm()
+        sol = order.order_line[0]
+        self.assertFalse(sol.start_date and sol.end_date, "line should have empty dates in this test")
+        TRANSPARENT_1PX = (
+            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01'
+            b'\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01'
+            b'\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
+        )
+        placeholder = base64.b64encode(TRANSPARENT_1PX)
+        self.ArtworkHistory.create({
+            'face_id': self.face_a.id,
+            'partner_id': self.partner.id,
+            'lease_start_date': start,
+            'lease_end_date': end,
+            'sale_order_line_id': sol.id,
+            'artwork_file': placeholder,
+            'description': 'Dates only on log',
+        })
+        w = self.TransferWizard.create({
+            'transfer_type': 'sale_order',
+            'source_line_id': sol.id,
+            'target_face_id': self.face_b.id,
+        })
+        win_s, win_e = w._get_lease_window_for_sale_line(sol)
+        self.assertEqual((win_s, win_e), (start, end))
+        w.action_transfer()
+        on_b = self.env['media.artwork.history'].search([
+            ('face_id', '=', self.face_b.id),
+            ('sale_order_line_id', '=', sol.id),
+            ('lease_start_date', '=', start),
+            ('lease_end_date', '=', end),
+        ])
+        self.assertTrue(on_b, "Target should get a transfer log using inferred dates from booking log")
+
     def test_transfer_partial_target_overlap(self):
         """When the target is already booked for part of the window, use only the free remainder on the target."""
         today = fields.Date.today()

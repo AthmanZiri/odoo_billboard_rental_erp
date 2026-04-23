@@ -54,17 +54,28 @@ class MediaBookingTransfer(models.TransientModel):
         sanitize=False,
     )
 
-    @api.depends('source_line_id')
+    @api.depends('source_line_id', 'source_line_id.start_date', 'source_line_id.end_date')
     def _compute_source_face_info(self):
         for rec in self:
             if rec.source_line_id:
                 sol = rec.source_line_id
                 face = sol.media_face_id
+                win_s, win_e = rec._get_lease_window_for_sale_line(sol)
+                if win_s and win_e:
+                    date_part = "%s → %s" % (win_s, win_e)
+                    if not (sol.start_date and sol.end_date):
+                        date_part += _(" (dates from linked booking / artwork log; line dates were empty)")
+                else:
+                    date_part = _(
+                        "No lease period — set Start and End on the line or on the booking log for this line"
+                    )
                 rec.source_face_info = (
-                    f"{face.display_name}  |  "
-                    f"{sol.start_date} → {sol.end_date}  |  "
-                    f"SO: {sol.order_id.name}  |  "
-                    f"Client: {sol.order_id.partner_id.name}"
+                    "%s  |  %s  |  SO: %s  |  Client: %s"
+                ) % (
+                    face.display_name,
+                    date_part,
+                    sol.order_id.name,
+                    sol.order_id.partner_id.name,
                 )
             else:
                 rec.source_face_info = ''
@@ -130,7 +141,8 @@ class MediaBookingTransfer(models.TransientModel):
                         self.client_id = latest_history.partner_id
 
     @api.depends(
-        'transfer_type', 'source_line_id', 'target_face_id', 'source_face_id',
+        'transfer_type', 'source_line_id', 'source_line_id.start_date', 'source_line_id.end_date',
+        'target_face_id', 'source_face_id',
         'target_face_id_b', 'start_date', 'end_date',
     )
     def _compute_transfer_window_preview(self):
@@ -154,12 +166,39 @@ class MediaBookingTransfer(models.TransientModel):
                     '<div class="alert alert-info" role="alert"><p>%s</p></div>' % (msg,)
                 )
 
+    def _get_lease_window_for_sale_line(self, line):
+        """Return (start, end) for a sale order line, using line fields or linked booking log rows."""
+        if not line:
+            return False, False
+        if line.start_date and line.end_date:
+            return line.start_date, line.end_date
+        ArtworkHistory = self.env['media.artwork.history']
+        domain = [
+            ('sale_order_line_id', '=', line.id),
+            ('lease_start_date', '!=', False),
+            ('lease_end_date', '!=', False),
+        ]
+        if line.media_face_id:
+            hists = ArtworkHistory.search(
+                domain + [('face_id', '=', line.media_face_id.id)]
+            )
+        else:
+            hists = ArtworkHistory.search(domain)
+        if not hists and line.media_face_id:
+            hists = ArtworkHistory.search(domain)
+        if hists:
+            return (
+                min(hists.mapped('lease_start_date')),
+                max(hists.mapped('lease_end_date')),
+            )
+        return False, False
+
     def _get_requested_transfer_range(self):
         self.ensure_one()
         if self.transfer_type == 'sale_order':
             if not self.source_line_id:
                 return False, False
-            return self.source_line_id.start_date, self.source_line_id.end_date
+            return self._get_lease_window_for_sale_line(self.source_line_id)
         if not self.start_date or not self.end_date:
             return False, False
         return self.start_date, self.end_date
@@ -267,6 +306,15 @@ class MediaBookingTransfer(models.TransientModel):
             target = self.target_face_id_b
         req_s, req_e = self._get_requested_transfer_range()
         if not req_s or not req_e or req_s > req_e:
+            if self.transfer_type == 'sale_order' and self.source_line_id and self.target_face_id:
+                return {
+                    'error': _(
+                        "This sale order line has no <b>Start / End</b> dates, and we could not find a "
+                        "booking or artwork log with lease dates for that line. Set the dates on the "
+                        "order line, or on the related booking / artwork log, then try again."
+                    ),
+                    'partial': False,
+                }
             return None
         excl = self.source_line_id if self.transfer_type == 'sale_order' else None
         segments = self._effective_transfer_segments(target, req_s, req_e, exclude_line=excl)
@@ -370,8 +418,13 @@ class MediaBookingTransfer(models.TransientModel):
         source_sol = self.source_line_id
         source_face = source_sol.media_face_id
         target_face = self.target_face_id
-        start_date = source_sol.start_date
-        end_date = source_sol.end_date
+        start_date, end_date = self._get_lease_window_for_sale_line(source_sol)
+        if not start_date or not end_date:
+            raise ValidationError(_(
+                "The sale order line has no lease start and end dates, and we could not infer them "
+                "from a linked booking or artwork log. Open order %s, set Start and End on the line, "
+                "or set lease dates on the booking log for that line, then try the transfer again."
+            ) % (source_sol.order_id.display_name,))
 
         if target_face == source_face:
             raise ValidationError(_("Source and target faces must be different."))
