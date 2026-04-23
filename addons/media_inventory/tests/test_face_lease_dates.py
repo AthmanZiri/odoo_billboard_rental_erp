@@ -81,6 +81,42 @@ class TestFaceLeaseDates(TransactionCase):
         self.assertEqual(self.face.latest_lease_start_date, start3)
         self.assertEqual(self.face.latest_lease_end_date, end3)
 
+    def test_latest_lease_uses_effective_dates_when_line_dates_empty(self):
+        """
+        Confirmed SOLs without start/end on the line should still count if the
+        period exists on linked artwork (same as Rentals). List columns must not
+        fall back to an older standalone history window only.
+        """
+        today = fields.Date.today()
+        old_start = today - relativedelta(months=3)
+        old_end = today - relativedelta(months=1)
+        self.ArtworkHistory.create({
+            'face_id': self.face.id,
+            'lease_start_date': old_start,
+            'lease_end_date': old_end,
+        })
+        new_start = today
+        new_end = today + relativedelta(months=3)
+        order = self.SO.create({
+            'partner_id': self.partner.id,
+            'order_line': [(0, 0, {
+                'product_id': self.face.product_id.id,
+                'media_face_id': self.face.id,
+                'price_unit': 1000,
+            })],
+        })
+        order.action_confirm()
+        sol = order.order_line[0]
+        self.ArtworkHistory.create({
+            'face_id': self.face.id,
+            'sale_order_line_id': sol.id,
+            'lease_start_date': new_start,
+            'lease_end_date': new_end,
+        })
+        self.face._compute_latest_lease_dates()
+        self.assertEqual(self.face.latest_lease_start_date, new_start)
+        self.assertEqual(self.face.latest_lease_end_date, new_end)
+
     def test_face_booked_when_future_sale_order_exists(self):
         """Occupancy must be booked if a confirmed line covers a future period (not only 'today')."""
         today = fields.Date.today()

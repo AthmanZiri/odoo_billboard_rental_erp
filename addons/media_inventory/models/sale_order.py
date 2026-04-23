@@ -19,7 +19,31 @@ class SaleOrderLine(models.Model):
     
     artwork_file = fields.Image(string='Artwork/Graphic', max_width=1920, max_height=1920)
     artwork_filename = fields.Char(string='Artwork Filename')
-    
+
+    def get_media_lease_effective_dates(self):
+        """(start_date, end_date) for this line: line fields, else linked booking/artwork log rows."""
+        self.ensure_one()
+        if self.start_date and self.end_date:
+            return self.start_date, self.end_date
+        History = self.env['media.artwork.history']
+        domain = [
+            ('sale_order_line_id', '=', self.id),
+            ('lease_start_date', '!=', False),
+            ('lease_end_date', '!=', False),
+        ]
+        if self.media_face_id:
+            h = History.search(
+                domain + [('face_id', '=', self.media_face_id.id)],
+                order='lease_end_date desc, lease_start_date desc',
+                limit=1,
+            )
+            if h:
+                return h.lease_start_date, h.lease_end_date
+        h = History.search(domain, order='lease_end_date desc, lease_start_date desc', limit=1)
+        if h:
+            return h.lease_start_date, h.lease_end_date
+        return False, False
+
     @api.constrains('media_face_id', 'media_digital_screen_id', 'start_date', 'end_date', 'state')
     def _check_availability(self):
         for line in self:

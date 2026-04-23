@@ -128,26 +128,35 @@ class MediaFace(models.Model):
 
     def _face_primary_rental_interval(self):
         """
-        One primary rental to show in list views: prefer confirmed sale order lines
-        (newest by start date) over artwork / manual booking log rows.
+        One primary rental for the face list: confirmed sale order lines (with
+        effective dates from the line or linked artwork) take precedence. Among
+        those, pick the *newest* window by latest end date, then start date, so
+        the list does not show an old log period when a more recent contract exists.
         """
         self.ensure_one()
         to_sol = self.transferred_out_sol_ids
         to_hist = self.transferred_out_history_ids
         sols = self.lease_line_ids.filtered(
-            lambda l: l.state in ['sale', 'done'] and l.start_date and l.end_date
-            and l.id not in to_sol.ids
+            lambda l: l.state in ['sale', 'done'] and l.id not in to_sol.ids
         )
-        if sols:
-            best = max(sols, key=lambda l: (l.start_date, l.end_date))
-            pid = best.order_id.partner_id.id if best.order_id.partner_id else False
-            return best.start_date, best.end_date, pid
+        candidates = []
+        for line in sols:
+            s, e = line.get_media_lease_effective_dates()
+            if s and e:
+                pid = line.order_id.partner_id.id if line.order_id.partner_id else False
+                candidates.append((s, e, pid))
+        if candidates:
+            best = max(candidates, key=lambda t: (t[1], t[0]))  # end, then start
+            return (best[0], best[1], best[2])
         hists = self.artwork_history_ids.filtered(
             lambda h: h.lease_start_date and h.lease_end_date
             and h.id not in to_hist.ids
         )
         if hists:
-            best = max(hists, key=lambda h: (h.lease_start_date, h.lease_end_date))
+            best = max(
+                hists,
+                key=lambda h: (h.lease_end_date, h.lease_start_date),
+            )
             pid = best.partner_id.id if best.partner_id else False
             return best.lease_start_date, best.lease_end_date, pid
         return (False, False, False)
@@ -190,7 +199,7 @@ class MediaFace(models.Model):
                 s, e, p = record._face_primary_rental_interval()
                 record.current_booking_start = s
                 record.current_booking_end = e
-                record.current_partner_id = p.id if p else False
+                record.current_partner_id = p if p else False
 
     @api.depends('width', 'height')
     def _compute_face_size(self):
@@ -259,17 +268,21 @@ class MediaFace(models.Model):
         for record in self:
             to_sol = record.transferred_out_sol_ids
             to_hist = record.transferred_out_history_ids
-            # Any current or future commitment (end not yet in the past) counts as booked,
-            # so the list does not show "available" while a future sale order would still block a new one.
-            open_sol = record.lease_line_ids.filtered(
-                lambda l: l.state in ['sale', 'done'] and l.start_date and l.end_date
-                and l.id not in to_sol.ids and l.end_date >= today
-            )
-            open_history = record.artwork_history_ids.filtered(
-                lambda h: h.lease_start_date and h.lease_end_date
-                and h.id not in to_hist.ids and h.lease_end_date >= today
-            )
-            if open_sol or open_history:
+            # Use effective end dates (line or linked log), same as list columns.
+            has_open = False
+            for line in record.lease_line_ids.filtered(
+                lambda l: l.state in ['sale', 'done'] and l.id not in to_sol.ids
+            ):
+                _s, e = line.get_media_lease_effective_dates()
+                if e and e >= today:
+                    has_open = True
+                    break
+            if not has_open:
+                has_open = bool(record.artwork_history_ids.filtered(
+                    lambda h: h.lease_start_date and h.lease_end_date
+                    and h.id not in to_hist.ids and h.lease_end_date >= today
+                ))
+            if has_open:
                 record.occupancy_status = 'booked'
             else:
                 has_draft = any(l.state == 'draft' for l in record.lease_line_ids)
