@@ -11,6 +11,10 @@
             <xpath expr="//field[@name='name']" position="replace">
                 <field name="item_description" string="Item Description" widget="text" optional="show"/>
             </xpath>
+            <xpath expr="//field[@name='item_description']" position="after">
+                <field name="start_date" string="Start Date" optional="show"/>
+                <field name="end_date" string="End Date" optional="show"/>
+            </xpath>
         </field>
     </record>
 </odoo>
