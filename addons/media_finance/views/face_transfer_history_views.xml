@@ -19,6 +19,9 @@
         <field name="priority" eval="30"/>
         <field name="arch" type="xml">
             <list string="Transfer history" create="0" delete="0" edit="0" default_order="date desc">
+                <header>
+                    <button name="%(media_finance.action_media_booking_transfer)d" type="action" string="New transfer" class="btn-primary"/>
+                </header>
                 <field name="date"/>
                 <field name="record_name" string="Face"/>
                 <field name="author_id" string="User"/>
@@ -37,7 +40,7 @@
         <field name="domain" eval="[('model', '=', 'media.face'), ('subtype_id', '=', ref('media_finance.mt_media_face_booking_transfer'))]"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No transfer events yet</p>
-            <p>Completed booking moves appear here. Use the <b>Start transfer</b> entry in the Operations menu to run a new transfer.</p>
+            <p>Completed booking moves appear here. Click <b>New transfer</b> (above) or <b>Start transfer</b> under Operations to run a new transfer.</p>
         </field>
     </record>
 
