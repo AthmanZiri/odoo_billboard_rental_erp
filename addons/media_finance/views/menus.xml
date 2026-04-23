@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Transfer Booking menu entry (under Operations section) -->
+    <!-- Transfer booking: list of past transfer log entries (chatter) -->
     <menuitem id="menu_media_booking_transfer"
               name="Transfer Booking"
               parent="media_inventory.menu_media_ops"
-              action="action_media_booking_transfer"
+              action="action_media_transfer_history"
               sequence="55"/>
+    <!-- Open the transfer wizard to move a booking between faces -->
+    <menuitem id="menu_media_booking_transfer_start"
+              name="Start Transfer"
+              parent="media_inventory.menu_media_ops"
+              action="action_media_booking_transfer"
+              sequence="56"/>
 </odoo>

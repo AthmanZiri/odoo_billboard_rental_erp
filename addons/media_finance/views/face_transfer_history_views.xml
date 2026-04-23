@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_mail_message_transfer_search" model="ir.ui.view">
+        <field name="name">mail.message.search.transfer.history</field>
+        <field name="model">mail.message</field>
+        <field name="arch" type="xml">
+            <search string="Transfer history">
+                <field name="body" string="Details"/>
+                <field name="author_id"/>
+                <field name="record_name" string="Face"/>
+                <field name="date"/>
+            </search>
+        </field>
+    </record>
+
     <record id="view_mail_message_face_transfer_list" model="ir.ui.view">
         <field name="name">mail.message.list.face.transfer.history</field>
         <field name="model">mail.message</field>
@@ -7,10 +20,24 @@
         <field name="arch" type="xml">
             <list string="Transfer history" create="0" delete="0" edit="0" default_order="date desc">
                 <field name="date"/>
+                <field name="record_name" string="Face"/>
                 <field name="author_id" string="User"/>
                 <field name="subtype_id" optional="hide"/>
                 <field name="body" string="Details" widget="html" optional="show"/>
             </list>
+        </field>
+    </record>
+
+    <record id="action_media_transfer_history" model="ir.actions.act_window">
+        <field name="name">Transfer booking</field>
+        <field name="res_model">mail.message</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_mail_message_transfer_search"/>
+        <field name="view_id" ref="view_mail_message_face_transfer_list"/>
+        <field name="domain" eval="[('model', '=', 'media.face'), ('subtype_id', '=', ref('media_finance.mt_media_face_booking_transfer'))]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No transfer events yet</p>
+            <p>Completed booking moves appear here. Use the <b>Start transfer</b> entry in the Operations menu to run a new transfer.</p>
         </field>
     </record>
 
