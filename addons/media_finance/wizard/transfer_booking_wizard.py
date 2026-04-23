@@ -401,6 +401,11 @@ class MediaBookingTransfer(models.TransientModel):
             },
         }
 
+    def _face_transfer_chatter_subtype(self):
+        return self.env.ref(
+            'media_finance.mt_media_face_booking_transfer', raise_if_not_found=False
+        )
+
     # ── Actions ───────────────────────────────────────────────────────────────
 
     def action_transfer(self):
@@ -514,18 +519,24 @@ class MediaBookingTransfer(models.TransientModel):
             period_line,
             source_sol.order_id.name,
         )
+        st = self._face_transfer_chatter_subtype()
+        mp_kw = {}
+        if st:
+            mp_kw['subtype_id'] = st.id
         source_face.message_post(
             body=_(
                 "Booking <b>moved away</b> from this face.<br/>%s<br/>"
                 "Now transferred to: <b>%s</b>. "
                 "Original SOL preserved for invoice continuity."
-            ) % (msg_template, target_face.display_name)
+            ) % (msg_template, target_face.display_name),
+            **mp_kw,
         )
         target_face.message_post(
             body=_(
                 "Booking <b>transferred to</b> this face.<br/>%s<br/>"
                 "Transferred from: <b>%s</b>."
-            ) % (msg_template, source_face.display_name)
+            ) % (msg_template, source_face.display_name),
+            **mp_kw,
         )
 
         (source_face | target_face)._compute_occupancy_status()
@@ -644,13 +655,19 @@ class MediaBookingTransfer(models.TransientModel):
             period_line,
             self.notes or _("N/A"),
         )
+        st = self._face_transfer_chatter_subtype()
+        mp_kw = {}
+        if st:
+            mp_kw['subtype_id'] = st.id
         source_face.message_post(
             body=_("Client commitment <b>moved away</b> from this face.<br/>%s<br/>Now on: <b>%s</b>.") % (
-                msg, target_face.display_name)
+                msg, target_face.display_name),
+            **mp_kw,
         )
         target_face.message_post(
             body=_("New face-to-face client commitment <b>recorded</b>.<br/>%s<br/>Moved from: <b>%s</b>.") % (
-                msg, source_face.display_name)
+                msg, source_face.display_name),
+            **mp_kw,
         )
 
         (source_face | target_face)._compute_occupancy_status()

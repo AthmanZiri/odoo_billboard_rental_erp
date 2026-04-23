@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="mt_media_face_booking_transfer" model="mail.message.subtype">
+            <field name="name">Booking transfer</field>
+            <field name="sequence">20</field>
+            <field name="res_model">media.face</field>
+            <field name="default" eval="False"/>
+        </record>
+    </data>
+</odoo>

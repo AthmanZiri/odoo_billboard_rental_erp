@@ -9,6 +9,7 @@
 
     'data': [
         'security/ir.model.access.csv',
+        'data/mail_message_subtype_data.xml',
         'data/ir_sequence_data.xml',
         'data/billing_crons.xml',
         'views/site_views.xml',
@@ -17,6 +18,7 @@
         'wizard/transfer_booking_wizard_views.xml',
         'views/rental_views.xml',
         'views/face_views_inherit.xml',
+        'views/face_transfer_history_views.xml',
         'views/account_move_views.xml',
         'views/menus.xml',
     ],

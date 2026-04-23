@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mail_message_face_transfer_list" model="ir.ui.view">
+        <field name="name">mail.message.list.face.transfer.history</field>
+        <field name="model">mail.message</field>
+        <field name="priority" eval="30"/>
+        <field name="arch" type="xml">
+            <list string="Transfer history" create="0" delete="0" edit="0" default_order="date desc">
+                <field name="date"/>
+                <field name="author_id" string="User"/>
+                <field name="subtype_id" optional="hide"/>
+                <field name="body" string="Details" widget="html" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_media_face_form_inherit_transfer_history" model="ir.ui.view">
+        <field name="name">media.face.form.inherit.transfer.history</field>
+        <field name="model">media.face</field>
+        <field name="inherit_id" ref="media_inventory.view_media_face_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_transfer_history" type="object"
+                        class="oe_stat_button" icon="fa-exchange">
+                    <field name="transfer_history_count" widget="statinfo" string="Transfers"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>
