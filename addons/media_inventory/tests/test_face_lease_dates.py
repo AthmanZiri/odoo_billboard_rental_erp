@@ -80,3 +80,55 @@ class TestFaceLeaseDates(TransactionCase):
         self.face._compute_latest_lease_dates()
         self.assertEqual(self.face.latest_lease_start_date, start3)
         self.assertEqual(self.face.latest_lease_end_date, end3)
+
+    def test_face_booked_when_future_sale_order_exists(self):
+        """Occupancy must be booked if a confirmed line covers a future period (not only 'today')."""
+        today = fields.Date.today()
+        start = today + relativedelta(months=1)
+        end = today + relativedelta(months=2)
+        order = self.SO.create({
+            'partner_id': self.partner.id,
+            'order_line': [(0, 0, {
+                'product_id': self.face.product_id.id,
+                'media_face_id': self.face.id,
+                'start_date': start,
+                'end_date': end,
+                'price_unit': 1000,
+            })],
+        })
+        order.action_confirm()
+        self.face._compute_occupancy_status()
+        self.assertEqual(self.face.occupancy_status, 'booked')
+
+    def test_overlapping_sol_ignores_transferred_out_line(self):
+        """A sale line marked transferred out must not block new bookings on that face."""
+        today = fields.Date.today()
+        start = today
+        end = today + relativedelta(days=20)
+        order = self.SO.create({
+            'partner_id': self.partner.id,
+            'order_line': [(0, 0, {
+                'product_id': self.face.product_id.id,
+                'media_face_id': self.face.id,
+                'start_date': start,
+                'end_date': end,
+                'price_unit': 1000,
+            })],
+        })
+        order.action_confirm()
+        sol = order.order_line[0]
+        self.face.sudo().write({
+            'transferred_out_sol_ids': [(4, sol.id)],
+        })
+        order2 = self.SO.create({
+            'partner_id': self.partner.id,
+            'order_line': [(0, 0, {
+                'product_id': self.face.product_id.id,
+                'media_face_id': self.face.id,
+                'start_date': start,
+                'end_date': end,
+                'price_unit': 1000,
+            })],
+        })
+        # Should not raise: transferred line is excluded from overlap
+        order2.action_confirm()

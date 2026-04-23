@@ -28,9 +28,12 @@ class SaleOrderLine(models.Model):
             
             # Check for overlapping bookings for static faces
             if line.media_face_id and line.media_face_id.face_type != 'digital':
+                face = line.media_face_id
+                to_ids = face.transferred_out_sol_ids.ids
                 domain = [
                     ('id', '!=', line.id),
-                    ('media_face_id', '=', line.media_face_id.id),
+                    ('id', 'not in', to_ids),
+                    ('media_face_id', '=', face.id),
                     ('state', 'in', ['sale', 'done']),
                     ('start_date', '<', line.end_date),
                     ('end_date', '>', line.start_date),
