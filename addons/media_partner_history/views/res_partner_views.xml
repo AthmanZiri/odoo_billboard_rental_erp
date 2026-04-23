@@ -27,6 +27,10 @@
                 <button class="oe_stat_button" type="object" name="action_view_billboard_history" icon="fa-th-large">
                     <field string="Billboards" name="billboard_count" widget="statinfo"/>
                 </button>
+                <button class="oe_stat_button" type="object" name="action_view_billboard_booking_faces" icon="fa-cubes"
+                        title="Distinct billboard faces with a rental that is active today or has ended (confirmed orders).">
+                    <field string="Faces" name="billboard_face_booking_count" widget="statinfo"/>
+                </button>
                 <button class="oe_stat_button" type="object" name="action_view_digital_history" icon="fa-television">
                     <field string="Digital" name="digital_count" widget="statinfo"/>
                 </button>

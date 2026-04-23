@@ -19,7 +19,22 @@ class ResPartner(models.Model):
     digital_artwork_count = fields.Integer(compute='_compute_artwork_counts', string='Digital Art')
     canopy_artwork_count = fields.Integer(compute='_compute_artwork_counts', string='Canopy Art')
 
+    billboard_booking_face_ids = fields.Many2many(
+        'media.face',
+        'res_partner_billboard_booking_face_rel',
+        'partner_id',
+        'face_id',
+        string='Billboard faces (client rentals)',
+        compute='_compute_media_history_lines',
+        help='Distinct billboard faces with a confirmed rental that is active today or has already ended.',
+    )
+    billboard_face_booking_count = fields.Integer(
+        compute='_compute_media_history_lines',
+        string='Faces',
+    )
+
     def _compute_media_history_lines(self):
+        today = fields.Date.today()
         for partner in self:
             # We fetch all confirmed sale order lines for this partner
             # that have any of our media-related fields set.
@@ -63,6 +78,26 @@ class ResPartner(models.Model):
             partner.canopy_count = len(canopy_lines)
             partner.printing_count = len(printing_lines)
 
+            active_face_ids = set()
+            past_face_ids = set()
+            for line in self.env['sale.order.line'].browse(billboard_lines):
+                face = line.media_face_id
+                if not face:
+                    continue
+                start, end = line.get_media_lease_effective_dates()
+                if not start:
+                    continue
+                if end:
+                    if end < today:
+                        past_face_ids.add(face.id)
+                    elif start <= today <= end:
+                        active_face_ids.add(face.id)
+                elif start <= today:
+                    active_face_ids.add(face.id)
+            booking_face_ids = list(active_face_ids | past_face_ids)
+            partner.billboard_booking_face_ids = [(6, 0, booking_face_ids)]
+            partner.billboard_face_booking_count = len(booking_face_ids)
+
     def _compute_artwork_counts(self):
         for partner in self:
             hist = self.env['media.artwork.history'].search([('partner_id', '=', partner.id)])
@@ -73,6 +108,17 @@ class ResPartner(models.Model):
     def action_view_billboard_history(self):
         view_id = self.env.ref('media_partner_history.view_sale_order_line_media_history_list').id
         return self._action_view_history(self.billboard_line_ids, _('Billboard History'), view_id=view_id)
+
+    def action_view_billboard_booking_faces(self):
+        self.ensure_one()
+        return {
+            'name': _('Billboard faces (active & past)'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'media.face',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', self.billboard_booking_face_ids.ids)],
+            'context': {'create': False},
+        }
 
     def action_view_digital_history(self):
         view_id = self.env.ref('media_partner_history.view_sale_order_line_media_history_list').id
