@@ -361,11 +361,13 @@ class MediaFace(models.Model):
 
     def action_view_rentals(self):
         self.ensure_one()
+        list_view = self.env.ref('media_inventory.view_sale_order_line_face_rentals_list')
         return {
             'name': _('Rentals'),
             'type': 'ir.actions.act_window',
             'res_model': 'sale.order.line',
             'view_mode': 'list,form',
+            'views': [(list_view.id, 'list'), (False, 'form')],
             'domain': [('id', 'in', self.lease_line_ids.ids)],
         }
 

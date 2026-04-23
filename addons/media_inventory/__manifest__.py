@@ -19,6 +19,7 @@
         'data/inventory_crons.xml',
         'wizard/canopy_status_wizard_views.xml',
         'views/site_views.xml',
+        'views/face_rental_line_views.xml',
         'views/face_views.xml',
         'views/digital_screen_views.xml',
         'views/sale_views.xml',

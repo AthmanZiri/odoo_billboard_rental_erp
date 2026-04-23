@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List used by Face / Site "Rentals" stat button: show media item description instead of product line text -->
+    <record id="view_sale_order_line_face_rentals_list" model="ir.ui.view">
+        <field name="name">sale.order.line.list.face.rentals</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.view_order_line_tree"/>
+        <field name="mode">primary</field>
+        <field name="priority" eval="32"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="replace">
+                <field name="item_description" string="Item Description" widget="text" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
