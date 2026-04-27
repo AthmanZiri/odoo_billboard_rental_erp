@@ -318,6 +318,14 @@ class MediaCanopy(models.Model):
 
     site_id = fields.Many2one('media.site', string='Base Site', required=True, ondelete='cascade')
 
+    # Explicit path to site history: _inherits + One2many inverses can resolve to the canopy id
+    # instead of media.site id, hiding rows on this form while they still appear on the global list.
+    canopy_renovation_ids = fields.One2many(
+        related='site_id.artwork_history_ids',
+        readonly=True,
+        string='Canopy Renovations',
+    )
+
     duka_type = fields.Selection([
         ('normal_shop', 'Normal Shop'),
         ('modern_kiosk', 'Modern Kiosk'),
@@ -359,7 +367,7 @@ class MediaCanopy(models.Model):
     last_renovation_date = fields.Date(string='Last Renovated', compute='_compute_last_renovation', store=True)
     last_renovation_id = fields.Many2one('media.artwork.history', string='Last Renovation Artwork', compute='_compute_last_renovation', store=True)
 
-    @api.depends('artwork_history_ids', 'artwork_history_ids.renovation_date')
+    @api.depends('canopy_renovation_ids', 'canopy_renovation_ids.renovation_date')
     def _compute_last_renovation(self):
         for record in self:
             # Get the latest artwork history record with a renovation date

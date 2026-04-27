@@ -275,7 +275,7 @@
                     </group>
                 </page>
                 <page string="Canopy Renovations" name="artwork_history">
-                    <field name="artwork_history_ids" readonly="1">
+                    <field name="canopy_renovation_ids" readonly="1">
                         <list>
                             <field name="renovation_date" string="Date"/>
                             <field name="artwork_file" string="Renovation Image" widget="image" options="{'size': [64, 64]}"/>

@@ -78,6 +78,59 @@ class MediaArtworkHistory(models.Model):
             
             record.item_description = "\n".join(lines)
 
+    def _sync_linked_asset_images(self, write_vals=None):
+        """Copy artwork/measurement from history onto faces, canopies, billboards, digital screens.
+
+        :param write_vals: if passed (from ``write``), only keys present are considered *changed*;
+          used so clearing ``measurement_image`` propagates. If ``None`` (from ``create``), sync all
+          applicable non-empty values like before. Site or category moves re-push current images.
+        """
+        if self.env.context.get('skip_face_sync'):
+            return
+        for record in self:
+            is_create = write_vals is None
+            site_moved = bool(
+                write_vals and ('site_id' in write_vals or 'site_category' in write_vals)
+            )
+            full_push = is_create or site_moved
+
+            if record.face_id and record.artwork_file:
+                if full_push or (
+                    write_vals
+                    and ('artwork_file' in write_vals or 'face_id' in write_vals)
+                ):
+                    record.face_id.with_context(skip_history_creation=True).write({
+                        'default_artwork': record.artwork_file,
+                        'face_image': record.artwork_file,
+                    })
+
+            if record.site_category == 'canopy' and record.site_id:
+                cvals = {}
+                if full_push:
+                    if record.artwork_file:
+                        cvals['canopy_image'] = record.artwork_file
+                    if record.measurement_image:
+                        cvals['measurement_image_1'] = record.measurement_image
+                else:
+                    if 'artwork_file' in write_vals:
+                        cvals['canopy_image'] = record.artwork_file
+                    if 'measurement_image' in write_vals:
+                        cvals['measurement_image_1'] = record.measurement_image
+                if cvals:
+                    canopy = self.env['media.canopy'].search([('site_id', '=', record.site_id.id)], limit=1)
+                    if canopy:
+                        canopy.with_context(skip_history_creation=True).write(cvals)
+            elif record.site_category == 'billboard' and record.site_id:
+                if record.artwork_file and (full_push or (write_vals and 'artwork_file' in write_vals)):
+                    billboard = self.env['media.billboard'].search([('site_id', '=', record.site_id.id)], limit=1)
+                    if billboard:
+                        billboard.with_context(skip_history_creation=True).write({'image_1': record.artwork_file})
+            elif record.site_category == 'digital' and record.site_id:
+                if record.artwork_file and (full_push or (write_vals and 'artwork_file' in write_vals)):
+                    screen = self.env['media.digital.screen'].search([('site_id', '=', record.site_id.id)], limit=1)
+                    if screen:
+                        screen.with_context(skip_history_creation=True).write({'image_1': record.artwork_file})
+
     @api.model_create_multi
     def create(self, vals_list):
         if self.env.context.get('skip_baseline_archiving'):
@@ -158,39 +211,8 @@ class MediaArtworkHistory(models.Model):
         for face in records.mapped('face_id'):
              face.modified(['occupancy_status', 'current_booking_start', 'current_booking_end', 'next_available_date'])
         
-        # Sync to face if not already coming from face update
-        if not self.env.context.get('skip_face_sync'):
-            for record in records:
-                if record.face_id and record.artwork_file:
-                    record.face_id.with_context(skip_history_creation=True).write({
-                        'default_artwork': record.artwork_file,
-                        'face_image': record.artwork_file,
-                    })
-                
-                # Sync Canopy specific images
-                if record.site_category == 'canopy' and record.site_id:
-                    vals = {}
-                    if record.artwork_file:
-                        vals['canopy_image'] = record.artwork_file
-                    if record.measurement_image:
-                        vals['measurement_image_1'] = record.measurement_image
-                    
-                    if vals:
-                        canopy = self.env['media.canopy'].search([('site_id', '=', record.site_id.id)], limit=1)
-                        if canopy:
-                            canopy.with_context(skip_history_creation=True).write(vals)
-                # Sync Billboard specific images
-                elif record.site_category == 'billboard' and record.site_id:
-                    if record.artwork_file:
-                        billboard = self.env['media.billboard'].search([('site_id', '=', record.site_id.id)], limit=1)
-                        if billboard:
-                            billboard.with_context(skip_history_creation=True).write({'image_1': record.artwork_file})
-                # Sync Digital Screen specific images
-                elif record.site_category == 'digital' and record.site_id:
-                    if record.artwork_file:
-                        screen = self.env['media.digital.screen'].search([('site_id', '=', record.site_id.id)], limit=1)
-                        if screen:
-                            screen.with_context(skip_history_creation=True).write({'image_1': record.artwork_file})
+        # Sync to face / site assets (same rules as write)
+        records._sync_linked_asset_images(write_vals=None)
         return records
 
     def write(self, vals):
@@ -198,6 +220,9 @@ class MediaArtworkHistory(models.Model):
         if any(f in vals for f in ['lease_start_date', 'lease_end_date', 'face_id']):
             for face in self.mapped('face_id'):
                 face.modified(['occupancy_status', 'current_booking_start', 'current_booking_end', 'next_available_date'])
+        sync_fields = {'artwork_file', 'measurement_image', 'site_id', 'site_category', 'face_id'}
+        if sync_fields & vals.keys():
+            self._sync_linked_asset_images(write_vals=vals)
         return res
 
     @api.onchange('site_id')
