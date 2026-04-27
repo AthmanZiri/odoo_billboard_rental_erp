@@ -17,6 +17,7 @@
         'data/ir_sequence_data.xml',
         'data/digital_screen_sequence.xml',
         'data/inventory_crons.xml',
+        'data/artwork_history_server_actions.xml',
         'wizard/canopy_status_wizard_views.xml',
         'views/site_views.xml',
         'views/face_rental_line_views.xml',

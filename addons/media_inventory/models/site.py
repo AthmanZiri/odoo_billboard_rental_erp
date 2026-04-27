@@ -431,4 +431,23 @@ class MediaCanopy(models.Model):
             }
         }
 
+    def action_relink_historical_renovations_for_canopy(self):
+        """Fix old renovation lines tied to this canopy's faces but missing/wrong ``site_id``."""
+        self.ensure_one()
+        if not self.face_ids:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No faces on this canopy'),
+                    'message': _(
+                        'Link old renovations from the Canopy Renovations list action '
+                        '"Link to canopy site from face", or set the Canopy field on each line.'
+                    ),
+                    'type': 'warning',
+                },
+            }
+        histories = self.env['media.artwork.history'].search([('face_id', 'in', self.face_ids.ids)])
+        return histories.action_relink_canopy_site_from_face()
+
 

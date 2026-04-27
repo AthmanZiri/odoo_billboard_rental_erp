@@ -277,6 +277,43 @@ class MediaArtworkHistory(models.Model):
             if record.site_category != 'canopy' and not record.face_id:
                 raise ValidationError(_("The field 'Face' is required for billboards and digital screens."))
 
+    def action_relink_canopy_site_from_face(self):
+        """Set ``site_id`` / ``site_category`` from the linked face for canopy sites.
+
+        Older rows often had ``face_id`` but no ``site_id``, so they did not show on the canopy
+        profile (which lists by site). Skips non-canopy faces. Uses ``skip_face_sync`` so we do
+        not overwrite current canopy images in bulk.
+        """
+        updated = 0
+        for rec in self:
+            if not rec.face_id or not rec.face_id.site_id:
+                continue
+            site = rec.face_id.site_id
+            if site.site_category != 'canopy':
+                continue
+            if rec.site_id == site and rec.site_category == 'canopy':
+                continue
+            rec.with_context(skip_face_sync=True).write({
+                'site_id': site.id,
+                'site_category': 'canopy',
+            })
+            updated += 1
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Renovation site link'),
+                'message': _('%d record(s) linked to the canopy site.', updated),
+                'type': 'success',
+            },
+        }
+
+    @api.model
+    def action_relink_all_orphan_canopy_sites(self):
+        """Link every canopy renovation that has a face on a canopy site but missing/mismatched site."""
+        candidates = self.search([('face_id', '!=', False)])
+        return candidates.action_relink_canopy_site_from_face()
+
     def name_get(self):
         result = []
         for record in self:
