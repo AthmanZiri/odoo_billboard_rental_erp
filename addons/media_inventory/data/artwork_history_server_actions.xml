@@ -20,15 +20,4 @@ if records:
 action = env['media.artwork.history'].action_relink_all_orphan_canopy_sites()
         </field>
     </record>
-
-    <!-- Form button: Odoo 18+ may reject type="object" for some methods on delegated models. -->
-    <record id="action_server_relink_historical_canopy_form" model="ir.actions.server">
-        <field name="name">Link old canopy renovation lines</field>
-        <field name="model_id" ref="model_media_canopy"/>
-        <field name="state">code</field>
-        <field name="code">
-if records:
-    action = records.action_relink_historical_renovations_for_canopy()
-        </field>
-    </record>
 </odoo>

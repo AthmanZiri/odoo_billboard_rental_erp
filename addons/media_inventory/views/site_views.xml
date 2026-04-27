@@ -214,6 +214,17 @@
         </field>
     </record>
 
+    <!-- Defined here (before the form) so %(action_server_relink_historical_canopy_form)d resolves at load. -->
+    <record id="action_server_relink_historical_canopy_form" model="ir.actions.server">
+        <field name="name">Link old canopy renovation lines</field>
+        <field name="model_id" ref="model_media_canopy"/>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_relink_historical_renovations_for_canopy()
+        </field>
+    </record>
+
     <record id="view_media_canopy_form" model="ir.ui.view">
         <field name="name">media.canopy.form</field>
         <field name="model">media.canopy</field>
@@ -276,7 +287,7 @@
                 </page>
                 <page string="Canopy Renovations" name="artwork_history">
                     <div class="mb-2 text-muted">
-                        <button name="%(media_inventory.action_server_relink_historical_canopy_form)d" type="action"
+                        <button name="%(action_server_relink_historical_canopy_form)d" type="action"
                                 string="Link old renovation lines from faces" class="btn btn-secondary"
                                 title="Sets the Site on history rows that have a Face on this canopy but a missing or wrong Site, so they appear in the list. Does not overwrite current canopy photos."/>
                     </div>
