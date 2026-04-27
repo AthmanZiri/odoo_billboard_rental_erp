@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Load before menuitem below so action xmlid exists (same issue as relink on canopy form). -->
+    <record id="action_server_relink_all_orphan_canopy_sites" model="ir.actions.server">
+        <field name="name">Link all orphan canopy renovations (from faces)</field>
+        <field name="model_id" ref="model_media_artwork_history"/>
+        <field name="state">code</field>
+        <field name="code">
+action = env['media.artwork.history'].action_relink_all_orphan_canopy_sites()
+        </field>
+    </record>
+
     <menuitem id="menu_media_root" name="Billboard System" web_icon="media_inventory,static/description/icon.png"/>
 
     <!-- 1) Dashboard -->
@@ -21,7 +31,6 @@
     <menuitem id="menu_canopy_list" name="Canopy Assets" parent="menu_canopy_root" action="action_media_canopy" sequence="10"/>
     <menuitem id="menu_canopy_artwork" name="Canopy Renovations" parent="menu_canopy_root" action="action_media_artwork_canopy" sequence="20"/>
     <menuitem id="menu_canopy_update_status" name="Update Canopy Status" parent="menu_canopy_root" action="action_canopy_status_wizard" sequence="40"/>
-    <menuitem id="menu_relink_orphan_canopy_sites" name="Link orphan renovation sites" parent="menu_media_config" action="action_server_relink_all_orphan_canopy_sites" groups="base.group_system" sequence="50"/>
 
     <!-- 5) Operations -->
     <menuitem id="menu_media_ops" name="Operations" parent="menu_media_root" sequence="40"/>
@@ -56,6 +65,7 @@
 
     <!-- 8) Configuration -->
     <menuitem id="menu_media_config" name="Configuration" parent="menu_media_root" sequence="100"/>
+    <menuitem id="menu_relink_orphan_canopy_sites" name="Link orphan renovation sites" parent="menu_media_config" action="action_server_relink_all_orphan_canopy_sites" groups="base.group_system" sequence="5"/>
     <menuitem id="menu_media_location" name="Locations" parent="menu_media_config" sequence="10"/>
     <menuitem id="menu_media_county" name="Counties" parent="menu_media_location" action="action_media_county" sequence="10"/>
     <menuitem id="menu_media_sub_county" name="Sub-Counties" parent="menu_media_location" action="action_media_sub_county" sequence="20"/>
