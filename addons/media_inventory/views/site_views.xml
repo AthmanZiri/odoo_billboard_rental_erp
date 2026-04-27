@@ -276,7 +276,7 @@
                 </page>
                 <page string="Canopy Renovations" name="artwork_history">
                     <div class="mb-2 text-muted">
-                        <button name="action_relink_historical_renovations_for_canopy" type="object"
+                        <button name="%(media_inventory.action_server_relink_historical_canopy_form)d" type="action"
                                 string="Link old renovation lines from faces" class="btn btn-secondary"
                                 title="Sets the Site on history rows that have a Face on this canopy but a missing or wrong Site, so they appear in the list. Does not overwrite current canopy photos."/>
                     </div>
