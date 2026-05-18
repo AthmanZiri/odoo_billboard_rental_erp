@@ -69,6 +69,28 @@
         </field>
     </record>
 
+    <record id="view_media_canopy_form_inherit_team" model="ir.ui.view">
+        <field name="name">media.canopy.form.inherit.team</field>
+        <field name="model">media.canopy</field>
+        <field name="inherit_id" ref="media_inventory.view_media_canopy_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='allocated_date']" position="after">
+                <field name="maintenance_team_id" options="{'no_create': True}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_media_canopy_tree_inherit_team" model="ir.ui.view">
+        <field name="name">media.canopy.list.inherit.team</field>
+        <field name="model">media.canopy</field>
+        <field name="inherit_id" ref="media_inventory.view_media_canopy_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='status']" position="after">
+                <field name="maintenance_team_id" string="Team"/>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Extend Canopy Form Renovations List -->
     <record id="view_media_canopy_form_inherit_renovations" model="ir.ui.view">
         <field name="name">media.canopy.form.inherit.renovations</field>

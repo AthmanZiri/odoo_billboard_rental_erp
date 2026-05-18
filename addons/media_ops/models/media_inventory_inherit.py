@@ -46,6 +46,12 @@ class MediaFace(models.Model):
 class MediaCanopy(models.Model):
     _inherit = 'media.canopy'
 
+    maintenance_team_id = fields.Many2one(
+        'media.maintenance.team',
+        string='Maintenance Team',
+        tracking=True,
+    )
+
     # Delegate to the site_id's job cards
     job_card_ids = fields.One2many(related='site_id.job_card_ids', string='Job Cards', readonly=True)
     job_card_count = fields.Integer(related='site_id.job_card_count', string='Job Card Count', readonly=True)
@@ -53,6 +59,14 @@ class MediaCanopy(models.Model):
     def action_view_job_cards(self):
         self.ensure_one()
         return self.site_id.action_view_job_cards()
+
+    def action_renovate(self):
+        action = super().action_renovate()
+        if self.maintenance_team_id and isinstance(action, dict):
+            ctx = dict(action.get('context') or {})
+            ctx['default_maintenance_team_id'] = self.maintenance_team_id.id
+            action['context'] = ctx
+        return action
 
 class MediaArtworkHistory(models.Model):
     _inherit = 'media.artwork.history'
