@@ -29,6 +29,7 @@ action = env['media.artwork.history'].action_relink_all_orphan_canopy_sites()
     <!-- 4) Canopies -->
     <menuitem id="menu_canopy_root" name="Canopies" parent="menu_media_root" sequence="30"/>
     <menuitem id="menu_canopy_list" name="Canopy Assets" parent="menu_canopy_root" action="action_media_canopy" sequence="10"/>
+    <menuitem id="menu_canopy_list_all" name="All Canopies (incl. inactive)" parent="menu_canopy_root" action="action_media_canopy_all" sequence="11"/>
     <menuitem id="menu_canopy_artwork" name="Canopy Renovations" parent="menu_canopy_root" action="action_media_artwork_canopy" sequence="20"/>
     <menuitem id="menu_canopy_update_status" name="Update Canopy Status" parent="menu_canopy_root" action="action_canopy_status_wizard" sequence="40"/>
 
@@ -59,7 +60,10 @@ action = env['media.artwork.history'].action_relink_all_orphan_canopy_sites()
     <menuitem id="menu_media_report_rentals" name="All Rentals" parent="menu_media_reports_root" action="sale.action_order_report_all" sequence="20"/>
     <menuitem id="menu_media_report_available" name="Available Assets" parent="menu_media_reports_root" action="action_media_face_available" sequence="30"/>
     <menuitem id="menu_media_report_reserved" name="Reserved Assets" parent="menu_media_reports_root" action="action_media_face_reserved" sequence="40"/>
-    <menuitem id="menu_media_report_soon" name="Soon to be Available" parent="menu_media_reports_root" action="action_media_face_soon" sequence="50"/>
+    <menuitem id="menu_media_report_soon" name="Available in 1 Month" parent="menu_media_reports_root" action="action_media_face_soon" sequence="50"/>
+    <menuitem id="menu_media_report_available_14" name="Available in 2 Weeks" parent="menu_media_reports_root" action="action_media_face_available_14" sequence="55"/>
+    <menuitem id="menu_media_report_available_7" name="Available in 1 Week" parent="menu_media_reports_root" action="action_media_face_available_7" sequence="57"/>
+    <menuitem id="menu_media_report_available_2" name="Available in 2 Days" parent="menu_media_reports_root" action="action_media_face_available_2" sequence="58"/>
     <menuitem id="menu_media_report_expired" name="Expired Assets" parent="menu_media_reports_root" action="action_media_face_expired" sequence="60"/>
     <menuitem id="menu_media_report_canopy" name="Canopy Reports" parent="menu_media_reports_root" action="action_media_canopy" sequence="70"/>
 
