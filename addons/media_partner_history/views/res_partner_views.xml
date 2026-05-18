@@ -52,23 +52,35 @@
             </div>
             <xpath expr="//notebook" position="inside">
                 <page string="Media History" name="media_history">
-                    <separator string="Billboard Rentals"/>
-                    <field name="billboard_line_ids" widget="many2many" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
+                    <separator string="Current Billboard Bookings"/>
+                    <field name="current_billboard_line_ids" widget="many2many" nolabel="1" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
                         <list ref="media_partner_history.view_sale_order_line_media_history_list"/>
                     </field>
-                    
-                    <separator string="Digital Slot Rentals"/>
-                    <field name="digital_line_ids" widget="many2many" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
+                    <separator string="Past Billboard Bookings"/>
+                    <field name="past_billboard_line_ids" widget="many2many" nolabel="1" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
                         <list ref="media_partner_history.view_sale_order_line_media_history_list"/>
                     </field>
- 
-                    <separator string="Canopy Rentals"/>
-                    <field name="canopy_line_ids" widget="many2many" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
+
+                    <separator string="Current Digital Bookings"/>
+                    <field name="current_digital_line_ids" widget="many2many" nolabel="1" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
+                        <list ref="media_partner_history.view_sale_order_line_media_history_list"/>
+                    </field>
+                    <separator string="Past Digital Bookings"/>
+                    <field name="past_digital_line_ids" widget="many2many" nolabel="1" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
+                        <list ref="media_partner_history.view_sale_order_line_media_history_list"/>
+                    </field>
+
+                    <separator string="Current Canopy Bookings"/>
+                    <field name="current_canopy_line_ids" widget="many2many" nolabel="1" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
+                        <list ref="media_partner_history.view_sale_order_line_media_history_list"/>
+                    </field>
+                    <separator string="Past Canopy Bookings"/>
+                    <field name="past_canopy_line_ids" widget="many2many" nolabel="1" context="{'list_view_id': 'media_partner_history.view_sale_order_line_media_history_list'}">
                         <list ref="media_partner_history.view_sale_order_line_media_history_list"/>
                     </field>
 
                     <separator string="Printing &amp; Other Services"/>
-                    <field name="printing_line_ids" widget="many2many"/>
+                    <field name="printing_line_ids" widget="many2many" nolabel="1"/>
                 </page>
             </xpath>
         </field>

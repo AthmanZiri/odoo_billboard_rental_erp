@@ -10,6 +10,25 @@ class ResPartner(models.Model):
     canopy_line_ids = fields.Many2many('sale.order.line', string='Canopy History', compute='_compute_media_history_lines')
     printing_line_ids = fields.Many2many('sale.order.line', string='Printing History', compute='_compute_media_history_lines')
 
+    current_billboard_line_ids = fields.Many2many(
+        'sale.order.line', compute='_compute_booking_period_lines', string='Current Billboard Bookings',
+    )
+    past_billboard_line_ids = fields.Many2many(
+        'sale.order.line', compute='_compute_booking_period_lines', string='Past Billboard Bookings',
+    )
+    current_digital_line_ids = fields.Many2many(
+        'sale.order.line', compute='_compute_booking_period_lines', string='Current Digital Bookings',
+    )
+    past_digital_line_ids = fields.Many2many(
+        'sale.order.line', compute='_compute_booking_period_lines', string='Past Digital Bookings',
+    )
+    current_canopy_line_ids = fields.Many2many(
+        'sale.order.line', compute='_compute_booking_period_lines', string='Current Canopy Bookings',
+    )
+    past_canopy_line_ids = fields.Many2many(
+        'sale.order.line', compute='_compute_booking_period_lines', string='Past Canopy Bookings',
+    )
+
     billboard_count = fields.Integer(compute='_compute_media_history_lines', string='Billboards')
     digital_count = fields.Integer(compute='_compute_media_history_lines', string='Digital Slots')
     canopy_count = fields.Integer(compute='_compute_media_history_lines', string='Canopies')
@@ -97,6 +116,55 @@ class ResPartner(models.Model):
             booking_face_ids = list(active_face_ids | past_face_ids)
             partner.billboard_booking_face_ids = [(6, 0, booking_face_ids)]
             partner.billboard_face_booking_count = len(booking_face_ids)
+
+    def _line_is_current(self, line, today):
+        start, end = line.get_media_lease_effective_dates()
+        if not start:
+            return False
+        if end:
+            return start <= today <= end
+        return start <= today
+
+    def _line_is_past(self, line, today):
+        start, end = line.get_media_lease_effective_dates()
+        if not end:
+            return False
+        return end < today
+
+    @api.depends('billboard_line_ids', 'digital_line_ids', 'canopy_line_ids')
+    def _compute_booking_period_lines(self):
+        today = fields.Date.today()
+        for partner in self:
+            partner.current_billboard_line_ids = [
+                (6, 0, partner.billboard_line_ids.filtered(
+                    lambda l: partner._line_is_current(l, today)
+                ).ids)
+            ]
+            partner.past_billboard_line_ids = [
+                (6, 0, partner.billboard_line_ids.filtered(
+                    lambda l: partner._line_is_past(l, today)
+                ).ids)
+            ]
+            partner.current_digital_line_ids = [
+                (6, 0, partner.digital_line_ids.filtered(
+                    lambda l: partner._line_is_current(l, today)
+                ).ids)
+            ]
+            partner.past_digital_line_ids = [
+                (6, 0, partner.digital_line_ids.filtered(
+                    lambda l: partner._line_is_past(l, today)
+                ).ids)
+            ]
+            partner.current_canopy_line_ids = [
+                (6, 0, partner.canopy_line_ids.filtered(
+                    lambda l: partner._line_is_current(l, today)
+                ).ids)
+            ]
+            partner.past_canopy_line_ids = [
+                (6, 0, partner.canopy_line_ids.filtered(
+                    lambda l: partner._line_is_past(l, today)
+                ).ids)
+            ]
 
     def _compute_artwork_counts(self):
         for partner in self:
