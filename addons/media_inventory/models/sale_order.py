@@ -5,6 +5,21 @@ from dateutil.relativedelta import relativedelta
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    media_reserve_inventory = fields.Boolean(
+        string='Reserve Faces',
+        default=False,
+        help="When enabled, faces on draft or sent quotations are marked as reserved in inventory. "
+             "Leave off to share quotations without holding inventory.",
+    )
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'media_reserve_inventory' in vals:
+            faces = self.order_line.mapped('media_face_id').filtered(lambda f: f)
+            if faces:
+                faces._compute_occupancy_status()
+                faces._compute_status_flags()
+        return res
 
 
 class SaleOrderLine(models.Model):
