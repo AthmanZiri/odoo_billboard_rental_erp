@@ -81,6 +81,39 @@ class TestFaceLeaseDates(TransactionCase):
         self.assertEqual(self.face.latest_lease_start_date, start3)
         self.assertEqual(self.face.latest_lease_end_date, end3)
 
+    def test_latest_lease_uses_most_recent_sale_order_not_longest_end(self):
+        """Newer sale order wins even when an older order still has a later end date."""
+        today = fields.Date.today()
+        start1 = today
+        end1 = today + relativedelta(months=6)
+        order1 = self.SO.create({
+            'partner_id': self.partner.id,
+            'order_line': [(0, 0, {
+                'product_id': self.face.product_id.id,
+                'media_face_id': self.face.id,
+                'start_date': start1,
+                'end_date': end1,
+            })],
+        })
+        order1.action_confirm()
+
+        start2 = today + relativedelta(days=5)
+        end2 = today + relativedelta(months=1)
+        order2 = self.SO.create({
+            'partner_id': self.partner.id,
+            'date_order': fields.Datetime.now(),
+            'order_line': [(0, 0, {
+                'product_id': self.face.product_id.id,
+                'media_face_id': self.face.id,
+                'start_date': start2,
+                'end_date': end2,
+            })],
+        })
+        order2.action_confirm()
+        self.face._compute_latest_lease_dates()
+        self.assertEqual(self.face.latest_lease_start_date, start2)
+        self.assertEqual(self.face.latest_lease_end_date, end2)
+
     def test_latest_lease_uses_effective_dates_when_line_dates_empty(self):
         """
         Confirmed SOLs without start/end on the line should still count if the

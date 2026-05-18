@@ -120,34 +120,50 @@ class MediaFace(models.Model):
     
     latest_lease_start_date = fields.Date(string='Latest Lease Start', compute='_compute_latest_lease_dates', store=True)
     latest_lease_end_date = fields.Date(string='Latest Lease End', compute='_compute_latest_lease_dates', store=True)
-    
+    lease_summary = fields.Text(string='Description', compute='_compute_lease_summary', store=True)
+
     is_soon_available = fields.Boolean(compute='_compute_status_flags', store=True)
+    is_available_in_14_days = fields.Boolean(compute='_compute_status_flags', store=True)
     is_available_in_7_days = fields.Boolean(compute='_compute_status_flags', store=True)
+    is_available_in_2_days = fields.Boolean(compute='_compute_status_flags', store=True)
     is_expired = fields.Boolean(compute='_compute_status_flags', store=True)
     is_reserved = fields.Boolean(compute='_compute_status_flags', store=True)
 
-    def _face_primary_rental_interval(self):
-        """
-        One primary rental for the face list: confirmed sale order lines (with
-        effective dates from the line or linked artwork) take precedence. Among
-        those, pick the *newest* window by latest end date, then start date, so
-        the list does not show an old log period when a more recent contract exists.
-        """
+    def _face_most_recent_sale_line(self):
+        """Confirmed, non-transferred line from the most recent sale order (by order date)."""
         self.ensure_one()
         to_sol = self.transferred_out_sol_ids
-        to_hist = self.transferred_out_history_ids
         sols = self.lease_line_ids.filtered(
-            lambda l: l.state in ['sale', 'done'] and l.id not in to_sol.ids
+            lambda l: l.state in ('sale', 'done') and l.id not in to_sol.ids
         )
         candidates = []
         for line in sols:
             s, e = line.get_media_lease_effective_dates()
-            if s and e:
-                pid = line.order_id.partner_id.id if line.order_id.partner_id else False
-                candidates.append((s, e, pid))
-        if candidates:
-            best = max(candidates, key=lambda t: (t[1], t[0]))  # end, then start
-            return (best[0], best[1], best[2])
+            if not (s and e):
+                continue
+            order = line.order_id
+            sort_key = (
+                order.date_order or fields.Datetime.from_string('1970-01-01 00:00:00'),
+                line.create_date or fields.Datetime.from_string('1970-01-01 00:00:00'),
+                line.id,
+            )
+            candidates.append((sort_key, line))
+        if not candidates:
+            return self.env['sale.order.line']
+        return max(candidates, key=lambda t: t[0])[1]
+
+    def _face_primary_rental_interval(self):
+        """
+        Primary rental for list columns: lease start/end from the most recent
+        confirmed sale order line; manual artwork history only if no SOL exists.
+        """
+        self.ensure_one()
+        line = self._face_most_recent_sale_line()
+        if line:
+            s, e = line.get_media_lease_effective_dates()
+            pid = line.order_id.partner_id.id if line.order_id.partner_id else False
+            return (s, e, pid)
+        to_hist = self.transferred_out_history_ids
         hists = self.artwork_history_ids.filtered(
             lambda h: h.lease_start_date and h.lease_end_date
             and h.id not in to_hist.ids
@@ -155,7 +171,7 @@ class MediaFace(models.Model):
         if hists:
             best = max(
                 hists,
-                key=lambda h: (h.lease_end_date, h.lease_start_date),
+                key=lambda h: (h.create_date or fields.Datetime.from_string('1970-01-01'), h.id),
             )
             pid = best.partner_id.id if best.partner_id else False
             return best.lease_start_date, best.lease_end_date, pid
@@ -168,38 +184,44 @@ class MediaFace(models.Model):
             record.latest_lease_start_date = s
             record.latest_lease_end_date = e
 
-    @api.depends('lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date', 'transferred_out_sol_ids', 'transferred_out_history_ids')
+    @api.depends(
+        'lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date',
+        'lease_line_ids.order_id.date_order', 'lease_line_ids.create_date',
+        'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date',
+        'transferred_out_sol_ids', 'transferred_out_history_ids',
+    )
     def _compute_current_booking_dates(self):
         today = fields.Date.today()
         for record in self:
             to_sol = record.transferred_out_sol_ids
             to_hist = record.transferred_out_history_ids
-            active_lease = record.lease_line_ids.filtered(lambda l: 
-                l.state in ['sale', 'done'] and 
-                l.start_date and l.end_date and
-                l.start_date <= today <= l.end_date and
-                l.id not in to_sol.ids
-            ).sorted(key=lambda l: l.end_date, reverse=True)
-            
+            active_leases = []
+            for line in record.lease_line_ids.filtered(
+                lambda l: l.state in ('sale', 'done') and l.id not in to_sol.ids
+            ):
+                s, e = line.get_media_lease_effective_dates()
+                if s and e and s <= today <= e:
+                    active_leases.append((s, e, line.order_id.partner_id.id))
+
             active_history = record.artwork_history_ids.filtered(lambda h:
                 h.lease_start_date and h.lease_end_date and
                 h.lease_start_date <= today <= h.lease_end_date and
                 h.id not in to_hist.ids
             ).sorted(key=lambda h: h.lease_end_date, reverse=True)
 
-            if active_lease:
-                record.current_booking_start = active_lease[0].start_date
-                record.current_booking_end = active_lease[0].end_date
-                record.current_partner_id = active_lease[0].order_id.partner_id.id
+            if active_leases:
+                s, e, pid = max(active_leases, key=lambda t: (t[1], t[0]))
+                record.current_booking_start = s
+                record.current_booking_end = e
+                record.current_partner_id = pid
             elif active_history:
                 record.current_booking_start = active_history[0].lease_start_date
                 record.current_booking_end = active_history[0].lease_end_date
                 record.current_partner_id = active_history[0].partner_id.id
             else:
-                s, e, p = record._face_primary_rental_interval()
-                record.current_booking_start = s
-                record.current_booking_end = e
-                record.current_partner_id = p if p else False
+                record.current_booking_start = False
+                record.current_booking_end = False
+                record.current_partner_id = False
 
     @api.depends('width', 'height')
     def _compute_face_size(self):
@@ -225,15 +247,47 @@ class MediaFace(models.Model):
     @api.depends('occupancy_status', 'current_booking_end', 'lease_line_ids.state')
     def _compute_status_flags(self):
         today = fields.Date.today()
-        soon = today + relativedelta(days=30)
-        very_soon = today + relativedelta(days=7)
+        in_30 = today + relativedelta(days=30)
+        in_14 = today + relativedelta(days=14)
+        in_7 = today + relativedelta(days=7)
+        in_2 = today + relativedelta(days=2)
         for record in self:
-            record.is_soon_available = record.occupancy_status == 'booked' and record.current_booking_end and record.current_booking_end <= soon
-            record.is_available_in_7_days = record.occupancy_status == 'booked' and record.current_booking_end and record.current_booking_end <= very_soon
-            record.is_expired = record.current_booking_end and record.current_booking_end < today
-            # is_reserved mirrors the computed occupancy_status — it is True whenever
-            # a quotation/draft SOL exists for this face (or occupancy is 'reserved').
+            booked = record.occupancy_status == 'booked'
+            end = record.current_booking_end
+            record.is_soon_available = booked and end and end <= in_30
+            record.is_available_in_14_days = booked and end and end <= in_14
+            record.is_available_in_7_days = booked and end and end <= in_7
+            record.is_available_in_2_days = booked and end and end <= in_2
+            record.is_expired = end and end < today
             record.is_reserved = record.occupancy_status == 'reserved'
+
+    @api.depends(
+        'latest_lease_start_date', 'latest_lease_end_date',
+        'face_size', 'location_text', 'code', 'name', 'width', 'height', 'orientation',
+    )
+    def _compute_lease_summary(self):
+        for record in self:
+            lines = []
+            if record.latest_lease_start_date and record.latest_lease_end_date:
+                lines.append(
+                    "Period: %s - %s"
+                    % (
+                        record.latest_lease_start_date.strftime('%m/%d/%Y'),
+                        record.latest_lease_end_date.strftime('%m/%d/%Y'),
+                    )
+                )
+            code = record.code or record.name
+            if code:
+                detail = [code]
+                if record.width and record.height:
+                    orient = (record.orientation or '').capitalize()
+                    detail.append(
+                        "Size: %sx%s meters %s" % (record.width, record.height, orient)
+                    )
+                if record.location_text:
+                    detail.append("| Loc: %s" % record.location_text)
+                lines.append(" ".join(detail))
+            record.lease_summary = "\n".join(lines) if lines else False
 
     @api.depends('lease_line_ids.end_date', 'lease_line_ids.state', 'artwork_history_ids.lease_end_date', 'transferred_out_sol_ids', 'transferred_out_history_ids')
     def _compute_next_available_date(self):
@@ -242,13 +296,13 @@ class MediaFace(models.Model):
             # Combine all end dates from active/future leases (NOT transferred out) and history (NOT transferred out)
             end_dates = []
             
-            future_rentals = record.lease_line_ids.filtered(lambda l: 
-                l.state in ['sale', 'done'] and 
-                l.end_date and l.end_date >= today and
-                l.id not in record.transferred_out_sol_ids.ids
-            )
-            if future_rentals:
-                end_dates.extend(future_rentals.mapped('end_date'))
+            for line in record.lease_line_ids.filtered(
+                lambda l: l.state in ('sale', 'done')
+                and l.id not in record.transferred_out_sol_ids.ids
+            ):
+                _s, e = line.get_media_lease_effective_dates()
+                if e and e >= today:
+                    end_dates.append(e)
 
             future_history = record.artwork_history_ids.filtered(lambda h:
                 h.lease_end_date and h.lease_end_date >= today and
@@ -262,16 +316,20 @@ class MediaFace(models.Model):
             else:
                 record.next_available_date = today
 
-    @api.depends('active', 'lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date', 'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date', 'transferred_out_sol_ids', 'transferred_out_history_ids')
+    @api.depends(
+        'active', 'lease_line_ids.state', 'lease_line_ids.start_date', 'lease_line_ids.end_date',
+        'lease_line_ids.order_id.media_reserve_inventory',
+        'artwork_history_ids.lease_start_date', 'artwork_history_ids.lease_end_date',
+        'transferred_out_sol_ids', 'transferred_out_history_ids',
+    )
     def _compute_occupancy_status(self):
         today = fields.Date.today()
         for record in self:
             to_sol = record.transferred_out_sol_ids
             to_hist = record.transferred_out_history_ids
-            # Use effective end dates (line or linked log), same as list columns.
             has_open = False
             for line in record.lease_line_ids.filtered(
-                lambda l: l.state in ['sale', 'done'] and l.id not in to_sol.ids
+                lambda l: l.state in ('sale', 'done') and l.id not in to_sol.ids
             ):
                 _s, e = line.get_media_lease_effective_dates()
                 if e and e >= today:
@@ -285,8 +343,12 @@ class MediaFace(models.Model):
             if has_open:
                 record.occupancy_status = 'booked'
             else:
-                has_draft = any(l.state == 'draft' for l in record.lease_line_ids)
-                record.occupancy_status = 'reserved' if has_draft else 'available'
+                has_reserved = any(
+                    l.state in ('draft', 'sent')
+                    and l.order_id.media_reserve_inventory
+                    for l in record.lease_line_ids
+                )
+                record.occupancy_status = 'reserved' if has_reserved else 'available'
 
     @api.depends('operating_hours_start', 'operating_hours_end')
     def _compute_views_per_day(self):
