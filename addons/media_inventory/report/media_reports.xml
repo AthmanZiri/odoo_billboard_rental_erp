@@ -12,7 +12,7 @@
     </record>
 
     <record id="action_report_canopy_asset" model="ir.actions.report">
-        <field name="name">Canopy Asset Report</field>
+        <field name="name">Canopy Asset Report (PDF)</field>
         <field name="model">media.canopy</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">media_inventory.report_canopy_asset_template</field>

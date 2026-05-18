@@ -3,6 +3,7 @@ from . import face
 from . import product
 from . import permit_history
 from . import sale_order
+from . import ir_actions_report
 from . import media_expense
 from . import artwork_history
 
