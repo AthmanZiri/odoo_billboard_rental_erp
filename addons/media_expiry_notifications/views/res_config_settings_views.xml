@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_media_expiry" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.media.expiry</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Media Assets" string="Media Assets" name="media_inventory" groups="base.group_user">
+                    <block title="Media Asset Notifications" name="media_notifications_setting_container">
+                        <setting id="media_expiry_days" string="Expiry Notification Margin (Days)" help="Days before lease or artwork expiry to send notifications">
+                            <field name="expiry_notification_days" widget="integer" class="w-25"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>
