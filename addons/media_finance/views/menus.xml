@@ -12,4 +12,9 @@
               parent="media_inventory.menu_media_ops"
               action="action_media_booking_transfer"
               sequence="56"/>
+    <menuitem id="menu_media_face_swap"
+              name="Swap Faces"
+              parent="media_inventory.menu_media_ops"
+              action="action_media_face_swap"
+              sequence="57"/>
 </odoo>

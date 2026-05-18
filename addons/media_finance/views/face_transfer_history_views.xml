@@ -21,6 +21,7 @@
             <list string="Transfer history" create="0" delete="0" edit="0" default_order="date desc">
                 <header>
                     <button name="%(media_finance.action_media_booking_transfer)d" type="action" string="New transfer" class="btn-primary"/>
+                    <button name="%(media_finance.action_media_face_swap)d" type="action" string="Swap faces" class="btn-secondary"/>
                 </header>
                 <field name="date"/>
                 <field name="record_name" string="Face"/>
@@ -53,6 +54,14 @@
                 <button name="action_view_transfer_history" type="object"
                         class="oe_stat_button" icon="fa-exchange">
                     <field name="transfer_history_count" widget="statinfo" string="Transfers"/>
+                </button>
+                <button name="%(media_finance.action_media_face_swap)d" type="action"
+                        class="oe_stat_button" icon="fa-random"
+                        context="{'default_face_a_id': id}">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Swap</span>
+                        <span class="o_stat_text">Faces</span>
+                    </div>
                 </button>
             </xpath>
         </field>

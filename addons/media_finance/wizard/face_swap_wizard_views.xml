@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_media_face_swap" model="ir.actions.act_window">
+        <field name="name">Swap Faces</field>
+        <field name="res_model">media.face.swap</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_media_face_swap_form" model="ir.ui.view">
+        <field name="name">media.face.swap.form</field>
+        <field name="model">media.face.swap</field>
+        <field name="arch" type="xml">
+            <form string="Swap Face Bookings">
+                <group>
+                    <group>
+                        <field name="face_a_id"/>
+                        <field name="face_b_id"/>
+                    </group>
+                    <group>
+                        <field name="start_date"/>
+                        <field name="end_date"/>
+                    </group>
+                </group>
+                <field name="notes" placeholder="Optional notes for the swap log..."/>
+                <field name="preview" nolabel="1" colspan="2" readonly="1"/>
+                <footer>
+                    <button name="action_swap" string="Swap Bookings" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
