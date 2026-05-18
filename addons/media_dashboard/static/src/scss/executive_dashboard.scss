@@ -1,0 +1,205 @@
+.o_media_executive_dashboard {
+    padding: 1rem 1.5rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+
+    h1 {
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+
+    h3 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: $o-gray-700;
+        margin-bottom: 0.75rem;
+    }
+}
+
+.o_med_insight {
+    font-size: 0.95rem;
+}
+
+.o_med_card {
+    background: $o-view-background-color;
+    border: 1px solid $o-gray-300;
+    border-radius: $border-radius-lg;
+    padding: 1rem 1.1rem;
+    height: 100%;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+        border-color: $o-brand-primary;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+}
+
+.o_med_card_label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $o-gray-600;
+    margin-bottom: 0.25rem;
+}
+
+.o_med_card_value {
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: $o-gray-900;
+}
+
+.o_med_card_sub,
+.o_med_delta {
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+}
+
+.o_med_card_util { border-left: 4px solid $o-brand-primary; }
+.o_med_card_revenue { border-left: 4px solid $o-success; }
+.o_med_card_pipeline { border-left: 4px solid $o-info; }
+.o_med_card_ar { border-left: 4px solid $o-warning; }
+
+.o_med_panel {
+    background: $o-view-background-color;
+    border: 1px solid $o-gray-300;
+    border-radius: $border-radius-lg;
+    padding: 1rem 1.1rem;
+    height: 100%;
+}
+
+.o_med_stack_bar {
+    display: flex;
+    height: 1.25rem;
+    border-radius: $border-radius;
+    overflow: hidden;
+    background: $o-gray-200;
+}
+
+.o_med_seg {
+    min-width: 2px;
+    transition: width 0.3s ease;
+}
+
+.o_med_seg_avail { background: $o-success; }
+.o_med_seg_booked { background: $o-brand-primary; }
+.o_med_seg_reserved { background: $o-warning; }
+.o_med_seg_maint { background: $o-gray-500; }
+
+.o_med_legend li {
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
+}
+
+.o_med_dot {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    margin-right: 0.35rem;
+    vertical-align: middle;
+}
+
+.o_med_dot_avail { background: $o-success; }
+.o_med_dot_booked { background: $o-brand-primary; }
+.o_med_dot_reserved { background: $o-warning; }
+.o_med_dot_maint { background: $o-gray-500; }
+
+.o_med_county_row {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr 3rem;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.45rem;
+    font-size: 0.85rem;
+}
+
+.o_med_county_name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_med_county_track {
+    background: $o-gray-200;
+    border-radius: $border-radius;
+    height: 0.55rem;
+    overflow: hidden;
+}
+
+.o_med_county_fill {
+    height: 100%;
+    background: $o-brand-primary;
+    border-radius: $border-radius;
+    min-width: 2px;
+}
+
+.o_med_county_pct {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.o_med_trend_svg {
+    width: 100%;
+    height: 5rem;
+
+    polyline {
+        stroke: $o-brand-primary;
+        vector-effect: non-scaling-stroke;
+    }
+}
+
+.o_med_inbox_tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid $o-gray-300;
+    border-radius: $border-radius;
+    background: $o-view-background-color;
+    text-align: left;
+    transition: background 0.12s ease;
+
+    &:hover {
+        background: $o-gray-100;
+    }
+}
+
+.o_med_inbox_count {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.o_med_inbox_label {
+    font-size: 0.72rem;
+    color: $o-gray-600;
+    margin-top: 0.2rem;
+}
+
+.o_med_inbox_success { border-left: 3px solid $o-success; }
+.o_med_inbox_warning { border-left: 3px solid $o-warning; }
+.o_med_inbox_info { border-left: 3px solid $o-info; }
+.o_med_inbox_danger { border-left: 3px solid $o-danger; }
+.o_med_inbox_muted { border-left: 3px solid $o-gray-400; }
+
+.o_med_county_table {
+    font-size: 0.88rem;
+
+    thead th {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: $o-gray-600;
+    }
+}
+
+.o_med_util_badge {
+    background: rgba($o-brand-primary, 0.12);
+    color: $o-brand-primary;
+    font-weight: 600;
+}

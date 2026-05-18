@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_media_executive_dashboard_form" model="ir.ui.view">
+        <field name="name">media.executive.dashboard.form</field>
+        <field name="model">media.executive.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Executive Dashboard" create="false" delete="false">
+                <header>
+                    <button name="action_refresh_dashboard" type="object" string="Refresh" class="btn-primary" icon="fa-refresh"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Media Executive Dashboard</h1>
+                        <h3 class="text-muted">As of <field name="as_of_date" readonly="1" class="oe_inline"/></h3>
+                    </div>
+                    <field name="currency_id" invisible="1"/>
+
+                    <group string="Key metrics">
+                        <group>
+                            <field name="utilization_pct"/>
+                            <field name="revenue_mtd"/>
+                        </group>
+                        <group>
+                            <field name="pipeline_value"/>
+                            <field name="ar_outstanding"/>
+                        </group>
+                    </group>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_view_booked_faces" class="oe_stat_button" icon="fa-lock">
+                            <field name="faces_booked" widget="statinfo" string="Booked"/>
+                        </button>
+                        <button type="object" name="action_view_available_faces" class="oe_stat_button" icon="fa-check-circle">
+                            <field name="faces_available" widget="statinfo" string="Available"/>
+                        </button>
+                        <button type="object" name="action_view_reserved_faces" class="oe_stat_button" icon="fa-clock-o">
+                            <field name="faces_reserved" widget="statinfo" string="Reserved"/>
+                        </button>
+                        <button type="object" name="action_view_available_7_days" class="oe_stat_button" icon="fa-calendar">
+                            <field name="available_7_days" widget="statinfo" string="Free ≤7d"/>
+                        </button>
+                        <button type="object" name="action_view_available_30_days" class="oe_stat_button" icon="fa-calendar-check-o">
+                            <field name="available_30_days" widget="statinfo" string="Free ≤30d"/>
+                        </button>
+                        <button type="object" name="action_view_leases_ending_30" class="oe_stat_button" icon="fa-hourglass-end">
+                            <field name="leases_ending_30_days" widget="statinfo" string="Ending ≤30d"/>
+                        </button>
+                        <button type="object" name="action_view_pipeline" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="open_quotation_count" widget="statinfo" string="Quotations"/>
+                        </button>
+                        <button type="object" name="action_view_reserved_quotations" class="oe_stat_button" icon="fa-bookmark">
+                            <field name="reserved_quotation_count" widget="statinfo" string="Holding Inv."/>
+                        </button>
+                        <button type="object" name="action_view_revenue_mtd" class="oe_stat_button" icon="fa-money">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="confirmed_order_mtd"/></span>
+                                <span class="o_stat_text">Orders MTD</span>
+                            </div>
+                        </button>
+                        <button type="object" name="action_view_ar_outstanding" class="oe_stat_button" icon="fa-exclamation-circle">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Unpaid</span>
+                                <span class="o_stat_text">Invoices</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <group string="Inventory breakdown" col="4">
+                        <field name="faces_total" readonly="1"/>
+                        <field name="faces_sellable" readonly="1"/>
+                        <field name="faces_maintenance" readonly="1"/>
+                        <field name="expired_lease_count" readonly="1"/>
+                        <field name="available_2_days" readonly="1"/>
+                        <field name="available_14_days" readonly="1"/>
+                        <field name="leases_ending_7_days" readonly="1"/>
+                        <field name="revenue_ytd" widget="monetary" readonly="1"/>
+                    </group>
+
+                    <group string="Other assets" col="4">
+                        <field name="canopy_active_count" readonly="1"/>
+                        <field name="canopy_inactive_count" readonly="1"/>
+                        <field name="transfers_mtd" readonly="1"/>
+                        <field name="open_job_card_count" readonly="1"/>
+                    </group>
+
+                    <notebook>
+                        <page string="By County" name="county">
+                            <field name="county_line_ids" nolabel="1" readonly="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="county_name"/>
+                                    <field name="face_count" sum="Faces"/>
+                                    <field name="booked_count" sum="Booked"/>
+                                    <field name="available_count" sum="Available"/>
+                                    <field name="reserved_count" sum="Reserved"/>
+                                    <field name="occupancy_pct" optional="hide"/>
+                                    <field name="list_revenue_mtd" widget="monetary" optional="show"/>
+                                </list>
+                            </field>
+                            <div class="mt-2">
+                                <button type="object" name="action_view_county_metrics" string="Open county analysis" class="btn-secondary"/>
+                            </div>
+                        </page>
+                        <page string="Trend" name="trend">
+                            <p class="text-muted">
+                                Daily snapshots power utilization and revenue trends.
+                                Open the chart view for historical comparison.
+                            </p>
+                            <button type="object" name="action_view_snapshots" string="View utilization history" class="btn-primary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_media_executive_dashboard_client" model="ir.actions.client">
+        <field name="name">Executive Dashboard</field>
+        <field name="tag">media_dashboard.executive_dashboard</field>
+        <field name="target">main</field>
+    </record>
+
+    <record id="action_open_executive_dashboard" model="ir.actions.server">
+        <field name="name">Executive Dashboard</field>
+        <field name="model_id" ref="model_media_executive_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_dashboard()</field>
+    </record>
+
+    <record id="action_open_executive_dashboard_form" model="ir.actions.server">
+        <field name="name">Executive Dashboard (Form)</field>
+        <field name="model_id" ref="model_media_executive_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_dashboard_form()</field>
+    </record>
+</odoo>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="media_dashboard.ExecutiveDashboard" owl="1">
+        <Layout display="display">
+            <div class="o_media_executive_dashboard">
+                <div class="o_med_header d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h1 class="mb-0">Executive Dashboard</h1>
+                        <p class="text-muted mb-0" t-if="state.data">
+                            As of <t t-esc="state.data.as_of_date"/>
+                        </p>
+                    </div>
+                    <button type="button" class="btn btn-primary" t-on-click="onRefresh" t-att-disabled="state.loading">
+                        <i class="fa fa-refresh me-1"/> Refresh
+                    </button>
+                </div>
+
+                <div t-if="state.loading" class="text-center py-5 text-muted">
+                    <i class="fa fa-spinner fa-spin fa-2x"/>
+                    <p class="mt-2">Loading dashboard…</p>
+                </div>
+
+                <div t-elif="state.error" class="alert alert-danger" role="alert">
+                    <t t-esc="state.error"/>
+                </div>
+
+                <div t-elif="state.data">
+                    <p class="o_med_insight alert alert-light border mb-3">
+                        <i class="fa fa-lightbulb-o text-warning me-2"/>
+                        <t t-esc="state.data.insight"/>
+                    </p>
+
+                    <div class="row g-3 mb-3 o_med_hero">
+                        <div class="col-md-3 col-sm-6">
+                            <div class="o_med_card o_med_card_util" t-on-click="() => this.onDrilldown('booked_faces')">
+                                <div class="o_med_card_label">Utilization</div>
+                                <div class="o_med_card_value">
+                                    <t t-esc="formatPct(state.data.hero.utilization_pct)"/>
+                                </div>
+                                <p class="o_med_card_sub text-muted mb-0">
+                                    <t t-esc="state.data.occupancy.booked"/> booked /
+                                    <t t-esc="state.data.occupancy.sellable"/> sellable
+                                </p>
+                                <p t-if="formatDelta(state.data.hero.utilization_delta, ' pts')"
+                                   t-att-class="'o_med_delta mb-0 ' + deltaClass(state.data.hero.utilization_delta)">
+                                    <t t-esc="formatDelta(state.data.hero.utilization_delta, ' pts')"/> vs 7d ago
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="o_med_card o_med_card_revenue" t-on-click="() => this.onDrilldown('revenue_mtd')">
+                                <div class="o_med_card_label">Revenue MTD</div>
+                                <div class="o_med_card_value">
+                                    <t t-esc="formatMoney(state.data.hero.revenue_mtd)"/>
+                                </div>
+                                <p class="o_med_card_sub text-muted mb-0">
+                                    YTD <t t-esc="formatMoney(state.data.hero.revenue_ytd)"/>
+                                </p>
+                                <p t-if="state.data.hero.revenue_delta != null"
+                                   t-att-class="'o_med_delta mb-0 ' + deltaClass(state.data.hero.revenue_delta)">
+                                    <t t-esc="formatDelta(state.data.hero.revenue_delta)"/> vs 30d snapshot
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="o_med_card o_med_card_pipeline" t-on-click="() => this.onDrilldown('pipeline')">
+                                <div class="o_med_card_label">Pipeline</div>
+                                <div class="o_med_card_value">
+                                    <t t-esc="formatMoney(state.data.hero.pipeline_value)"/>
+                                </div>
+                                <p class="o_med_card_sub text-muted mb-0">Open media quotations</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="o_med_card o_med_card_ar" t-on-click="() => this.onDrilldown('ar_outstanding')">
+                                <div class="o_med_card_label">Outstanding AR</div>
+                                <div class="o_med_card_value">
+                                    <t t-esc="formatMoney(state.data.hero.ar_outstanding)"/>
+                                </div>
+                                <p class="o_med_card_sub text-muted mb-0">Posted, unpaid media invoices</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-lg-4">
+                            <div class="o_med_panel">
+                                <h3>Occupancy mix</h3>
+                                <div class="o_med_stack_bar mb-2">
+                                    <span class="o_med_seg o_med_seg_avail"
+                                          t-att-style="'width:' + occupancyPct('available') + '%'"
+                                          t-att-title="'Available: ' + state.data.occupancy.available"/>
+                                    <span class="o_med_seg o_med_seg_booked"
+                                          t-att-style="'width:' + occupancyPct('booked') + '%'"
+                                          t-att-title="'Booked: ' + state.data.occupancy.booked"/>
+                                    <span class="o_med_seg o_med_seg_reserved"
+                                          t-att-style="'width:' + occupancyPct('reserved') + '%'"
+                                          t-att-title="'Reserved: ' + state.data.occupancy.reserved"/>
+                                    <span class="o_med_seg o_med_seg_maint"
+                                          t-att-style="'width:' + occupancyPct('maintenance') + '%'"
+                                          t-att-title="'Maintenance: ' + state.data.occupancy.maintenance"/>
+                                </div>
+                                <ul class="o_med_legend list-unstyled mb-0">
+                                    <li><span class="o_med_dot o_med_dot_avail"/> Available <strong t-esc="state.data.occupancy.available"/></li>
+                                    <li><span class="o_med_dot o_med_dot_booked"/> Booked <strong t-esc="state.data.occupancy.booked"/></li>
+                                    <li><span class="o_med_dot o_med_dot_reserved"/> Reserved <strong t-esc="state.data.occupancy.reserved"/></li>
+                                    <li><span class="o_med_dot o_med_dot_maint"/> Maintenance <strong t-esc="state.data.occupancy.maintenance"/></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="o_med_panel">
+                                <h3>Utilization by county</h3>
+                                <div class="o_med_county_bars">
+                                    <t t-foreach="state.data.counties" t-as="county" t-key="county.county_id or county.county_name">
+                                        <div class="o_med_county_row">
+                                            <span class="o_med_county_name" t-esc="county.county_name"/>
+                                            <div class="o_med_county_track">
+                                                <div class="o_med_county_fill"
+                                                     t-att-style="'width:' + countyBarWidth(county.occupancy_pct) + '%'"/>
+                                            </div>
+                                            <span class="o_med_county_pct" t-esc="formatPct(county.occupancy_pct, 2)"/>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="o_med_panel">
+                                <h3>30-day utilization trend</h3>
+                                <t t-if="state.data.trend.length &lt; 2">
+                                    <p class="text-muted small mb-0">
+                                        Daily snapshots will appear here after the cron runs for a few days.
+                                    </p>
+                                    <button type="button" class="btn btn-link btn-sm p-0 mt-1"
+                                            t-on-click="() => this.onDrilldown('snapshots')">
+                                        View history
+                                    </button>
+                                </t>
+                                <t t-else="">
+                                    <svg class="o_med_trend_svg" viewBox="0 0 280 80" preserveAspectRatio="none">
+                                        <polyline t-att-points="trendPoints()" fill="none" stroke-width="2"/>
+                                    </svg>
+                                    <div class="d-flex justify-content-between small text-muted mt-1">
+                                        <span t-esc="state.data.trend[0].date"/>
+                                        <span t-esc="state.data.trend[state.data.trend.length - 1].date"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="o_med_panel mb-3">
+                        <h3>Action inbox</h3>
+                        <div class="row g-2 o_med_inbox">
+                            <t t-foreach="state.data.inbox" t-as="item" t-key="item.key">
+                                <div class="col-md-4 col-lg-2">
+                                    <button type="button"
+                                            t-attf-class="o_med_inbox_tile o_med_inbox_{{item.level}}"
+                                            t-on-click="() => this.onDrilldown(item.key)">
+                                        <span class="o_med_inbox_count" t-esc="inboxDisplayCount(item)"/>
+                                        <span class="o_med_inbox_label" t-esc="item.label"/>
+                                    </button>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div class="o_med_panel">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h3 class="mb-0">County performance</h3>
+                            <button type="button" class="btn btn-secondary btn-sm"
+                                    t-on-click="() => this.onDrilldown('county_metrics')">
+                                Full analysis
+                            </button>
+                        </div>
+                        <table class="table table-sm table-hover o_med_county_table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>County</th>
+                                    <th class="text-end">Faces</th>
+                                    <th class="text-end">Booked</th>
+                                    <th class="text-end">Available</th>
+                                    <th class="text-end">Reserved</th>
+                                    <th class="text-end">Utilization</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.data.counties" t-as="row" t-key="row.county_id or row.county_name">
+                                    <tr>
+                                        <td t-esc="row.county_name"/>
+                                        <td class="text-end" t-esc="row.face_count"/>
+                                        <td class="text-end" t-esc="row.booked_count"/>
+                                        <td class="text-end" t-esc="row.available_count"/>
+                                        <td class="text-end" t-esc="row.reserved_count"/>
+                                        <td class="text-end">
+                                            <span class="badge rounded-pill o_med_util_badge"
+                                                  t-esc="formatPct(row.occupancy_pct, 2)"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot t-if="state.data.counties.length">
+                                <tr class="fw-bold">
+                                    <td>Total</td>
+                                    <td class="text-end" t-esc="state.data.occupancy.total"/>
+                                    <td class="text-end" t-esc="state.data.occupancy.booked"/>
+                                    <td class="text-end" t-esc="state.data.occupancy.available"/>
+                                    <td class="text-end" t-esc="state.data.occupancy.reserved"/>
+                                    <td class="text-end" t-esc="formatPct(state.data.hero.utilization_pct, 2)"/>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </Layout>
+    </t>
+</templates>

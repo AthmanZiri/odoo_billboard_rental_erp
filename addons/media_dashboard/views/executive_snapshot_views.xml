@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_media_executive_snapshot_list" model="ir.ui.view">
+        <field name="name">media.executive.snapshot.list</field>
+        <field name="model">media.executive.snapshot</field>
+        <field name="arch" type="xml">
+            <list string="Executive Snapshots" create="false">
+                <field name="snapshot_date"/>
+                <field name="utilization_pct"/>
+                <field name="faces_booked"/>
+                <field name="faces_available"/>
+                <field name="revenue_mtd" widget="monetary"/>
+                <field name="pipeline_value" widget="monetary"/>
+                <field name="ar_outstanding" widget="monetary"/>
+                <field name="available_7_days"/>
+                <field name="leases_ending_30_days"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_media_executive_snapshot_graph_utilization" model="ir.ui.view">
+        <field name="name">media.executive.snapshot.graph.utilization</field>
+        <field name="model">media.executive.snapshot</field>
+        <field name="arch" type="xml">
+            <graph string="Utilization Trend" type="line">
+                <field name="snapshot_date" interval="day"/>
+                <field name="utilization_pct" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_executive_snapshot_graph_revenue" model="ir.ui.view">
+        <field name="name">media.executive.snapshot.graph.revenue</field>
+        <field name="model">media.executive.snapshot</field>
+        <field name="arch" type="xml">
+            <graph string="Revenue MTD Trend" type="bar">
+                <field name="snapshot_date" interval="day"/>
+                <field name="revenue_mtd" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_media_executive_snapshots" model="ir.actions.act_window">
+        <field name="name">Utilization History</field>
+        <field name="res_model">media.executive.snapshot</field>
+        <field name="view_mode">graph,list</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>

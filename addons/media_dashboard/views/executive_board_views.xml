@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_board_utilization_trend" model="ir.actions.act_window">
+        <field name="name">Utilization Trend</field>
+        <field name="res_model">media.executive.snapshot</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_media_executive_snapshot_graph_utilization"/>
+    </record>
+
+    <record id="action_board_revenue_trend" model="ir.actions.act_window">
+        <field name="name">Revenue MTD Trend</field>
+        <field name="res_model">media.executive.snapshot</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_media_executive_snapshot_graph_revenue"/>
+    </record>
+
+    <record id="action_board_county_occupancy" model="ir.actions.act_window">
+        <field name="name">County Utilization</field>
+        <field name="res_model">media.executive.county.metric</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_media_executive_county_metric_graph"/>
+    </record>
+
+    <record id="action_board_face_occupancy" model="ir.actions.act_window">
+        <field name="name">Face Occupancy Mix</field>
+        <field name="res_model">media.face</field>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="media_finance.view_media_face_graph_occupancy"/>
+    </record>
+
+    <record id="view_media_executive_board" model="ir.ui.view">
+        <field name="name">media.executive.board</field>
+        <field name="model">board.board</field>
+        <field name="arch" type="xml">
+            <form string="Executive Charts">
+                <board style="2-1">
+                    <column>
+                        <action name="%(media_dashboard.action_board_utilization_trend)d" string="Utilization trend"/>
+                        <action name="%(media_dashboard.action_board_county_occupancy)d" string="Utilization by county"/>
+                    </column>
+                    <column>
+                        <action name="%(media_dashboard.action_board_revenue_trend)d" string="Revenue MTD trend"/>
+                        <action name="%(media_dashboard.action_board_face_occupancy)d" string="Occupancy mix"/>
+                    </column>
+                </board>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_media_executive_board" model="ir.actions.act_window">
+        <field name="name">Executive Charts</field>
+        <field name="res_model">board.board</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_media_executive_board"/>
+        <field name="usage">menu</field>
+    </record>
+</odoo>

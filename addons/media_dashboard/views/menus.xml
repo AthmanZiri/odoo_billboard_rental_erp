@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_executive_dashboard"
+              name="Executive Dashboard"
+              parent="media_inventory.menu_billboard_dashboard"
+              action="action_media_executive_dashboard_client"
+              sequence="1"/>
+
+    <menuitem id="menu_executive_dashboard_form"
+              name="Executive Dashboard (Form)"
+              parent="media_inventory.menu_billboard_dashboard"
+              action="action_open_executive_dashboard_form"
+              sequence="2"
+              groups="base.group_no_one"/>
+
+    <menuitem id="menu_executive_charts"
+              name="Executive Charts"
+              parent="media_inventory.menu_billboard_dashboard"
+              action="action_media_executive_board"
+              sequence="10"/>
+
+    <menuitem id="menu_executive_county_metrics"
+              name="County Performance"
+              parent="media_inventory.menu_billboard_dashboard"
+              action="action_media_executive_county_metrics"
+              sequence="15"/>
+
+    <menuitem id="menu_executive_snapshots"
+              name="Utilization History"
+              parent="media_inventory.menu_billboard_dashboard"
+              action="action_media_executive_snapshots"
+              sequence="20"/>
+
+    <record id="media_finance.menu_media_dashboard" model="ir.ui.menu">
+        <field name="name">Site Charts (Classic)</field>
+        <field name="parent_id" ref="media_inventory.menu_billboard_dashboard"/>
+        <field name="sequence">30</field>
+    </record>
+</odoo>

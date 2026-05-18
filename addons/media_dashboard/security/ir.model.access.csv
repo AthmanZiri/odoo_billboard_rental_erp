@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_media_executive_snapshot,media.executive.snapshot,model_media_executive_snapshot,base.group_user,1,0,0,0
+access_media_executive_snapshot_manager,media.executive.snapshot,model_media_executive_snapshot,sales_team.group_sale_manager,1,1,1,1
+access_media_executive_county_metric,media.executive.county.metric,model_media_executive_county_metric,base.group_user,1,0,0,0
+access_media_executive_dashboard,media.executive.dashboard,model_media_executive_dashboard,base.group_user,1,1,1,1
+access_media_executive_county_line,media.executive.county.line,model_media_executive_county_line,base.group_user,1,1,1,1

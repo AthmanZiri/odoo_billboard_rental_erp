@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_media_executive_county_metric_list" model="ir.ui.view">
+        <field name="name">media.executive.county.metric.list</field>
+        <field name="model">media.executive.county.metric</field>
+        <field name="arch" type="xml">
+            <list string="County Performance" create="false" delete="false" edit="false">
+                <field name="currency_id" column_invisible="1"/>
+                <field name="county_name"/>
+                <field name="face_count" sum="Faces"/>
+                <field name="booked_count" sum="Booked"/>
+                <field name="available_count" sum="Available"/>
+                <field name="reserved_count" sum="Reserved"/>
+                <field name="maintenance_count" optional="hide"/>
+                <field name="occupancy_pct"/>
+                <field name="list_revenue_mtd" widget="monetary"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_media_executive_county_metric_graph" model="ir.ui.view">
+        <field name="name">media.executive.county.metric.graph</field>
+        <field name="model">media.executive.county.metric</field>
+        <field name="arch" type="xml">
+            <graph string="Utilization by County" type="bar">
+                <field name="county_name"/>
+                <field name="occupancy_pct" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_media_executive_county_metric_pivot" model="ir.ui.view">
+        <field name="name">media.executive.county.metric.pivot</field>
+        <field name="model">media.executive.county.metric</field>
+        <field name="arch" type="xml">
+            <pivot string="County Analysis">
+                <field name="county_name" type="row"/>
+                <field name="face_count" type="measure"/>
+                <field name="booked_count" type="measure"/>
+                <field name="available_count" type="measure"/>
+                <field name="occupancy_pct" type="measure"/>
+                <field name="list_revenue_mtd" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_media_executive_county_metrics" model="ir.actions.act_window">
+        <field name="name">County Performance</field>
+        <field name="res_model">media.executive.county.metric</field>
+        <field name="view_mode">graph,list,pivot</field>
+    </record>
+</odoo>
