@@ -209,7 +209,6 @@
             <xpath expr="//field[@name='site_category']" position="replace">
                 <field name="shop_name"/>
                 <field name="status"/>
-                <field name="contact_name"/>
             </xpath>
         </field>
     </record>
@@ -331,8 +330,18 @@ if records:
         <field name="name">Canopies</field>
         <field name="res_model">media.canopy</field>
         <field name="view_mode">list,form</field>
+        <field name="domain">[('status', '=', 'active')]</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first canopy!</p>
+        </field>
+    </record>
+
+    <record id="action_media_canopy_all" model="ir.actions.act_window">
+        <field name="name">All Canopies</field>
+        <field name="res_model">media.canopy</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p>Includes inactive and withdrawn canopies.</p>
         </field>
     </record>
 
