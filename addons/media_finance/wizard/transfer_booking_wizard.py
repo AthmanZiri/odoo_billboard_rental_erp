@@ -8,6 +8,7 @@ from odoo.tools import html_escape
 class MediaBookingTransfer(models.TransientModel):
     _name = 'media.booking.transfer'
     _description = 'Transfer Billboard Face Booking'
+    _inherit = ['media.booking.inventory.mixin']
 
     transfer_type = fields.Selection([
         ('sale_order', 'Via Sale Order (Existing Contract)'),
@@ -451,33 +452,12 @@ class MediaBookingTransfer(models.TransientModel):
             and segments[0][1] == end_date
         )
 
-        # 1. 'Free up' the source face: ignore this SOL, and any artwork / booking
-        #    log rows on this face that mirror the same line (else occupancy would
-        #    still see history as a separate live booking and stay "booked").
-        #    The sale order line itself is not deleted (KRA / invoice continuity).
-        vacate_vals = {
-            'transferred_out_sol_ids': [(4, source_sol.id)],
-        }
-        linked_history = self.env['media.artwork.history'].search([
-            ('face_id', '=', source_face.id),
-            ('sale_order_line_id', '=', source_sol.id),
-        ])
-        if linked_history:
-            vacate_vals['transferred_out_history_ids'] = [
-                (4, h.id) for h in linked_history
-            ]
-        source_face.sudo().write(vacate_vals)
+        # 1. Vacate source for the full contract window (SOL + any overlapping log rows).
+        self._vacate_face_for_period(
+            source_face, start_date, end_date, extra_sol_ids=[source_sol.id]
+        )
 
         # 2. 'Book' the target face: one history row per free segment within the request window.
-        TRANSPARENT_1PX = (
-            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01'
-            b'\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01'
-            b'\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
-        )
-        import base64
-        placeholder = base64.b64encode(TRANSPARENT_1PX)
-
-        history = self.env['media.artwork.history'].with_context(skip_face_sync=True).sudo()
         for seg_start, seg_end in segments:
             base_desc = _(
                 "TRANSFER: From %s (linked to Sale Order %s)"
@@ -486,15 +466,13 @@ class MediaBookingTransfer(models.TransientModel):
                 base_desc += _(
                     " — Requested period %s → %s; this segment: %s → %s"
                 ) % (start_date, end_date, seg_start, seg_end)
-            history.create({
-                'face_id': target_face.id,
-                'partner_id': source_sol.order_id.partner_id.id,
-                'lease_start_date': seg_start,
-                'lease_end_date': seg_end,
-                'artwork_file': placeholder,
-                'description': base_desc,
-                'sale_order_line_id': source_sol.id,
-            })
+            self._create_inventory_history_segments(
+                target_face,
+                source_sol.order_id.partner_id,
+                [(seg_start, seg_end)],
+                base_desc,
+                sale_order_line=source_sol,
+            )
 
         # 3. Log chatter messages on both faces for full audit trail.
         seg_chatter = " · ".join(
@@ -539,7 +517,7 @@ class MediaBookingTransfer(models.TransientModel):
             **mp_kw,
         )
 
-        (source_face | target_face)._compute_occupancy_status()
+        self._recompute_face_booking_state(source_face | target_face)
         return self._build_transfer_done_action(
             is_partial, start_date, end_date, segments, target_face
         )
@@ -578,41 +556,8 @@ class MediaBookingTransfer(models.TransientModel):
             and segments[0][1] == self.end_date
         )
 
-        # 1. 'Free up' the source face by adding overlapping bookings to its exclusion lists.
-        #    This handles both Sale Order bookings and manual Artwork History bookings.
-        overlapping_sols = self.env['sale.order.line'].search([
-            ('media_face_id', '=', source_face.id),
-            ('state', 'in', ['sale', 'done']),
-            ('start_date', '<', self.end_date),
-            ('end_date', '>', self.start_date),
-        ])
-        if overlapping_sols:
-            source_face.sudo().write({
-                'transferred_out_sol_ids': [(4, sol.id) for sol in overlapping_sols]
-            })
+        self._vacate_face_for_period(source_face, self.start_date, self.end_date)
 
-        overlapping_history = self.env['media.artwork.history'].search([
-            ('face_id', '=', source_face.id),
-            ('lease_start_date', '<', self.end_date),
-            ('lease_end_date', '>', self.start_date),
-        ])
-        if overlapping_history:
-            source_face.sudo().write({
-                'transferred_out_history_ids': [(4, hist.id) for hist in overlapping_history]
-            })
-
-        # 2. Create an artwork history record as a face-to-face booking commitment log.
-        # We use a small placeholder image (1px transparent PNG) if no artwork exists,
-        # since artwork_history requires artwork_file.
-        TRANSPARENT_1PX = (
-            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01'
-            b'\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01'
-            b'\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
-        )
-        import base64
-        placeholder = base64.b64encode(TRANSPARENT_1PX)
-
-        history = self.env['media.artwork.history'].with_context(skip_face_sync=True).sudo()
         for seg_start, seg_end in segments:
             desc = _("Face-to-face booking commitment")
             if client:
@@ -623,14 +568,12 @@ class MediaBookingTransfer(models.TransientModel):
                 desc += _(
                     "\n(Partial transfer) Requested on target: %s → %s; this log segment: %s → %s"
                 ) % (self.start_date, self.end_date, seg_start, seg_end)
-            history.create({
-                'face_id': target_face.id,
-                'partner_id': client.id if client else False,
-                'lease_start_date': seg_start,
-                'lease_end_date': seg_end,
-                'artwork_file': placeholder,
-                'description': desc,
-            })
+            self._create_inventory_history_segments(
+                target_face,
+                client,
+                [(seg_start, seg_end)],
+                desc,
+            )
 
         seg_chatter = " · ".join(
             "%s → %s" % (a, b) for a, b in segments
@@ -670,7 +613,7 @@ class MediaBookingTransfer(models.TransientModel):
             **mp_kw,
         )
 
-        (source_face | target_face)._compute_occupancy_status()
+        self._recompute_face_booking_state(source_face | target_face)
         return self._build_transfer_done_action(
             is_partial, self.start_date, self.end_date, segments, target_face
         )
