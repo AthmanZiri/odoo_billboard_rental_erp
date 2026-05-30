@@ -8,6 +8,45 @@ class MediaDigitalScreen(models.Model):
     
     slot_ids = fields.One2many('media.dooh.slot', 'digital_screen_id', string='Digital Slots')
     order_line_ids = fields.One2many('sale.order.line', 'media_digital_screen_id', string='Order History')
+    current_partner_id = fields.Many2one(
+        'res.partner',
+        string='Client',
+        compute='_compute_current_partner',
+        store=True,
+    )
+    
+    @api.depends(
+        'slot_ids.sale_line_ids.state',
+        'slot_ids.sale_line_ids.start_date',
+        'slot_ids.sale_line_ids.end_date',
+        'slot_ids.sale_line_ids.order_id.partner_id',
+        'order_line_ids.state',
+        'order_line_ids.start_date',
+        'order_line_ids.end_date',
+        'order_line_ids.order_id.partner_id',
+    )
+    def _compute_current_partner(self):
+        today = fields.Date.today()
+        for screen in self:
+            partner = False
+            for slot in screen.slot_ids:
+                active = slot.sale_line_ids.filtered(
+                    lambda l: l.state in ('sale', 'done')
+                    and l.start_date and l.end_date
+                    and l.start_date <= today <= l.end_date
+                )
+                if active:
+                    partner = active.sorted(key=lambda l: l.end_date, reverse=True)[0].order_id.partner_id
+                    break
+            if not partner:
+                active = screen.order_line_ids.filtered(
+                    lambda l: l.state in ('sale', 'done')
+                    and l.start_date and l.end_date
+                    and l.start_date <= today <= l.end_date
+                )
+                if active:
+                    partner = active.sorted(key=lambda l: l.end_date, reverse=True)[0].order_id.partner_id
+            screen.current_partner_id = partner
     
     @api.depends('slot_duration', 'number_of_slots')
     def _compute_loop_duration(self):

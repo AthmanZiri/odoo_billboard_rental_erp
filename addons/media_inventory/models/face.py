@@ -128,6 +128,51 @@ class MediaFace(models.Model):
     is_available_in_2_days = fields.Boolean(compute='_compute_status_flags', store=True)
     is_expired = fields.Boolean(compute='_compute_status_flags', store=True)
     is_reserved = fields.Boolean(compute='_compute_status_flags', store=True)
+    reservation_date = fields.Date(
+        string='Reserved On',
+        compute='_compute_reservation_info',
+        store=True,
+    )
+    reserved_partner_id = fields.Many2one(
+        'res.partner',
+        string='Reserved For',
+        compute='_compute_reservation_info',
+        store=True,
+    )
+
+    def _face_reserving_quotation_lines(self):
+        """Draft/sent lines on orders that hold inventory for this face."""
+        self.ensure_one()
+        return self.lease_line_ids.filtered(
+            lambda l: l.state in ('draft', 'sent')
+            and l.order_id.media_reserve_inventory
+        )
+
+    @api.depends(
+        'lease_line_ids.state',
+        'lease_line_ids.order_id.media_reserve_inventory',
+        'lease_line_ids.order_id.date_order',
+        'lease_line_ids.create_date',
+        'lease_line_ids.order_id.partner_id',
+    )
+    def _compute_reservation_info(self):
+        for record in self:
+            lines = record._face_reserving_quotation_lines()
+            if not lines:
+                record.reservation_date = False
+                record.reserved_partner_id = False
+                continue
+            earliest = min(
+                lines,
+                key=lambda l: (
+                    l.order_id.date_order or fields.Datetime.from_string('9999-12-31'),
+                    l.create_date or fields.Datetime.from_string('9999-12-31'),
+                    l.id,
+                ),
+            )
+            order_dt = earliest.order_id.date_order or earliest.create_date
+            record.reservation_date = fields.Date.to_date(order_dt) if order_dt else False
+            record.reserved_partner_id = earliest.order_id.partner_id
 
     def _face_most_recent_sale_line(self):
         """Confirmed, non-transferred line from the most recent sale order (by order date)."""

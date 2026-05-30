@@ -246,30 +246,35 @@ class MediaBookingTransfer(models.TransientModel):
             out.append((cur, request_end))
         return out
 
-    def _iter_target_conflicting_intervals(self, target_face, req_start, req_end, exclude_line=None):
+    def _iter_target_conflicting_intervals(
+        self,
+        target_face,
+        req_start,
+        req_end,
+        exclude_line=None,
+        extra_transferred_sol_ids=None,
+        extra_transferred_history_ids=None,
+    ):
         """Yield (start, end) inclusive for bookings on the target face that overlap [req_start, req_end]."""
-        sol_domain = [
-            ('media_face_id', '=', target_face.id),
-            ('state', 'in', ['sale', 'done']),
-            ('id', 'not in', target_face.transferred_out_sol_ids.ids),
-            ('start_date', '<', req_end),
-            ('end_date', '>', req_start),
-        ]
-        if exclude_line:
-            sol_domain += [('id', '!=', exclude_line.id)]
-        sol_lines = self.env['sale.order.line'].search(sol_domain)
-        on_target_sol_ids = set(sol_lines.ids)
-        for line in sol_lines:
-            yield (line.start_date, line.end_date)
-        hist_domain = [
-            ('face_id', '=', target_face.id),
-            ('id', 'not in', target_face.transferred_out_history_ids.ids),
-            ('lease_start_date', '!=', False),
-            ('lease_end_date', '!=', False),
-            ('lease_start_date', '<', req_end),
-            ('lease_end_date', '>', req_start),
-        ]
-        for hist in self.env['media.artwork.history'].search(hist_domain):
+        extra_transferred_sol_ids = set(extra_transferred_sol_ids or [])
+        extra_transferred_history_ids = set(extra_transferred_history_ids or [])
+        to_sol = set(target_face.transferred_out_sol_ids.ids) | extra_transferred_sol_ids
+        to_hist = set(target_face.transferred_out_history_ids.ids) | extra_transferred_history_ids
+        on_target_sol_ids = set()
+        for line in target_face.lease_line_ids.filtered(
+            lambda l: l.state in ('sale', 'done') and l.id not in to_sol
+        ):
+            if exclude_line and line.id == exclude_line.id:
+                continue
+            s, e = line.get_media_lease_effective_dates()
+            if s and e and s < req_end and e > req_start:
+                on_target_sol_ids.add(line.id)
+                yield (s, e)
+        for hist in target_face.artwork_history_ids.filtered(
+            lambda h: h.id not in to_hist
+            and h.lease_start_date and h.lease_end_date
+            and h.lease_start_date < req_end and h.lease_end_date > req_start
+        ):
             if (
                 hist.sale_order_line_id
                 and hist.sale_order_line_id.id in on_target_sol_ids
@@ -277,7 +282,15 @@ class MediaBookingTransfer(models.TransientModel):
                 continue
             yield (hist.lease_start_date, hist.lease_end_date)
 
-    def _effective_transfer_segments(self, target_face, req_start, req_end, exclude_line=None):
+    def _effective_transfer_segments(
+        self,
+        target_face,
+        req_start,
+        req_end,
+        exclude_line=None,
+        extra_transferred_sol_ids=None,
+        extra_transferred_history_ids=None,
+    ):
         """
         Return list of (start, end) inclusive segments of the request period that are not
         already covered by a confirmed sale order or artwork history on the target face.
@@ -286,7 +299,12 @@ class MediaBookingTransfer(models.TransientModel):
             return []
         all_iv = list(
             self._iter_target_conflicting_intervals(
-                target_face, req_start, req_end, exclude_line=exclude_line
+                target_face,
+                req_start,
+                req_end,
+                exclude_line=exclude_line,
+                extra_transferred_sol_ids=extra_transferred_sol_ids,
+                extra_transferred_history_ids=extra_transferred_history_ids,
             )
         )
         if not all_iv:

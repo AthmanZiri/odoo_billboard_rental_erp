@@ -11,11 +11,15 @@
                 <field name="site_id"/>
                 <filter string="Available" name="filter_available" domain="[('occupancy_status', '=', 'available')]"/>
                 <filter string="Reserved" name="filter_reserved" domain="[('occupancy_status', '=', 'reserved')]"/>
+                <filter string="Has Reservation Date" name="filter_has_reservation_date" domain="[('reservation_date', '!=', False)]"/>
                 <filter string="Available in 1 Month" name="filter_soon_available" domain="[('is_soon_available', '=', True)]"/>
                 <filter string="Available in 2 Weeks" name="filter_available_14_days" domain="[('is_available_in_14_days', '=', True)]"/>
                 <filter string="Available in 1 Week" name="filter_available_7_days" domain="[('is_available_in_7_days', '=', True)]"/>
                 <filter string="Available in 2 Days" name="filter_available_2_days" domain="[('is_available_in_2_days', '=', True)]"/>
                 <filter string="Expired" name="filter_expired" domain="[('is_expired', '=', True)]"/>
+                <group>
+                    <filter string="Reserved On" name="group_reservation_date" context="{'group_by': 'reservation_date:month'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -156,7 +160,25 @@
         </field>
     </record>
 
-    <!-- Standard Actions -->
+    <record id="view_media_face_tree_reserved" model="ir.ui.view">
+        <field name="name">media.face.list.reserved</field>
+        <field name="model">media.face</field>
+        <field name="arch" type="xml">
+            <list string="Reserved Assets">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="face_size" string="Size"/>
+                <field name="site_id"/>
+                <field name="location_text" string="Location"/>
+                <field name="occupancy_status" string="Status" widget="badge"
+                    decoration-info="occupancy_status == 'reserved'"/>
+                <field name="reserved_partner_id" string="Client"/>
+                <field name="reservation_date" string="Reserved On"/>
+                <field name="price_per_month"/>
+            </list>
+        </field>
+    </record>
+
     <record id="action_media_face" model="ir.actions.act_window">
         <field name="name">Faces</field>
         <field name="res_model">media.face</field>
@@ -177,6 +199,9 @@
         <field name="view_mode">list,form</field>
         <field name="domain">[('occupancy_status', '=', 'reserved')]</field>
         <field name="context">{'search_default_filter_reserved': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_media_face_tree_reserved')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_media_face_form')})]"/>
     </record>
 
     <record id="action_media_face_soon" model="ir.actions.act_window">

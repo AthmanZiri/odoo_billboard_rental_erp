@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_media_digital_screen_tree_inherit_dooh" model="ir.ui.view">
+        <field name="name">media.digital.screen.tree.inherit.dooh</field>
+        <field name="model">media.digital.screen</field>
+        <field name="inherit_id" ref="media_inventory.view_media_digital_screen_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='pixel_pitch']" position="after">
+                <field name="current_partner_id" string="Client"/>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_media_digital_screen_form_inherit_dooh" model="ir.ui.view">
         <field name="name">media.digital.screen.form.inherit.dooh</field>
         <field name="model">media.digital.screen</field>

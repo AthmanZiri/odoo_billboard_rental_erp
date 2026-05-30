@@ -19,6 +19,7 @@ class SaleOrder(models.Model):
             if faces:
                 faces._compute_occupancy_status()
                 faces._compute_status_flags()
+                faces._compute_reservation_info()
         return res
 
 

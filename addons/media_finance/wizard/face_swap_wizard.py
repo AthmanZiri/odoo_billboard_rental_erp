@@ -25,11 +25,31 @@ class MediaFaceSwap(models.TransientModel):
             if rec.start_date > rec.end_date:
                 rec.preview = '<div class="alert alert-danger">Start must be before end.</div>'
                 continue
-            segs_a_on_b = transfer_tool._effective_transfer_segments(
+            vacate_b_sols = rec._face_confirmed_lines_overlapping(
                 rec.face_b_id, rec.start_date, rec.end_date
             )
-            segs_b_on_a = transfer_tool._effective_transfer_segments(
+            vacate_b_hists = rec._face_history_overlapping(
+                rec.face_b_id, rec.start_date, rec.end_date
+            )
+            vacate_a_sols = rec._face_confirmed_lines_overlapping(
                 rec.face_a_id, rec.start_date, rec.end_date
+            )
+            vacate_a_hists = rec._face_history_overlapping(
+                rec.face_a_id, rec.start_date, rec.end_date
+            )
+            segs_a_on_b = transfer_tool._effective_transfer_segments(
+                rec.face_b_id,
+                rec.start_date,
+                rec.end_date,
+                extra_transferred_sol_ids=vacate_b_sols.ids,
+                extra_transferred_history_ids=vacate_b_hists.ids,
+            )
+            segs_b_on_a = transfer_tool._effective_transfer_segments(
+                rec.face_a_id,
+                rec.start_date,
+                rec.end_date,
+                extra_transferred_sol_ids=vacate_a_sols.ids,
+                extra_transferred_history_ids=vacate_a_hists.ids,
             )
             rec.preview = _(
                 "<p>Inventory-only swap for <b>%(s)s</b> → <b>%(e)s</b>.</p>"
@@ -92,6 +112,8 @@ class MediaFaceSwap(models.TransientModel):
         # Vacate both faces for the swap window.
         self._vacate_face_for_period(face_a, self.start_date, self.end_date)
         self._vacate_face_for_period(face_b, self.start_date, self.end_date)
+        face_a.invalidate_recordset(['transferred_out_sol_ids', 'transferred_out_history_ids'])
+        face_b.invalidate_recordset(['transferred_out_sol_ids', 'transferred_out_history_ids'])
 
         def place_on_target(target_face, source_face, commitments):
             for item in commitments:
@@ -122,6 +144,8 @@ class MediaFaceSwap(models.TransientModel):
                     )
 
         place_on_target(face_b, face_a, commitments_a)
+        face_a.invalidate_recordset(['transferred_out_sol_ids', 'transferred_out_history_ids'])
+        face_b.invalidate_recordset(['transferred_out_sol_ids', 'transferred_out_history_ids'])
         place_on_target(face_a, face_b, commitments_b)
 
         st = self.env.ref(
