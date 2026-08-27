@@ -141,7 +141,9 @@ class TestEtimsIntegration(TransactionCase):
         self.assertIn('no_reason_code_warning', validation_messages)
 
     def test_06_qr_code_generation(self):
-        """Test QR code URL generation"""
+        """Test QR code URL generation and barcode encoding of ?Data=."""
+        from urllib.parse import quote_plus
+
         invoice = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.customer.id,
@@ -153,13 +155,23 @@ class TestEtimsIntegration(TransactionCase):
                 'price_unit': 1000.0,
             })],
         })
-        
-        # Set eTIMS signature to simulate successful transmission
-        invoice.l10n_ke_oscu_signature = 'TEST_SIGNATURE_123'
-        
+        invoice.l10n_ke_oscu_signature = 'T4S5-A4UX-46VW-ATGA'
+
         qr_url = invoice._l10n_ke_oscu_get_receipt_url()
-        self.assertIn('etims-sbx.kra.go.ke', qr_url)
-        self.assertIn('TEST_SIGNATURE_123', qr_url)
+        expected_data = f'{self.company.vat}00T4S5A4UX46VWATGA'
+        self.assertEqual(
+            qr_url,
+            f'https://etims.kra.go.ke/common/link/etims/receipt/indexEtimsReceiptData?Data={expected_data}',
+        )
+        self.assertNotIn('-', qr_url.split('Data=')[1])
+
+        barcode_src = invoice._l10n_ke_oscu_get_receipt_barcode_src()
+        self.assertIn(quote_plus(qr_url), barcode_src)
+        self.assertNotIn('?Data=', barcode_src)
+        self.assertIn('quiet=0', barcode_src)
+
+        invoice.company_id.l10n_ke_server_mode = 'test'
+        self.assertIn('etims-sbx.kra.go.ke', invoice._l10n_ke_oscu_get_receipt_url())
 
     def test_07_invoice_json_preparation(self):
         """Test invoice JSON preparation for eTIMS"""

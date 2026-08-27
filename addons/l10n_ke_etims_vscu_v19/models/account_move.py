@@ -5,6 +5,7 @@ import logging
 import json
 from datetime import datetime
 from collections import defaultdict
+from urllib.parse import quote_plus
 from zoneinfo import ZoneInfo
 from psycopg2.errors import LockNotAvailable
 
@@ -698,7 +699,17 @@ class AccountMove(models.Model):
         return '-'.join(to_hyphenate[idx: idx + hyphenate_by] for idx in range(0, len(to_hyphenate), hyphenate_by))
 
     def _l10n_ke_oscu_get_receipt_url(self):
+        """KRA verification URL: Data={PIN}{branch}{signature} with no separators."""
         self.ensure_one()
         domain = 'etims-sbx' if self.company_id.l10n_ke_server_mode == 'test' else 'etims'
-        data = f'{self.company_id.vat}{self.company_id.l10n_ke_branch_code}{self.l10n_ke_oscu_signature}'
+        pin = (self.company_id.vat or '').replace(' ', '')
+        branch = (self.company_id.l10n_ke_branch_code or '00').zfill(2)
+        signature = (self.l10n_ke_oscu_signature or '').replace('-', '')
+        data = f'{pin}{branch}{signature}'
         return f'https://{domain}.kra.go.ke/common/link/etims/receipt/indexEtimsReceiptData?Data={data}'
+
+    def _l10n_ke_oscu_get_receipt_barcode_src(self):
+        """Barcode image src with the KRA URL query-encoded so `?Data=` is not truncated."""
+        self.ensure_one()
+        encoded = quote_plus(self._l10n_ke_oscu_get_receipt_url())
+        return f'/report/barcode/?barcode_type=QR&value={encoded}&width=130&height=130&quiet=0'
